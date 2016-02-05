@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <script type="text/javascript">
+    
+    </script>
+
+    <style type="text/css">
+        body {
+            background: #FAFAE5;
+            font-family: sans-serif;
+            
+        }
+
+        #auth {
+            padding: 10px;
+            border-radius: 3px;
+            border: none;
+            font-size: 15px;
+            background: #8BC34A;
+            color: #fff;
+        }
+
+        #opening {
+            position: absolute;
+            top: 50%;
+            height: 20px;
+            margin-top: -10px;
+            left: 50%;
+            width: 200px;
+            margin-left: -100px;
+            display: none;
+        }
+
+        .about {
+            text-align: center;
+        }
+
+        .about__todo {
+            display: inline-block;
+        }
+    </style>
+    <title>Instant Preview</title>
+</head>
+<body>
+
+    <div class="tutorial">
+        <div class="tutorial__part">
+
+        </div>
+        <div>
+
+        </div>
+    </div>
+    <div class="about">
+        <h1>Instant Preview</h1>
+        <p>
+        Open files without Google Drive Preview
+        </p>
+
+        <div>
+        <button id="auth" style="display: none;" onclick="handleAuthClick(event)">Authorize</button>
+        </div>
+        <p id="opening">
+        Opening file. Please wait...
+        </p>
+        <p id="howto" style="text-align: center; margin-top: 105px; display: none;">
+            <img class="display: inline-block;" src="image.png"/>
+        </p>
+    </div>
+    <script src="config.js"></script>
+    <script src="index.js"></script>
+    <script src="https://apis.google.com/js/client.js?onload=checkAuth"></script>
+</body>
+</html>
