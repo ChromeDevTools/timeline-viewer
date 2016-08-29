@@ -15,6 +15,13 @@ gulp.task('config:prod', function () {
         .pipe(gulp.dest('docs/'))
 });
 
+
+gulp.task('devtools', function () {
+    gulp.src('node_modules/chrome-devtools-frontend/front_end/**/*')
+        .pipe(gulp.dest('docs/frontend'))
+});
+
+
 gulp.task('dev', ['config:dev'], function () {
     gulp.src('docs')
         .pipe(webserver({

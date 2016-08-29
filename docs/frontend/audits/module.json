@@ -1,0 +1,30 @@
+{
+    "extensions": [
+        {
+            "type": "@WebInspector.Panel",
+            "name": "audits",
+            "title": "Audits",
+            "order": 90,
+            "className": "WebInspector.AuditsPanel"
+        }
+    ],
+    "dependencies": [
+        "components",
+        "extensions"
+    ],
+    "scripts": [
+        "AuditsPanel.js",
+        "AuditCategory.js",
+        "AuditCategories.js",
+        "AuditController.js",
+        "AuditFormatters.js",
+        "AuditLauncherView.js",
+        "AuditResultView.js",
+        "AuditRules.js",
+        "AuditExtensionCategory.js"
+    ],
+    "resources": [
+        "auditsPanel.css",
+        "auditResultTree.css"
+    ]
+}

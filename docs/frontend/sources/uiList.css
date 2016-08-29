@@ -1,0 +1,73 @@
+/*
+ * Copyright 2015 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+.list-item {
+    padding: 0 8px 0 0;
+    position: relative;
+    min-height: 18px;
+    white-space: nowrap;
+    line-height: 20px;
+}
+
+.list-item:not(:last-child) {
+    border-bottom: 1px solid #eee;
+}
+
+.list-item:not(.ignore-hover):hover {
+    background-color: #eee;
+}
+
+.list-item > .title {
+    word-wrap: break-word;
+    white-space: normal;
+    margin-left: 17px;
+}
+
+.list-item > .subtitle {
+    margin-left: 5px;
+    color: #888;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    float: right;
+}
+
+.list-item > .subtitle a {
+    color: inherit;
+}
+
+.list-item.label {
+    text-align: center;
+}
+
+.list-item.label .title,
+.list-item.label .subtitle {
+    font-style: italic;
+    font-weight: bold;
+    color: #999;
+}
+
+.list-item.dimmed {
+    opacity: 0.6;
+    font-style: italic;
+}
+
+.list-item.selected::before {
+    background-image: url(Images/smallIcons.png);
+    background-size: 190px 30px;
+    background-position: -180px 0;
+    content: "";
+    position: absolute;
+    top: 5px;
+    left: 4px;
+    width: 10px;
+    height: 10px;
+}
+
+@media (-webkit-min-device-pixel-ratio: 1.5) {
+.list-item.selected::before {
+    background-image: url(Images/smallIcons_2x.png);
+}
+} /* media */

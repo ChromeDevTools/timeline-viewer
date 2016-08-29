@@ -1,0 +1,41 @@
+/*
+ * Copyright 2015 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+.severity {
+    background-image: url(Images/smallIcons.png);
+    background-size: 190px 30px;
+    display: inline-block;
+    width: 11px;
+    height: 11px;
+    position: relative;
+    top: 1px;
+    margin-right: 4px;
+}
+
+li {
+    -webkit-user-select: text;
+}
+
+@media (-webkit-min-device-pixel-ratio: 1.5) {
+.severity {
+    background-image: url(Images/smallIcons_2x.png);
+}
+} /* media */
+
+.severity.severe {
+    background-position: -120px 0;
+}
+
+.severity.warning {
+    background-position: -160px 0;
+}
+
+.severity.info {
+    background-position: -140px 0;
+}
+.audit-result {
+    font-weight: bold;
+}
