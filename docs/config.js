@@ -5,5 +5,5 @@ var config = {
         'https://www.googleapis.com/auth/drive.file',
         'profile'
     ],
-    clientId: '963139201929-vdv8qjb57uevrip1ab5325ios43qju4l.apps.googleusercontent.com	'
+    clientId: '963139201929-9do1gni449dij7611muu9to5d0b6p9gh.apps.googleusercontent.com'
 }
