@@ -6,23 +6,23 @@ var gulp = require('gulp'),
 gulp.task('config:dev', function () {
     gulp.src('config_dev.js')
         .pipe(rename('config.js'))
-        .pipe(gulp.dest('src/'))    
+        .pipe(gulp.dest('docs/'))
 });
 
 gulp.task('config:prod', function () {
     gulp.src('config_prod.js')
         .pipe(rename('config.js'))
-        .pipe(gulp.dest('src/'))    
+        .pipe(gulp.dest('docs/'))
 });
 
 gulp.task('dev', ['config:dev'], function () {
-    gulp.src('src')
+    gulp.src('docs')
         .pipe(webserver({
 
         }))
 })
 
 gulp.task('deploy', ['config:prod'], function () {
-    return gulp.src('./src/**/*')
-        .pipe(ghPages());       
+    return gulp.src('./docs/**/*')
+        .pipe(ghPages());
 })
