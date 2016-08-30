@@ -38,6 +38,12 @@
             font-size: 15px;
             background: #8BC34A;
             color: #fff;
+            cursor: pointer;
+            transition: all 340ms;
+            box-shadow: 1px 1px 1px hsla(0, 0%, 53%, 0.07);
+        }
+        #auth:hover {
+            box-shadow: 2px 3px 5px hsl(0, 0%, 53%);
         }
 
         #opening {
@@ -49,6 +55,7 @@
             width: 200px;
             margin-left: -100px;
         }
+
 
         .about {
             text-align: center;
@@ -64,6 +71,11 @@
         }
         h1 a {
             text-decoration: none;
+        }
+        .hide-devtools .root-view {
+            display: none;
+            visibility: hidden;
+            overflow: hidden;
         }
     </style>
     <title>DevTools Timeline Viewer</title>
@@ -93,12 +105,14 @@
         <div id="howto" hidden style="text-align: center; margin-top: 105px; max-width: 750px; margin: 0 auto;">
             <p>Once the application is authorized, it registers as a Google Drive viewer for <code>.json</code> files. Then, when opening a json file, you can select the Timeline Viewer. It will open in a new tab and load the timeline asset from your Drive.
             <img src="https://cloud.githubusercontent.com/assets/39191/18080010/67390d9a-6e48-11e6-98a3-9c8c81b1df67.png" style="width: 100%; margin: 20px 0;">
-            
+
             <p>You can share this URL with any users who 1) have Google Drive access to the asset and 2) have authorized Timeline Viewer to Drive with Google OAuth.
 
            <img src="https://cloud.githubusercontent.com/assets/39191/18080845/fb39f056-6e4b-11e6-90df-6cda94bd2495.png" style="width: 100%; margin: 20px 0;">
 
             <p>Visit your <a href="https://security.google.com/settings/security/permissions?pli=1">Google security permissions</a> if you'd like to revoke authorization.
+            <hr>
+            <p>This app can also load any trace that's available over CORS. <a href="?loadTimelineFromURL=https://dl.dropboxusercontent.com/u/39519/temp/kenneth-io-Timeline.json">View this example live.</a>
         </div>
     </div>
     <script src="config.js"></script>

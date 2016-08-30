@@ -76,16 +76,17 @@ class Viewer {
       this.authBtn.hidden = false;
       this.statusElem.textContent = `Drive API access: not authorized (${authResult.error_subtype})`;
       document.getElementById('howto').hidden = false;
-      this.destroyDevTools();
+      this.hideDevTools();
       return new Error(`Google auth error: ${authResult.error}: ${authResult.error_subtype}`);
     }
   }
 
-  destroyDevTools() {
-    try {
-      self.runtime = self.Runtime = null;
-      document.querySelector('.root-view').remove();
-    } catch (e) {}
+  hideDevTools() {
+    document.body.classList.add('hide-devtools');
+  }
+
+  showDevTools() {
+    document.body.classList.remove('hide-devtools');
   }
 
   loadResourcePromise(url) {
@@ -112,16 +113,17 @@ class Viewer {
     this.totalSize = +response.fileSize;
 
     if (response.error || !response.downloadUrl) {
-      this.destroyDevTools();
+      this.hideDevTools();
       this.statusElem.textContent = `Drive API error: ${response.message}`;
       return reject(new Error(response.message, response.error));
     }
 
+    this.showDevTools();
     this.statusElem.textContent = 'Opening timeline file. Please wait...';
     var url = response.downloadUrl + '&alt=media'; // forces file contents in response body.
     this.downloadFile(url, function(payload) {
       if (payload === null) {
-        this.destroyDevTools();
+        this.hideDevTools();
         this.statusElem.textContent = 'Download of Drive asset failed.';
         return reject();
       }
