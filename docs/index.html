@@ -77,6 +77,9 @@
             visibility: hidden;
             overflow: hidden;
         }
+
+        .about ul { text-align: left; }
+        .about ul code { font-size: 80%; }
     </style>
     <title>DevTools Timeline Viewer</title>
 </head>
@@ -112,7 +115,13 @@
 
             <p>Visit your <a href="https://security.google.com/settings/security/permissions?pli=1">Google security permissions</a> if you'd like to revoke authorization.
             <hr>
-            <p>This app can also load any trace that's available over CORS. <a href="?loadTimelineFromURL=https://dl.dropboxusercontent.com/u/39519/temp/kenneth-io-Timeline.json">View this example live.</a>
+            <p>This app can also load any trace that's available over CORS. That includes:
+                <ul>
+                    <li><a href="?loadTimelineFromURL=https://www.dropbox.com/s/4izypjuxylfwfy7/pureformulas.json?dl=0">Dropbox: <code>https://www.dropbox.com/s/4izypjuxylfwfy7/pureformulas.json?dl=0</code></a>
+                    <li><a href="?loadTimelineFromURL=https://gist.github.com/paulirish/f83d30384954937dc3a1fae970a4ae52/raw/b25b27741c652d3091a316dfd8b58bf72f14aa74/twitch.json">Gists (raw): <code>https://gist.github.com/paulirish/f83d3038…970a4ae52/raw/b25b2…2f14aa74/twitch.json</code></a>
+                    <li>Any other trace file that's available with CORS headers.
+                </ul>
+
         </div>
     </div>
     <script src="config.js"></script>

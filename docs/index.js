@@ -90,10 +90,19 @@ class Viewer {
   }
 
   loadResourcePromise(url) {
-    // fallthrough
-    if (url !== this.timelineURL || this.timelineProvider !== 'drive') return _loadResourcePromise(...arguments);
-    // special handling for us..
-    return this.driveFileLoaded.then(payload => payload);
+    // pass through URLs that aren't our timelineURL param
+    if (url !== this.timelineURL)
+      return _loadResourcePromise(...arguments);
+
+    if (this.timelineProvider === 'drive')
+      return this.driveFileLoaded.then(payload => payload);
+
+    // adjustments for CORS
+    var parsedURL = new URL(url);
+    parsedURL.hostname = parsedURL.hostname.replace('github.com', 'githubusercontent.com');
+    parsedURL.hostname = parsedURL.hostname.replace('www.dropbox.com', 'dl.dropboxusercontent.com');
+
+    return _loadResourcePromise(parsedURL.toString());
   }
 
   requestDriveFile(resolve, reject) {
