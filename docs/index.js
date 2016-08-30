@@ -42,6 +42,7 @@ function openFile () {
         fileId: id
     });
     request.execute(function (response) {
+        debugger;
         var url = response.webContentLink.replace('download', 'open');
         location.href = url;
     })
