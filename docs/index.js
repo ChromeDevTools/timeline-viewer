@@ -1,5 +1,4 @@
 // todo: 
-// 1. start the drive fetch during devtools init
 // 2. use the loadingStarted UI
 
 class Viewer {
@@ -8,6 +7,8 @@ class Viewer {
     this.params = new URL(location.href).searchParams;
     this.timelineURL = this.params.get('loadTimelineFromURL');
     this.timelineId;
+    this.totalSize = 50 * 1000 * 1000;
+    this.loadingStarted = false;
 
     // if timelineURL isn't a real URL, then we'll save it to an ID
     try {
@@ -88,6 +89,7 @@ class Viewer {
 
   fetchDriveFile(resolve, reject, response) {
     document.title = `${response.originalFilename} | ${document.title}`;
+    this.totalSize = +response.fileSize;
 
     if (response.error || !response.downloadUrl)
       return reject(new Error(response.message, response.error));
@@ -106,12 +108,19 @@ class Viewer {
     var xhr = new XMLHttpRequest();
     xhr.open('GET', url);
     xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
-    xhr.onload = function() {
-      callback(xhr.responseText);
-    };
-    xhr.onerror = function() {
-      callback(null);
-    };
+    xhr.onprogress = (evt => {
+      try {
+        if (!this.loadingStarted) {
+          this.loadingStarted = true;
+          WebInspector.inspectorView.showPanel('timeline').then(panel => panel.loadingStarted());
+        }
+        WebInspector.inspectorView.showPanel('timeline').then(panel => {
+          panel.loadingProgress(evt.loaded / this.totalSize);
+        });
+      } catch (e) {}
+    });
+    xhr.onload = _ => callback(xhr.responseText);
+    xhr.onerror = _ => callback(null);
     xhr.send();
   }
 }
