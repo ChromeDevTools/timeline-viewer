@@ -36,7 +36,11 @@ function openFile () {
         document.getElementById('howto').style.display = 'block';
         return;
     }
+    // show loading message..
     document.getElementById('opening').style.display = 'inline';
+    // start devtools
+    Runtime.startApplication("inspector");
+    
     var id = location.href.split('?')[1].split('=')[1];
     var request = gapi.client.drive.files.get({
         fileId: id
@@ -47,7 +51,7 @@ function openFile () {
             var fileparts = [payload];
             var traceblob = new Blob(fileparts, {type : 'application/json'});
 
-            (function loopy(){
+            (function loopy() {
               if (window.WebInspector && WebInspector.panels && WebInspector.panels.timeline && WebInspector.panels.timeline._loadFromFile){
                 WebInspector.panels.timeline._loadFromFile(traceblob);
               } else {

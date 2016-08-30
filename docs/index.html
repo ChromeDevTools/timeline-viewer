@@ -59,7 +59,7 @@
             display: inline-block;
         }
     </style>
-    <title>Instant Preview</title>
+    <title>DevTools Timeline Viewer</title>
 </head>
 <body>
 
@@ -72,28 +72,24 @@
         </div>
     </div>
     <div class="about">
-        <h1>Instant Preview</h1>
+        <h1>DevTools Timeline Viewer</h1>
         <p>
-        Open files without Google Drive Preview
+            Open Timeline files in two clicks.
         </p>
 
         <div>
         <button id="auth" style="display: none;" onclick="handleAuthClick(event)">Authorize</button>
         </div>
         <p id="opening">
-        Opening file. Please wait...
+        Opening timeline file. Please wait...
         </p>
-        <p id="howto" style="text-align: center; margin-top: 105px; display: none;">
-            <img class="display: inline-block;" src="image.png"/>
-        </p>
+        
     </div>
     <script src="config.js"></script>
     <script src="index.js"></script>
     <script src="https://apis.google.com/js/client.js?onload=checkAuth"></script>
     <script type="text/javascript" src="Runtime.js"></script>
-    <script>
-    Runtime.startApplication("inspector");
-    </script>
+
 </head>
 <body class="undocked" id="-blink-dev-tools"></body>
 </html>
