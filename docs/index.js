@@ -42,9 +42,12 @@ function openFile () {
         fileId: id
     });
     request.execute(function (response) {
-        debugger;
-        var url = response.webContentLink.replace('download', 'open');
-        location.href = url;
+        var url = response.downloadUrl + '&alt=media'; // forces file contents in response body.
+        downloadFile(url, function(payload){  
+            var fileparts = [payload];
+            var traceblob = new Blob(aFileParts, {type : 'application/json'});
+            WebInspector._timelinePanel._loadFromFile(traceblob);
+        });
     })
 }
 
