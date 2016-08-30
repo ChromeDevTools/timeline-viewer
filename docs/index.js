@@ -1,5 +1,3 @@
-// todo: 
-// 2. use the loadingStarted UI
 
 class Viewer {
 
