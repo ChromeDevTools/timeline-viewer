@@ -18,6 +18,8 @@ class Viewer {
     }
 
     this.authBtn = document.getElementById('auth');
+    this.authBtn.addEventListener('click', this.handleAuthClick.bind(this));
+
     this.driveAPIloaded = new Promise((resolve, reject) => {
       this.driveAPIloadedresolve = resolve;
     });
