@@ -5,17 +5,21 @@ class Viewer {
     this.params = new URL(location.href).searchParams;
     this.timelineURL = this.params.get('loadTimelineFromURL');
     this.timelineId;
+    this.timelineProvider = 'url';
     this.totalSize = 50 * 1000 * 1000;
     this.loadingStarted = false;
     this.statusElem = document.getElementById('status');
 
     try {
       const parsedURL = new URL(this.timelineURL);
-      if (parsedURL.protocol === 'drive:')
+      if (parsedURL.protocol === 'drive:') {
+        this.timelineProvider = 'drive';
         this.timelineId = parsedURL.pathname.replace(/^\/+/, '');
+      }
     } catch (e) {
-       // if timelineURL isn't a real URL, then we'll save it to an ID
+       // legacy URLs, without a drive:// prefix.
       this.timelineId = this.timelineURL
+      this.timelineProvider = 'drive';
     }
 
     this.authBtn = document.getElementById('auth');
@@ -60,6 +64,8 @@ class Viewer {
   }
 
   handleAuthResult(authResult) {
+    if (this.timelineProvider !== 'drive') return;
+
     if (authResult && !authResult.error) {
       this.authBtn.hidden = true;
       this.statusElem.textContent = 'Drive API access: successful';
