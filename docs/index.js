@@ -66,6 +66,7 @@ class Viewer {
     } else {
       // auth error.
       this.authBtn.hidden = false;
+      this.statusElem.textContent = 'Drive API access: not authorized';
       document.getElementById('howto').hidden = false;
       return new Error(`Google auth error: ${authResult.error}: ${authResult.error_subtype}`);
     }
