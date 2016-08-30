@@ -88,9 +88,25 @@
         </p>
     </div>
     <script src="config.js"></script>
-    <script src="https://apis.google.com/js/client.js?onload=checkAuth"></script>pre
-    <script src="Runtime.js"></script>
     <script src="index.js"></script>
+    <script src="Runtime.js"></script>
+    <script>
+        window.viewer = new Viewer();
+
+        // called when apis.google script is done.
+        self.checkAuth = function() {
+          return viewer.checkAuth(...arguments);
+        }
+        self.authBtn = viewer.authBtn;
+
+        // This is defined in devtools' Runtime
+        _loadResourcePromise = self.loadResourcePromise;
+        self.loadResourcePromise = function(){
+          return viewer.loadResourcePromise(...arguments);
+        }
+    </script>
+    <script async src="https://apis.google.com/js/client.js?onload=checkAuth"></script>pre
+    
     
 </head>
 <body class="undocked" id="-blink-dev-tools"></body>

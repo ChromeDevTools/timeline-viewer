@@ -1,66 +1,24 @@
-var params = new URL(location.href).searchParams;
-var timelineURL = params.get('loadTimelineFromURL');
-var timelineId;
 
-// if timelineURL isn't a real URL, then we'll save it to an ID
-try {
-    new URL(timelineURL);
-} catch (e) {
-    timelineId = timelineURL
-}
+class Viewer {
 
-var authBtn = document.getElementById('auth');
+  constructor(){
+    this.params = new URL(location.href).searchParams;
+    this.timelineURL = this.params.get('loadTimelineFromURL');
+    this.timelineId;
 
-// called when apis.google script is done.
-function checkAuth() {
-    gapi.auth.authorize({
-        'client_id': config.clientId,
-        'scope': config.scopes.join(' '),
-        'immediate': true
-    }, handleAuthResult);
-}
-
-function handleAuthResult(authResult) {
-    if (authResult && !authResult.error) {
-        loadDriveApi();
-        authBtn.style.display = 'none';
-    } else {
-        authBtn.style.display = 'inline';
-        document.getElementById('howto').style.display = 'block';
+    // if timelineURL isn't a real URL, then we'll save it to an ID
+    try {
+        new URL(this.timelineURL);
+    } catch (e) {
+        this.timelineId = this.timelineURL
     }
-}
 
-function handleAuthClick(event) {
-    gapi.auth.authorize({
-        client_id: config.clientId, 
-        scope: config.scopes.join(' '), 
-        immediate: false
-    }, handleAuthResult);
-    return false;
-}
-
-var driveAPIloaded;
-function loadDriveApi() {
-    driveAPIloaded = new Promise((resolve, reject) => {
-        gapi.client.load('drive', 'v2', resolve);    
+    this.authBtn = document.getElementById('auth');
+    this.driveAPIloaded = new Promise((resolve, reject) => {
+      this.driveAPIloadedresolve = resolve;
     });
-}   
 
-// This is defined in devtools' Runtime
-_loadResourcePromise = loadResourcePromise
-loadResourcePromise = function(url){ 
-    // fallthrough
-    if (url !== timelineId) return _loadResourcePromise(...arguments);
-    // special handling for us..
-    return driveAPIloaded.then(_ => {
-        return new Promise((resolve, reject) => {
-            openFile(resolve, reject);
-        })
-    })
-}
-
-function init(){
-    if (!timelineURL) {
+    if (!this.timelineURL) {
         document.getElementById('howto').style.display = 'block';
         return;
     }
@@ -70,42 +28,82 @@ function init(){
     
     // start devtools. 
     Runtime.startApplication("inspector");
-}
+  }
 
-function openFile (resolve, reject) {
-    // if there's no timelineId then let's skip all this drive API stuff.
-    if (!timelineId) return;
+  checkAuth() {
+    gapi.auth.authorize({
+      'client_id': config.clientId,
+      'scope': config.scopes.join(' '),
+      'immediate': true
+    }, this.handleAuthResult.bind(this));
+  }
+
+  handleAuthClick(event) {
+    gapi.auth.authorize({
+        client_id: config.clientId, 
+        scope: config.scopes.join(' '), 
+        immediate: false
+    }, this.handleAuthResult.bind(this));
+    return false;
+  }
+
+  handleAuthResult(authResult) {
+    if (authResult && !authResult.error) {
+      this.authBtn.style.display = 'none';
+      gapi.client.load('drive', 'v2', this.driveAPIloadedresolve);
+    } else {
+      // auth error.
+      this.authBtn.style.display = 'inline';
+      document.getElementById('howto').style.display = 'block';
+      return new Error(`Google auth error: ${authResult.error}: ${authResult.error_subtype}`);
+    }
+  }
+
+  loadResourcePromise(url){
+    // fallthrough
+    if (url !== this.timelineId) return _loadResourcePromise(...arguments);
+    // special handling for us..
+    return this.driveAPIloaded.then(_ => {
+        return new Promise((resolve, reject) => {
+            this.requestDriveFile(resolve, reject);
+        })
+    })
+  }
+
+  requestDriveFile (resolve, reject) {
+    // if there's no this.timelineId then let's skip all this drive API stuff.
+    if (!this.timelineId) return;
 
     var request = gapi.client.drive.files.get({
-        fileId: timelineId
+        fileId: this.timelineId
     });
-    request.execute(function (response) {
-        var url = response.downloadUrl + '&alt=media'; // forces file contents in response body.
-        downloadFile(url, function(payload){  
+    request.execute(this.fetchDriveFile.bind(this));
+  }
 
-            return resolve(payload);
-            
-            // ignore that rubbish
-            // var fileparts = [payload];
-            // var traceblob = new Blob(fileparts, {type : 'application/json'});
+  fetchDriveFile(response) {
+    if (response.error || !reponse.downloadUrl)
+      return Promise.reject(new Error(response.message, response.error));
 
-            // (function loopy() {
-            //   if (window.WebInspector && WebInspector.panels && WebInspector.panels.timeline && WebInspector.panels.timeline._loadFromFile){
-                
+    var url = response.downloadUrl + '&alt=media'; // forces file contents in response body.
+    this.downloadFile(url, function(payload) {  
+        if (payload === null) 
+          return reject(new Error('Download of drive asset failed'));
 
-            //     WebInspector.panels.timeline._loadFromFile(traceblob);
+        return resolve(payload);
+        
+        // ignore that rubbish
+        // var fileparts = [payload];
+        // var traceblob = new Blob(fileparts, {type : 'application/json'});
 
+        // (function loopy() {
+        //   if (window.WebInspector && WebInspector.panels && WebInspector.panels.timeline && WebInspector.panels.timeline._loadFromFile){
+        //     WebInspector.panels.timeline._loadFromFile(traceblob);
+        //   } else  setTimeout(loopy,50);
+        // })();
+    });
+  }
 
-            //   } else {
-            //     setTimeout(loopy,50);
-            //   }
-            // })();
-        });
-    })
-}
-
-function downloadFile(url, callback) {
-  if (url) {
+  downloadFile(url, callback) {
     var accessToken = gapi.auth.getToken().access_token;
     var xhr = new XMLHttpRequest();
     xhr.open('GET', url);
@@ -117,9 +115,5 @@ function downloadFile(url, callback) {
       callback(null);
     };
     xhr.send();
-  } else {
-    callback(null);
   }
 }
-
-init();
