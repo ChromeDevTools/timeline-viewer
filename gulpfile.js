@@ -18,7 +18,7 @@ gulp.task('config:prod', function () {
 
 gulp.task('devtools', function () {
     gulp.src('node_modules/chrome-devtools-frontend/front_end/**/*')
-        .pipe(gulp.dest('docs/frontend'))
+        .pipe(gulp.dest('docs/'))
 });
 
 
