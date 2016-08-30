@@ -1,16 +1,19 @@
+// todo: 
+// 1. start the drive fetch during devtools init
+// 2. use the loadingStarted UI
 
 class Viewer {
 
-  constructor(){
+  constructor() {
     this.params = new URL(location.href).searchParams;
     this.timelineURL = this.params.get('loadTimelineFromURL');
     this.timelineId;
 
     // if timelineURL isn't a real URL, then we'll save it to an ID
     try {
-        new URL(this.timelineURL);
+      new URL(this.timelineURL);
     } catch (e) {
-        this.timelineId = this.timelineURL
+      this.timelineId = this.timelineURL
     }
 
     this.authBtn = document.getElementById('auth');
@@ -18,16 +21,21 @@ class Viewer {
       this.driveAPIloadedresolve = resolve;
     });
 
+    this.driveFileLoaded = new Promise((resolve, reject) => {
+      // get this request going now.
+      this.requestDriveFile(resolve, reject);
+    });
+
     if (!this.timelineURL) {
-        document.getElementById('howto').style.display = 'block';
-        return;
+      document.getElementById('howto').style.display = 'block';
+      return;
     }
 
     // show loading message..
     document.getElementById('opening').style.display = 'inline';
     
     // start devtools. 
-    Runtime.startApplication("inspector");
+    Runtime.startApplication('inspector');
   }
 
   checkAuth() {
@@ -40,9 +48,9 @@ class Viewer {
 
   handleAuthClick(event) {
     gapi.auth.authorize({
-        client_id: config.clientId, 
-        scope: config.scopes.join(' '), 
-        immediate: false
+      client_id: config.clientId, 
+      scope: config.scopes.join(' '), 
+      immediate: false
     }, this.handleAuthResult.bind(this));
     return false;
   }
@@ -59,39 +67,37 @@ class Viewer {
     }
   }
 
-  loadResourcePromise(url){
+  loadResourcePromise(url) {
     // fallthrough
     if (url !== this.timelineId) return _loadResourcePromise(...arguments);
     // special handling for us..
-    return this.driveAPIloaded.then(_ => {
-        return new Promise((resolve, reject) => {
-            this.requestDriveFile(resolve, reject);
-        })
-    })
+    return this.driveFileLoaded.then(payload => payload);
   }
 
-  requestDriveFile (resolve, reject) {
+  requestDriveFile(resolve, reject) {
     // if there's no this.timelineId then let's skip all this drive API stuff.
     if (!this.timelineId) return;
 
-    var request = gapi.client.drive.files.get({
+    return this.driveAPIloaded.then(_ => {
+      var request = gapi.client.drive.files.get({
         fileId: this.timelineId
+      });
+      request.execute(this.fetchDriveFile.bind(this, resolve, reject));
     });
-    request.execute(this.fetchDriveFile.bind(this, resolve, reject));
   }
 
   fetchDriveFile(resolve, reject, response) {
     document.title = `${response.originalFilename} | ${document.title}`;
-    
+
     if (response.error || !response.downloadUrl)
-      return Promise.reject(new Error(response.message, response.error));
+      return reject(new Error(response.message, response.error));
 
     var url = response.downloadUrl + '&alt=media'; // forces file contents in response body.
     this.downloadFile(url, function(payload) {  
-        if (payload === null) 
-          return reject(new Error('Download of drive asset failed'));
+      if (payload === null) 
+        return reject(new Error('Download of drive asset failed'));
 
-        return resolve(payload);
+      return resolve(payload);
     });
   }
 
