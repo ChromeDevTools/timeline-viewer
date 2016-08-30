@@ -45,8 +45,15 @@ function openFile () {
         var url = response.downloadUrl + '&alt=media'; // forces file contents in response body.
         downloadFile(url, function(payload){  
             var fileparts = [payload];
-            var traceblob = new Blob(aFileParts, {type : 'application/json'});
-            WebInspector._timelinePanel._loadFromFile(traceblob);
+            var traceblob = new Blob(fileparts, {type : 'application/json'});
+
+            (function loopy(){
+              if (window.WebInspector && WebInspector.panels && WebInspector.panels.timeline && WebInspector.panels.timeline._loadFromFile){
+                WebInspector.panels.timeline._loadFromFile(traceblob);
+              } else {
+                setTimeout(loopy,50);
+              }
+            })();
         });
     })
 }
