@@ -108,19 +108,21 @@ class Viewer {
     var xhr = new XMLHttpRequest();
     xhr.open('GET', url);
     xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
-    xhr.onprogress = (evt => {
-      try {
-        if (!this.loadingStarted) {
-          this.loadingStarted = true;
-          WebInspector.inspectorView.showPanel('timeline').then(panel => panel.loadingStarted());
-        }
-        WebInspector.inspectorView.showPanel('timeline').then(panel => {
-          panel.loadingProgress(evt.loaded / this.totalSize);
-        });
-      } catch (e) {}
-    });
+    xhr.onprogress = this.updateProgress.bind(this);
     xhr.onload = _ => callback(xhr.responseText);
     xhr.onerror = _ => callback(null);
     xhr.send();
+  }
+
+  updateProgress(evt) {
+    try {
+      if (!this.loadingStarted) {
+        this.loadingStarted = true;
+        WebInspector.inspectorView.showPanel('timeline').then(panel => panel && panel.loadingStarted());
+      }
+      WebInspector.inspectorView.showPanel('timeline').then(panel => {
+        panel && panel.loadingProgress(evt.loaded / this.totalSize);
+      });
+    } catch (e) {}
   }
 }
