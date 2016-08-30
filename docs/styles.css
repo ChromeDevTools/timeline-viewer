@@ -1,0 +1,51 @@
+.welcome {
+    text-align: center;
+    box-sizing: border-box;
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+#auth {
+    padding: 10px;
+    border-radius: 3px;
+    border: none;
+    font-size: 15px;
+    background: #8BC34A;
+    color: #fff;
+    cursor: pointer;
+    transition: all 340ms;
+    box-shadow: 1px 1px 1px hsla(0, 0%, 53%, 0.07);
+}
+#auth:hover {
+    box-shadow: 2px 3px 5px hsl(0, 0%, 53%);
+}
+
+.welcome article input[placeholder] {
+  height: 2.7em;
+  margin: .2em;
+  vertical-align: middle;
+}
+
+#status {
+  font-family: monospace;
+  background: #e4e4e4;
+  padding: 10px;
+  margin: 10px 0 0;
+}
+
+h1 a:visited {
+    color: inherit;
+}
+h1 a {
+    text-decoration: none;
+}
+.hide-devtools .root-view {
+    display: none;
+    visibility: hidden;
+    overflow: hidden;
+}
+
+.about ul { text-align: left; }
+.about ul code { font-size: 80%; }

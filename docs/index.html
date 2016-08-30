@@ -2,128 +2,67 @@
 <html>
 <head>
     <meta http-equiv="content-type" content="text/html; charset=utf-8">
-
-    <link rel="apple-touch-icon" sizes="57x57" href="icons/apple-icon-57x57.png">
-    <link rel="apple-touch-icon" sizes="60x60" href="icons/apple-icon-60x60.png">
-    <link rel="apple-touch-icon" sizes="72x72" href="icons/apple-icon-72x72.png">
-    <link rel="apple-touch-icon" sizes="76x76" href="icons/apple-icon-76x76.png">
-    <link rel="apple-touch-icon" sizes="114x114" href="icons/apple-icon-114x114.png">
-    <link rel="apple-touch-icon" sizes="120x120" href="icons/apple-icon-120x120.png">
-    <link rel="apple-touch-icon" sizes="144x144" href="icons/apple-icon-144x144.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="icons/apple-icon-152x152.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-icon-180x180.png">
-    <link rel="icon" type="image/png" sizes="192x192"  href="icons/android-icon-192x192.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="96x96" href="icons/favicon-96x96.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
-    <link rel="manifest" href="icons/manifest.json">
-    <meta name="msapplication-TileColor" content="#ffffff">
-    <meta name="msapplication-TileImage" content="icons/ms-icon-144x144.png">
-    <meta name="theme-color" content="#ffffff">
-    <script type="text/javascript">
-
-    </script>
-
-    <style type="text/css">
-        body {
-            background: #FAFAE5;
-            font-family: sans-serif;
-
-        }
-
-        #auth {
-            padding: 10px;
-            border-radius: 3px;
-            border: none;
-            font-size: 15px;
-            background: #8BC34A;
-            color: #fff;
-            cursor: pointer;
-            transition: all 340ms;
-            box-shadow: 1px 1px 1px hsla(0, 0%, 53%, 0.07);
-        }
-        #auth:hover {
-            box-shadow: 2px 3px 5px hsl(0, 0%, 53%);
-        }
-
-        #opening {
-            position: absolute;
-            top: 50%;
-            height: 20px;
-            margin-top: -10px;
-            left: 50%;
-            width: 200px;
-            margin-left: -100px;
-        }
-
-
-        .about {
-            text-align: center;
-        }
-
-        #status {
-            font-family: monospace;
-            background: white;
-            padding: 10px;
-        }
-        h1 a:visited {
-            color: inherit;
-        }
-        h1 a {
-            text-decoration: none;
-        }
-        .hide-devtools .root-view {
-            display: none;
-            visibility: hidden;
-            overflow: hidden;
-        }
-
-        .about ul { text-align: left; }
-        .about ul code { font-size: 80%; }
-    </style>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://npmcdn.com/tachyons@4.1.2/css/tachyons.min.css">
+    <link rel="stylesheet" href="http://mrmrs.io/btns/css/btns.min.css">
+    <link rel="stylesheet" href="styles.css">
     <title>DevTools Timeline Viewer</title>
 </head>
 <body>
+    <div class="welcome w-100 sans-serif bg-white">
+        <h1 class="f2 f-subheadline-ns mb0">
+            <a href="https://chromedevtools.github.io/timeline-viewer/">DevTools Timeline Viewer</a>
+        </h1>
+        <h4 class="gray f6 mb4 ttu tracked">
+            Shareable URLs for your Chrome DevTools Timeline traces.
+        </h4>
 
-    <div class="tutorial">
-        <div class="tutorial__part">
+        <article class="center mw5 mw6-ns br3 hidden ba b--black-10 mv4">
+            <h3 class="f4 bg-near-white br3 br--top black-60 mv0 pv2 ph3">Share public traces</h3>
+            <div class="pa3 bt b--black-10 f6 f5-ns lh-copy">
+                <form>
+                    <input type="text" name=url id="enterurl" placeholder="Enter public Dropbox URL or raw Gist URL" class="w-80">
+                    <input type="submit" class="btn btn--s btn--grayn" value="OK"></input>
+                    <small class="db black-50">
+                        Works with <em>Dropbox public URLs</em> (<a href="?loadTimelineFromURL=https://www.dropbox.com/s/4izypjuxylfwfy7/pureformulas.json?dl=0" data-url="https://www.dropbox.com/s/4izypjuxylfwfy7/pureformulas.json?dl=0">example</a>),
+                        <em>raw Gists</em>
+                        (<a href="?loadTimelineFromURL=https://gist.github.com/paulirish/f83d30384954937dc3a1fae970a4ae52/raw/b25b27741c652d3091a316dfd8b58bf72f14aa74/twitch.json"  data-url="https://gist.github.com/paulirish/f83d30384954937dc3a1fae970a4ae52/raw/b25b27741c652d3091a316dfd8b58bf72f14aa74/twitch.json">example</a>),
+                        <br> or any file available over CORS.
+                    </small>
+                </form>
+            </div>
+        </article>
 
-        </div>
-        <div>
-
-        </div>
-    </div>
-    <div class="about">
-        <h1><a href="https://chromedevtools.github.io/timeline-viewer/">DevTools Timeline Viewer</a></h1>
-        <p>
-            Open Chrome DevTools Timeline traces in 2 clicks. <small><a href="https://github.com/ChromeDevTools/timeline-viewer">Github repo</a></small>
-        </p>
-
-        <div>
-        <button id="auth" hidden>Authorize Drive API access</button>
-        </div>
-        <p id="status">
-            Checking for Drive API authorization...
-        </p>
-        <div id="howto" hidden style="text-align: center; margin-top: 105px; max-width: 750px; margin: 0 auto;">
-            <p>Once the application is authorized, it registers as a Google Drive viewer for <code>.json</code> files. Then, when opening a json file, you can select the Timeline Viewer. It will open in a new tab and load the timeline asset from your Drive.
+        <article class="center mw5 mw6-ns br3 hidden ba b--black-10 mv4">
+            <h3 class="f4 bg-near-white br3 br--top black-60 mv0 pv2 ph3">View traces from Google Drive</h3>
+            <div class="pa3 bt b--black-10 f6 f5-ns lh-copy">
+                <div style="height: 45px">
+                    <button id="auth" hidden>Authorize Drive API access</button>
+                </div>
+                <p id="status">
+                    Checking for Drive API authorization...
+                </p>
+            </div>
+        </article>
+        <article id="howto" hidden class="mw7  tl" style="margin-top: 105px; margin: 0 auto;">
+            <h3 class="f4 br3 br--top black-60 pv2 mb0">Google Drive Integration</h3>
+            <p>Once authorized, you'll see Timeline Viewer as a registered Google Drive viewer when opening <code>.json</code> files.
+            Once you select the Timeline Viewer, it will open in a new tab and load the timeline asset from your Drive.
             <img src="https://cloud.githubusercontent.com/assets/39191/18080010/67390d9a-6e48-11e6-98a3-9c8c81b1df67.png" style="width: 100%; margin: 20px 0;">
 
-            <p>You can share this URL with any users who 1) have Google Drive access to the asset and 2) have authorized Timeline Viewer to Drive with Google OAuth.
+            <p>You can share this URL with any users who ① have authorized Timeline Viewer to Drive with Google OAuth and ② have View permission to the Google Drive asset.
 
-           <img src="https://cloud.githubusercontent.com/assets/39191/18080845/fb39f056-6e4b-11e6-90df-6cda94bd2495.png" style="width: 100%; margin: 20px 0;">
+            <img src="https://cloud.githubusercontent.com/assets/39191/18080845/fb39f056-6e4b-11e6-90df-6cda94bd2495.png" style="width: 100%; margin: 20px 0;">
 
             <p>Visit your <a href="https://security.google.com/settings/security/permissions?pli=1">Google security permissions</a> if you'd like to revoke authorization.
             <hr>
-            <p>This app can also load any trace that's available over CORS. That includes:
-                <ul>
-                    <li><a href="?loadTimelineFromURL=https://www.dropbox.com/s/4izypjuxylfwfy7/pureformulas.json?dl=0">Dropbox: <code>https://www.dropbox.com/s/4izypjuxylfwfy7/pureformulas.json?dl=0</code></a>
-                    <li><a href="?loadTimelineFromURL=https://gist.github.com/paulirish/f83d30384954937dc3a1fae970a4ae52/raw/b25b27741c652d3091a316dfd8b58bf72f14aa74/twitch.json">Gists (raw): <code>https://gist.github.com/paulirish/f83d3038…970a4ae52/raw/b25b2…2f14aa74/twitch.json</code></a>
-                    <li>Any other trace file that's available with CORS headers.
-                </ul>
+        </article>
 
-        </div>
+
+        <small class="f6 gray dib mr3 mr4-ns mv4">Contribute! <a class="link dim" href="https://github.com/ChromeDevTools/timeline-viewer">github.com/ChromeDevTools/timeline-viewer</a></small>
+
     </div>
+
     <script src="config.js"></script>
     <script src="index.js"></script>
     <script src="Runtime.js"></script>
@@ -140,12 +79,36 @@
         _loadResourcePromise = self.loadResourcePromise;
         self.loadResourcePromise = viewer.loadResourcePromise.bind(viewer);
     </script>
+    <script>
+        const form = document.querySelector('form');
+        form.addEventListener('submit', evt => {
+            evt.preventDefault();
+            const formdata = new FormData(evt.target)
+            const url = formdata.get('url');
+            if (!url) return;
+
+            const parsedURL = new URL(location.href);
+            parsedURL.searchParams.delete('loadTimelineFromURL')
+            // this is weird because we don't want url encoding of the URL
+            parsedURL.searchParams.append('loadTimelineFromURL', 'REPLACEME')
+            const newurl = parsedURL.toString().replace('REPLACEME', url);
+            location.href = newurl;
+        });
+
+        [...document.querySelectorAll('a[data-url]')].forEach(elem => {
+            elem.addEventListener('click', evt => {
+                evt.preventDefault();
+                var url = evt.target.dataset.url;
+                var input = document.querySelector('#enterurl');
+                input.value = url;
+            });
+        });
+    </script>
     <script async src="https://apis.google.com/js/client.js?onload=checkAuth"></script>
 
 
-</head>
-<body class="undocked" id="-blink-dev-tools"></body>
-</html>
+    <body class="undocked" id="-blink-dev-tools"></body>
+
 
 </body>
 </html>
