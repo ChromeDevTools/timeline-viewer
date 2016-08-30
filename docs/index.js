@@ -68,10 +68,18 @@ class Viewer {
     } else {
       // auth error.
       this.authBtn.hidden = false;
-      this.statusElem.textContent = 'Drive API access: not authorized';
+      this.statusElem.textContent = `Drive API access: not authorized (${authResult.error_subtype})`;
       document.getElementById('howto').hidden = false;
+      this.destroyDevTools();
       return new Error(`Google auth error: ${authResult.error}: ${authResult.error_subtype}`);
     }
+  }
+
+  destroyDevTools() {
+    try {
+      self.runtime = self.Runtime = null;
+      document.querySelector('.root-view').remove();
+    } catch (e) {}
   }
 
   loadResourcePromise(url) {
@@ -98,8 +106,7 @@ class Viewer {
     this.totalSize = +response.fileSize;
 
     if (response.error || !response.downloadUrl) {
-      // nuke the devtools UI
-      document.querySelector('.root-view').remove();
+      this.destroyDevTools();
       this.statusElem.textContent = `Drive API error: ${response.message}`;
       return reject(new Error(response.message, response.error));
     }
@@ -107,8 +114,11 @@ class Viewer {
     this.statusElem.textContent = 'Opening timeline file. Please wait...';
     var url = response.downloadUrl + '&alt=media'; // forces file contents in response body.
     this.downloadFile(url, function(payload) {
-      if (payload === null)
-        return reject(new Error('Download of drive asset failed'));
+      if (payload === null) {
+        this.destroyDevTools();
+        this.statusElem.textContent = 'Download of Drive asset failed.';
+        return reject();
+      }
 
       return resolve(payload);
     });
