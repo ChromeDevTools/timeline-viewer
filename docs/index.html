@@ -53,6 +53,12 @@
         .about {
             text-align: center;
         }
+
+        #status { 
+            font-family: monospace;
+            background: white;
+            padding: 10px;
+        }
     </style>
     <title>DevTools Timeline Viewer</title>
 </head>
@@ -69,7 +75,7 @@
     <div class="about">
         <h1>DevTools Timeline Viewer</h1>
         <p>
-            Open Timeline files in two clicks.
+            Open Chrome DevTools Timeline traces in 2 clicks.
         </p>
 
         <div>
@@ -99,7 +105,7 @@
 
         // This is defined in devtools' Runtime
         _loadResourcePromise = self.loadResourcePromise;
-        self.loadResourcePromise = function(){
+        self.loadResourcePromise = function() {
           return viewer.loadResourcePromise(...arguments);
         }
     </script>

@@ -34,7 +34,7 @@ class Viewer {
     }
 
     // show loading message..
-    dthis.statusElem.hidden = false;
+    this.statusElem.hidden = false;
     
     // start devtools. 
     Runtime.startApplication('inspector');
@@ -92,8 +92,9 @@ class Viewer {
     document.title = `${response.originalFilename} | ${document.title}`;
     this.totalSize = +response.fileSize;
 
-    if (response.error || !response.downloadUrl){
-      WebInspector.inspectorView.contentElement.parentElement.remove();
+    if (response.error || !response.downloadUrl) {
+      // nuke the devtools UI
+      document.querySelector('.root-view').remove();
       this.statusElem.textContent = `Drive API error: ${response.message}`;
       return reject(new Error(response.message, response.error));
     }
