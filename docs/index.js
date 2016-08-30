@@ -91,7 +91,7 @@ class Viewer {
 
   loadResourcePromise(url) {
     // fallthrough
-    if (url !== this.timelineURL) return _loadResourcePromise(...arguments);
+    if (url !== this.timelineURL || this.timelineProvider !== 'drive') return _loadResourcePromise(...arguments);
     // special handling for us..
     return this.driveFileLoaded.then(payload => payload);
   }
