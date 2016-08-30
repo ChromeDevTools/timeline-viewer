@@ -77,10 +77,12 @@ class Viewer {
     var request = gapi.client.drive.files.get({
         fileId: this.timelineId
     });
-    request.execute(this.fetchDriveFile.bind(this));
+    request.execute(this.fetchDriveFile.bind(this, resolve, reject));
   }
 
-  fetchDriveFile(response) {
+  fetchDriveFile(resolve, reject, response) {
+    document.title = `${response.originalFilename} | ${document.title}`;
+    
     if (response.error || !response.downloadUrl)
       return Promise.reject(new Error(response.message, response.error));
 
