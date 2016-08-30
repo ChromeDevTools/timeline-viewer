@@ -81,7 +81,7 @@ class Viewer {
   }
 
   fetchDriveFile(response) {
-    if (response.error || !reponse.downloadUrl)
+    if (response.error || !response.downloadUrl)
       return Promise.reject(new Error(response.message, response.error));
 
     var url = response.downloadUrl + '&alt=media'; // forces file contents in response body.
@@ -90,16 +90,6 @@ class Viewer {
           return reject(new Error('Download of drive asset failed'));
 
         return resolve(payload);
-        
-        // ignore that rubbish
-        // var fileparts = [payload];
-        // var traceblob = new Blob(fileparts, {type : 'application/json'});
-
-        // (function loopy() {
-        //   if (window.WebInspector && WebInspector.panels && WebInspector.panels.timeline && WebInspector.panels.timeline._loadFromFile){
-        //     WebInspector.panels.timeline._loadFromFile(traceblob);
-        //   } else  setTimeout(loopy,50);
-        // })();
     });
   }
 
