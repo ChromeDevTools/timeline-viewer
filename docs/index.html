@@ -48,15 +48,10 @@
             left: 50%;
             width: 200px;
             margin-left: -100px;
-            display: none;
         }
 
         .about {
             text-align: center;
-        }
-
-        .about__todo {
-            display: inline-block;
         }
     </style>
     <title>DevTools Timeline Viewer</title>
@@ -78,14 +73,17 @@
         </p>
 
         <div>
-        <button id="auth" style="display: none;">Authorize</button>
+        <button id="auth" hidden>Authorize Drive API access</button>
         </div>
-        <p id="opening">
+        <p id="status" hidden>
         Opening timeline file. Please wait...
         </p>
-        <p id="howto" style="text-align: center; margin-top: 105px; display: none;">
-          
-        </p>
+        <div id="howto" hidden style="text-align: center; margin-top: 105px; max-width: 750px; margin: 0 auto;">
+            <p>Once the application is authorized, it registers as a Google Driver viewer for <code>.json</code> files. Then, when opening a json file, you can select the Timeline Viewer. It will open in a new tab and load the timeline asset from your Drive. 
+            <img src="https://cloud.githubusercontent.com/assets/39191/18080010/67390d9a-6e48-11e6-98a3-9c8c81b1df67.png" style="width: 100%; margin: 20px 0;">
+            <p>Visit your <a href="https://security.google.com/settings/security/permissions?pli=1">Google security permissions</a> if you'd like to revoke authorization. 
+
+        </div>
     </div>
     <script src="config.js"></script>
     <script src="index.js"></script>
@@ -105,7 +103,7 @@
           return viewer.loadResourcePromise(...arguments);
         }
     </script>
-    <script async src="https://apis.google.com/js/client.js?onload=checkAuth"></script>pre
+    <script async src="https://apis.google.com/js/client.js?onload=checkAuth"></script>
     
     
 </head>

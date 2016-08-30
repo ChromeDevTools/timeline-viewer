@@ -7,6 +7,7 @@ class Viewer {
     this.timelineId;
     this.totalSize = 50 * 1000 * 1000;
     this.loadingStarted = false;
+    this.statusElem = document.getElementById('status');
 
     // if timelineURL isn't a real URL, then we'll save it to an ID
     try {
@@ -28,12 +29,12 @@ class Viewer {
     });
 
     if (!this.timelineURL) {
-      document.getElementById('howto').style.display = 'block';
+      document.getElementById('howto').hidden = false;
       return;
     }
 
     // show loading message..
-    document.getElementById('opening').style.display = 'inline';
+    dthis.statusElem.hidden = false;
     
     // start devtools. 
     Runtime.startApplication('inspector');
@@ -58,12 +59,12 @@ class Viewer {
 
   handleAuthResult(authResult) {
     if (authResult && !authResult.error) {
-      this.authBtn.style.display = 'none';
+      this.authBtn.hidden = true;
       gapi.client.load('drive', 'v2', this.driveAPIloadedresolve);
     } else {
       // auth error.
-      this.authBtn.style.display = 'inline';
-      document.getElementById('howto').style.display = 'block';
+      this.authBtn.hidden = false;
+      document.getElementById('howto').hidden = false;
       return new Error(`Google auth error: ${authResult.error}: ${authResult.error_subtype}`);
     }
   }
@@ -91,8 +92,11 @@ class Viewer {
     document.title = `${response.originalFilename} | ${document.title}`;
     this.totalSize = +response.fileSize;
 
-    if (response.error || !response.downloadUrl)
+    if (response.error || !response.downloadUrl){
+      WebInspector.inspectorView.contentElement.parentElement.remove();
+      this.statusElem.textContent = `Drive API error: ${response.message}`;
       return reject(new Error(response.message, response.error));
+    }
 
     var url = response.downloadUrl + '&alt=media'; // forces file contents in response body.
     this.downloadFile(url, function(payload) {  
