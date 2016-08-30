@@ -35,8 +35,8 @@ class Viewer {
 
     // show loading message..
     this.statusElem.hidden = false;
-    
-    // start devtools. 
+
+    // start devtools.
     Runtime.startApplication('inspector');
   }
 
@@ -50,8 +50,8 @@ class Viewer {
 
   handleAuthClick(event) {
     gapi.auth.authorize({
-      client_id: config.clientId, 
-      scope: config.scopes.join(' '), 
+      client_id: config.clientId,
+      scope: config.scopes.join(' '),
       immediate: false
     }, this.handleAuthResult.bind(this));
     return false;
@@ -60,6 +60,8 @@ class Viewer {
   handleAuthResult(authResult) {
     if (authResult && !authResult.error) {
       this.authBtn.hidden = true;
+      this.statusElem.textContent = 'Drive API access: successful';
+      this.statusElem.hidden = false;
       gapi.client.load('drive', 'v2', this.driveAPIloadedresolve);
     } else {
       // auth error.
@@ -99,9 +101,10 @@ class Viewer {
       return reject(new Error(response.message, response.error));
     }
 
+    this.statusElem.textContent = 'Opening timeline file. Please wait...';
     var url = response.downloadUrl + '&alt=media'; // forces file contents in response body.
-    this.downloadFile(url, function(payload) {  
-      if (payload === null) 
+    this.downloadFile(url, function(payload) {
+      if (payload === null)
         return reject(new Error('Download of drive asset failed'));
 
       return resolve(payload);
