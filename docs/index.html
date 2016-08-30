@@ -93,8 +93,12 @@
         <div id="howto" hidden style="text-align: center; margin-top: 105px; max-width: 750px; margin: 0 auto;">
             <p>Once the application is authorized, it registers as a Google Drive viewer for <code>.json</code> files. Then, when opening a json file, you can select the Timeline Viewer. It will open in a new tab and load the timeline asset from your Drive.
             <img src="https://cloud.githubusercontent.com/assets/39191/18080010/67390d9a-6e48-11e6-98a3-9c8c81b1df67.png" style="width: 100%; margin: 20px 0;">
-            <p>Visit your <a href="https://security.google.com/settings/security/permissions?pli=1">Google security permissions</a> if you'd like to revoke authorization.
+            
+            <p>You can share this URL with any users who 1) have Google Drive access to the asset and 2) have authorized Timeline Viewer to Drive with Google OAuth.
 
+           <img src="https://cloud.githubusercontent.com/assets/39191/18080845/fb39f056-6e4b-11e6-90df-6cda94bd2495.png" style="width: 100%; margin: 20px 0;">
+
+            <p>Visit your <a href="https://security.google.com/settings/security/permissions?pli=1">Google security permissions</a> if you'd like to revoke authorization.
         </div>
     </div>
     <script src="config.js"></script>
@@ -103,17 +107,15 @@
     <script>
         window.viewer = new Viewer();
 
-        // called when apis.google script is done.
+        // hooks for the apis.google client.js
         self.checkAuth = function() {
           return viewer.checkAuth(...arguments);
         }
         self.authBtn = viewer.authBtn;
 
-        // This is defined in devtools' Runtime
+        // We are monkeypatching window.loadResourcePromise, which is from devtools' Runtime.js
         _loadResourcePromise = self.loadResourcePromise;
-        self.loadResourcePromise = function() {
-          return viewer.loadResourcePromise(...arguments);
-        }
+        self.loadResourcePromise = viewer.loadResourcePromise.bind(viewer);
     </script>
     <script async src="https://apis.google.com/js/client.js?onload=checkAuth"></script>
 

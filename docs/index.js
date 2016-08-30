@@ -9,10 +9,12 @@ class Viewer {
     this.loadingStarted = false;
     this.statusElem = document.getElementById('status');
 
-    // if timelineURL isn't a real URL, then we'll save it to an ID
     try {
-      new URL(this.timelineURL);
+      const parsedURL = new URL(this.timelineURL);
+      if (parsedURL.protocol === 'drive:')
+        this.timelineId = parsedURL.pathname.replace(/^\/+/, '');
     } catch (e) {
+       // if timelineURL isn't a real URL, then we'll save it to an ID
       this.timelineId = this.timelineURL
     }
 
