@@ -189,8 +189,36 @@ class Viewer {
         WebInspector.inspectorView.showPanel('timeline').then(panel => panel && panel.loadingStarted());
       }
       WebInspector.inspectorView.showPanel('timeline').then(panel => {
-        panel && panel.loadingProgress(evt.loaded / this.totalSize);
+        panel && panel.loadingProgress(evt.loaded / (evt.total || this.totalSize));
       });
     } catch (e) {}
   }
 }
+
+
+
+const form = document.querySelector('form');
+form.addEventListener('submit', evt => {
+    evt.preventDefault();
+    const formdata = new FormData(evt.target)
+    const url = formdata.get('url');
+    if (!url) return;
+
+    const parsedURL = new URL(location.href);
+    parsedURL.searchParams.delete('loadTimelineFromURL')
+    // this is weird because we don't want url encoding of the URL
+    parsedURL.searchParams.append('loadTimelineFromURL', 'REPLACEME')
+    const newurl = parsedURL.toString().replace('REPLACEME', url);
+    location.href = newurl;
+});
+
+[...document.querySelectorAll('a[data-url]')].forEach(elem => {
+    elem.addEventListener('click', evt => {
+        evt.preventDefault();
+        evt.cancelBubble = true;
+        var url = evt.target.dataset.url;
+        var input = document.querySelector('#enterurl');
+        input.value = url;
+    });
+});
+

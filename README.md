@@ -1,14 +1,27 @@
-# DevTools Timeline Viewer for Google Drive
+# DevTools Timeline Viewer
+##### Shareable URLs for your Chrome DevTools Timeline traces.
 
-Once the application is authorized, it registers as a Google Drive viewer for`.json` files. 
+Works with public github urls, github gists, and files on google drive (once authenticated).
 
-Then, when opening a json trace file, you can select the Timeline Viewer. It will open in a new tab and load the timeline asset from your Drive. 
+---
+
+Once authorized, you'll see Timeline Viewer as a registered Google Drive viewer when opening .json files. Once you select the Timeline Viewer, it will open in a new tab and load the timeline asset from your Drive.
 
 ![](https://cloud.githubusercontent.com/assets/39191/18080010/67390d9a-6e48-11e6-98a3-9c8c81b1df67.png)
 
-You can share this URL with any users who 1) have Drive access to the asset and 2) have authorized the timeline viewer app on [chromedevtools.github.io/timeline-viewer/](https://chromedevtools.github.io/timeline-viewer/)
+
+You can share this URL with any users who ① have authorized [Timeline Viewer](https://chromedevtools.github.io/timeline-viewer/) to Drive with Google OAuth and ② have View permission to the Google Drive asset.
 
 ![image](https://cloud.githubusercontent.com/assets/39191/18080845/fb39f056-6e4b-11e6-90df-6cda94bd2495.png)
 
 
-Visit your <a href="https://security.google.com/settings/security/permissions?pli=1">Google security permissions</a> if you'd like to revoke authorization. 
+Visit your <a href="https://security.google.com/settings/security/permissions?pli=1">Google security permissions</a> if you'd like to revoke authorization.
+
+
+## Dev
+
+Auth keys have localhost:8000 whitelisted, so you can hack there.
+
+* Private file: http://localhost:8000/?loadTimelineFromURL=0BzvYe7bYFf--aVhZM1RNR2N3cGc
+
+
