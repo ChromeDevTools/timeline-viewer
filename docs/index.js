@@ -39,9 +39,16 @@ class Viewer {
     // show loading message..
     this.statusElem.hidden = false;
 
-    // start devtools.
-    Runtime.experiments._supportEnabled = true;
-    Runtime.startApplication('inspector');
+    // configure devtools
+    this.makeDevToolsVisible(true);
+    if (self.Runtime && Runtime.experiments)
+      Runtime.experiments._supportEnabled = true;
+    // nerf some oddness
+    WebInspector.DeferredTempFile = function() {};
+    WebInspector.DeferredTempFile.prototype = {
+      write: _ => { },
+      finishWriting: _ => { }
+    };
   }
 
   makeDevToolsVisible(bool) {
