@@ -157,14 +157,14 @@ class Viewer {
     if (error) {
       this.makeDevToolsVisible(false);
       const reasons = error.errors.map(e => e.reason);
-      const fileUnavailableStr = reasons.includes('notFound') ? 'Confirm you have View permissions to the file.' : '';
+      const fileUnavailableStr = reasons.includes('notFound') ? 'Confirm you have Edit permissions to the file.' : '';
       this.updateStatus(`${fileUnavailableStr} Drive API error: ${error.message}. (${reasons.join(', ')})`);
       throw new Error(response.message, response.error);
     }
 
     if (!response.downloadUrl) {
       this.makeDevToolsVisible(false);
-      this.updateStatus(`File not available over CORS`);
+      this.updateStatus('Downloading not available. Confirm you have Edit permissions to the file.');
       throw new Error(response.message, response.error);
     }
 
