@@ -117,7 +117,7 @@ class Viewer {
     }
 
     if (this.timelineProvider === 'drive')
-      return this.driveAssetLoaded.then(payload => payload);
+      return this.driveAssetLoaded.then(this.lickTimelinePanelVisible).then(payload => payload);
 
     // pass through URLs that aren't our timelineURL param
     if (url !== this.timelineURL) {
@@ -128,7 +128,7 @@ class Viewer {
     parsedURL.hostname = parsedURL.hostname.replace('github.com', 'githubusercontent.com');
     parsedURL.hostname = parsedURL.hostname.replace('www.dropbox.com', 'dl.dropboxusercontent.com');
 
-    return this.doCORSrequest(parsedURL.toString()).then(payload => payload);
+    return this.doCORSrequest(parsedURL.toString()).then(this.flickTimelinePanelVisible).then(payload => payload);
   }
 
   requestDriveFileMeta() {
@@ -221,6 +221,13 @@ class Viewer {
         panel && panel.loadingProgress(evt.loaded / (evt.total || this.totalSize));
       });
     } catch (e) {}
+  }
+
+  flickTimelinePanelVisible(payload) {
+    try {
+      WebInspector.inspectorView.showPanel('timeline')
+    } catch (e) { }
+    return payload;
   }
 }
 
