@@ -10,6 +10,7 @@ class Viewer {
     this.totalSize = 50 * 1000 * 1000;
     this.loadingStarted = false;
     this.statusElem = document.getElementById('status');
+    this.devtoolsBase = document.getElementById('devtoolsscript').src.replace(/inspector\.js.*/, '');
 
     try {
       const parsedURL = new URL(this.timelineURL);
@@ -98,19 +99,29 @@ class Viewer {
   }
 
   loadResourcePromise(url) {
-    // pass through URLs that aren't our timelineURL param
-    if (url !== this.timelineURL)
-      return _loadResourcePromise(...arguments);
+    var parsedURL = new URL(url);
+    var parsedLocation = new URL(location.href);
+
+    // hosted devtools is confused.
+    if (parsedURL && parsedURL.origin === parsedLocation.origin) {
+      var regex = new RegExp('^.*' + parsedLocation.pathname)
+      url = url.replace(regex, this.devtoolsBase);
+      return _loadResourcePromise(url);
+    }
 
     if (this.timelineProvider === 'drive')
       return this.driveAssetLoaded.then(payload => payload);
 
+    // pass through URLs that aren't our timelineURL param
+    if (url !== this.timelineURL) {
+      return _loadResourcePromise(url);
+    }
+
     // adjustments for CORS
-    var parsedURL = new URL(url);
     parsedURL.hostname = parsedURL.hostname.replace('github.com', 'githubusercontent.com');
     parsedURL.hostname = parsedURL.hostname.replace('www.dropbox.com', 'dl.dropboxusercontent.com');
 
-    return _loadResourcePromise(parsedURL.toString());
+    return this.doCORSrequest(parsedURL.toString()).then(payload => payload);
   }
 
   requestDriveFileMeta() {
@@ -152,33 +163,44 @@ class Viewer {
 
     this.makeDevToolsVisible(true);
     this.updateStatus('Starting download of timeline from Drive. Please wait...');
-    var url = response.downloadUrl + '&alt=media'; // forces file contents in response body.
-    this.fetchDriveAsset(url, this.handleDriveAsset.bind(this));
+    // alt=media forces file contents in response body.
+    var url = response.downloadUrl + '&alt=media';
+
+    this.fetchDriveAsset(url)
+      .then(payload => this.handleDriveAsset(payload))
+      .catch(err => {
+        this.makeDevToolsVisible(false);
+        this.updateStatus('Download of Drive asset failed.');
+        throw new Error('XHR of Drive asset failed');
+      });
   }
 
   fetchDriveAsset(url, callback) {
-    // Use an XHR rather than fetch so we can have progress events
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', url);
-    var user = gapi.auth2.getAuthInstance().currentUser.get();
-    var accessToken = user.getAuthResponse().access_token;
-    xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
-    xhr.onprogress = this.updateProgress.bind(this);
-    xhr.onload = _ => callback(xhr.responseText);
-    xhr.onerror = _ => callback(null);
-    xhr.send();
+    return this.doCORSrequest(url, function(xhr) {
+      var user = gapi.auth2.getAuthInstance().currentUser.get();
+      var accessToken = user.getAuthResponse().access_token;
+      xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
+    });
   }
 
   handleDriveAsset(payload) {
-    if (payload === null) {
-      this.makeDevToolsVisible(false);
-      this.updateStatus('Download of Drive asset failed.');
-      throw new Error('XHR of Drive asset failed');
-    }
     const msg = `✅ Timeline downloaded from Drive. (${payload.length} bytes)`;
     this.updateStatus(msg);
-    console.log(msg)
+    console.log(msg);
     return this.driveAssetLoadedResolver(payload);
+  }
+
+  doCORSrequest(url, callbetween) {
+    return new Promise((resolve, reject) => {
+      // Use an XHR rather than fetch so we can have progress events
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', url);
+      callbetween && callbetween(xhr);
+      xhr.onprogress = this.updateProgress.bind(this);
+      xhr.onload = _ => resolve(xhr.responseText);
+      xhr.onerror = err => reject(err);
+      xhr.send();
+    });
   }
 
   updateProgress(evt) {
