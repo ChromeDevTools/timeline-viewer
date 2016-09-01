@@ -50,6 +50,21 @@ h1 a:visited {
 h1 a {
     text-decoration: none;
 }
+
+body.hide-devtools {
+    overflow: auto;
+    height: initial;
+    cursor: initial;
+    position: initial;
+    margin: initial;
+    width: initial;
+    font-size: initial;
+    tab-size: initial;
+    -webkit-user-select: initial;
+    font-family: initial;
+    color: initial;
+}
+
 .hide-devtools .root-view {
     display: none;
     visibility: hidden;
