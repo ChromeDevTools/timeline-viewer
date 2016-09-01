@@ -26,8 +26,8 @@ class Viewer {
     this.authBtn = document.getElementById('auth');
     this.authBtn.addEventListener('click', this.checkAuth.bind(this));
 
-    this.driveFileLoaded = new Promise((resolve, reject) => {
-      this.driveFileLoadedresolve = resolve;
+    this.driveAssetLoaded = new Promise((resolve, reject) => {
+      this.driveAssetLoadedResolver = resolve;
     });
 
     if (!this.timelineURL) {
@@ -39,15 +39,22 @@ class Viewer {
     this.statusElem.hidden = false;
 
     // start devtools.
+    Runtime.experiments._supportEnabled = true;
     Runtime.startApplication('inspector');
   }
 
   makeDevToolsVisible(bool) {
-    document.body.classList[bool ? 'remove' : 'add']('hide-devtools');
+    document.documentElement.classList[bool ? 'remove' : 'add']('hide-devtools');
   }
 
   updateStatus(str) {
     this.statusElem.textContent = str;
+  }
+
+  signOut() {
+    try {
+      gapi.auth2.getAuthInstance().signOut()
+    } catch(e){}
   }
 
   checkAuth(opts) {
@@ -96,7 +103,7 @@ class Viewer {
       return _loadResourcePromise(...arguments);
 
     if (this.timelineProvider === 'drive')
-      return this.driveFileLoaded.then(payload => payload);
+      return this.driveAssetLoaded.then(payload => payload);
 
     // adjustments for CORS
     var parsedURL = new URL(url);
@@ -127,17 +134,20 @@ class Viewer {
   handleDriveFileMetadata(response) {
     document.title = `${response.originalFilename} | ${document.title}`;
     this.totalSize = +response.fileSize;
+    const error = response.error;
+
+    if (error) {
+      this.makeDevToolsVisible(false);
+      const reasons = error.errors.map(e => e.reason);
+      const fileUnavailableStr = reasons.includes('notFound') ? 'Confirm you have View permissions to the file.' : '';
+      this.updateStatus(`${fileUnavailableStr} Drive API error: ${error.message}. (${reasons.join(', ')})`);
+      throw new Error(response.message, response.error);
+    }
 
     if (!response.downloadUrl) {
       this.makeDevToolsVisible(false);
       this.updateStatus(`File not available over CORS`);
-      return reject(new Error(response.message, response.error));
-    }
-
-    if (response.error) {
-      this.makeDevToolsVisible(false);
-      this.updateStatus(`Drive API error: ${response.message}`);
-      return reject(new Error(response.message, response.error));
+      throw new Error(response.message, response.error);
     }
 
     this.makeDevToolsVisible(true);
@@ -168,7 +178,7 @@ class Viewer {
     const msg = `✅ Timeline downloaded from Drive. (${payload.length} bytes)`;
     this.updateStatus(msg);
     console.log(msg)
-    return this.driveFileLoadedresolve(payload);
+    return this.driveAssetLoadedResolver(payload);
   }
 
   updateProgress(evt) {
