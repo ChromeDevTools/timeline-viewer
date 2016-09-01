@@ -10,7 +10,12 @@ html{font-family:sans-serif;line-height:1.15;-ms-text-size-adjust:100%;-webkit-t
 .welcome {
     text-align: center;
     box-sizing: border-box;
+    display: none;
 }
+.hide-devtools .welcome {
+  display: block;
+}
+
 
 *, *:before, *:after {
   box-sizing: inherit;
