@@ -157,7 +157,12 @@ class Viewer {
     if (error) {
       this.makeDevToolsVisible(false);
       const reasons = error.errors.map(e => e.reason);
-      const fileUnavailableStr = reasons.includes('notFound') ? 'Confirm you have Edit permissions to the file.' : '';
+      let fileUnavailableStr = '';
+      letUnavailableStr += reasons.includes('notFound') ? 'Confirm you have Edit permissions to the file. ' : '';
+      if (reasons.includes('authError')) {
+        letUnavailableStr += 'Please sign in. ';
+        this.authBtn.hidden = false;
+      }
       this.updateStatus(`${fileUnavailableStr} Drive API error: ${error.message}. (${reasons.join(', ')})`);
       throw new Error(response.message, response.error);
     }
