@@ -1,13 +1,13 @@
 {
-  "name": "instant-preview",
+  "name": "timeline-viewer",
   "version": "1.0.0",
-  "description": "",
+  "description": "Works with public github urls, github gists, and files on google drive (once authenticated).",
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Paul Irish",
+  "license": "Apache-2.0",
   "devDependencies": {
     "gulp": "^3.9.0",
     "gulp-gh-pages": "^0.5.4",
@@ -16,5 +16,20 @@
   },
   "dependencies": {
     "chrome-devtools-frontend": "^1.0.414956"
-  }
+  },
+  "directories": {
+    "doc": "docs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ChromeDevTools/timeline-viewer.git"
+  },
+  "keywords": [
+    "devtools",
+    "chrome"
+  ],
+  "bugs": {
+    "url": "https://github.com/ChromeDevTools/timeline-viewer/issues"
+  },
+  "homepage": "https://github.com/ChromeDevTools/timeline-viewer#readme"
 }
