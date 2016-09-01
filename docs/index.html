@@ -14,7 +14,7 @@
             Shareable URLs for your Chrome DevTools Timeline traces.
         </h4>
 
-        <article class="center mw5 mw6-ns br3 hidden ba b--black-10 mv4">
+        <article class="center mw5 mw6-ns br3 ba b--black-10 mv4">
             <h3 class="f4 bg-near-white br3 br--top black-60 mv0 pv2 ph3">Share public traces</h3>
             <div class="pa3 bt b--black-10 f6 f5-ns lh-copy">
                 <form>
@@ -30,7 +30,7 @@
             </div>
         </article>
 
-        <article class="center mw5 mw6-ns br3 hidden ba b--black-10 mv4">
+        <article class="center mw5 mw6-ns br3 ba b--black-10 mv4">
             <h3 class="f4 bg-near-white br3 br--top black-60 mv0 pv2 ph3">View traces from Google Drive</h3>
             <div class="pa3 bt b--black-10 f6 f5-ns lh-copy">
                 <div style="height: 45px">
@@ -41,7 +41,7 @@
                 </p>
             </div>
         </article>
-        <article id="howto" hidden class="mw7  tl" style="margin-top: 105px; margin: 0 auto;">
+        <article id="howto" class="mw7  tl" style="margin-top: 105px; margin: 0 auto;">
             <h3 class="f4 br3 br--top black-60 pv2 mb0">Google Drive Integration</h3>
             <p>Once authorized, you'll see Timeline Viewer as a registered Google Drive viewer when opening <code>.json</code> files.
             Once you select the Timeline Viewer, it will open in a new tab and load the timeline asset from your Drive.
@@ -68,7 +68,7 @@
 
         // hooks for the apis.google client.js
         self.checkAuth = function() {
-          return viewer.checkAuth(...arguments);
+          return viewer.checkAuth({immediate: true});
         }
         self.authBtn = viewer.authBtn;
 

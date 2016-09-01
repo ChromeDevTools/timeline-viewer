@@ -6,6 +6,7 @@ class Viewer {
     this.timelineURL = this.params.get('loadTimelineFromURL');
     this.timelineId;
     this.timelineProvider = 'url';
+
     this.totalSize = 50 * 1000 * 1000;
     this.loadingStarted = false;
     this.statusElem = document.getElementById('status');
@@ -23,15 +24,10 @@ class Viewer {
     }
 
     this.authBtn = document.getElementById('auth');
-    this.authBtn.addEventListener('click', this.handleAuthClick.bind(this));
-
-    this.driveAPIloaded = new Promise((resolve, reject) => {
-      this.driveAPIloadedresolve = resolve;
-    });
+    this.authBtn.addEventListener('click', this.checkAuth.bind(this));
 
     this.driveFileLoaded = new Promise((resolve, reject) => {
-      // get this request going now.
-      this.requestDriveFile(resolve, reject);
+      this.driveFileLoadedresolve = resolve;
     });
 
     if (!this.timelineURL) {
@@ -46,47 +42,52 @@ class Viewer {
     Runtime.startApplication('inspector');
   }
 
-  checkAuth() {
-    gapi.auth.authorize({
-      'client_id': config.clientId,
-      'scope': config.scopes.join(' '),
-      'immediate': true
-    }, this.handleAuthResult.bind(this));
+  makeDevToolsVisible(bool) {
+    document.body.classList[bool ? 'remove' : 'add']('hide-devtools');
   }
 
-  handleAuthClick(event) {
-    gapi.auth.authorize({
+  updateStatus(str) {
+    this.statusElem.textContent = str;
+  }
+
+  checkAuth(opts) {
+    const handleAuth = this.handleAuthResult.bind(this);
+    const oAuthOptions = {
+      fetch_basic_profile: false,
       client_id: config.clientId,
-      scope: config.scopes.join(' '),
-      immediate: false
-    }, this.handleAuthResult.bind(this));
+      scope: config.scopes.join(' ')
+    };
+
+    gapi.load('client:auth2', function() {
+      gapi.client.setApiKey(config.apiKey);
+
+      // if we have no authinstance yet, initialize
+      if (!gapi.auth2.getAuthInstance())
+        return gapi.auth2.init(oAuthOptions).then(handleAuth);
+
+      // handle the click
+      gapi.auth2.getAuthInstance().signIn(oAuthOptions).then(handleAuth)
+    }.bind(this));
+
     return false;
   }
 
-  handleAuthResult(authResult) {
+  handleAuthResult() {
     if (this.timelineProvider !== 'drive') return;
 
-    if (authResult && !authResult.error) {
-      this.authBtn.hidden = true;
-      this.statusElem.textContent = 'Drive API access: successful';
-      this.statusElem.hidden = false;
-      gapi.client.load('drive', 'v2', this.driveAPIloadedresolve);
-    } else {
-      // auth error.
+    if (gapi.auth2.getAuthInstance().isSignedIn.get() === false) {
+      this.updateStatus(`Drive API status: not signed in`);
+
       this.authBtn.hidden = false;
-      this.statusElem.textContent = `Drive API access: not authorized (${authResult.error_subtype})`;
       document.getElementById('howto').hidden = false;
-      this.hideDevTools();
-      return new Error(`Google auth error: ${authResult.error}: ${authResult.error_subtype}`);
+      this.makeDevToolsVisible(false);
+      return new Error(`Google auth error`);
     }
-  }
 
-  hideDevTools() {
-    document.body.classList.add('hide-devtools');
-  }
-
-  showDevTools() {
-    document.body.classList.remove('hide-devtools');
+    this.authBtn.hidden = true;
+    this.updateStatus('Drive API status: successfully signed in');
+    this.statusElem.hidden = false;
+    this.requestDriveFileMeta();
   }
 
   loadResourcePromise(url) {
@@ -105,46 +106,52 @@ class Viewer {
     return _loadResourcePromise(parsedURL.toString());
   }
 
-  requestDriveFile(resolve, reject) {
+  requestDriveFileMeta() {
     // if there's no this.timelineId then let's skip all this drive API stuff.
     if (!this.timelineId) return;
 
-    return this.driveAPIloaded.then(_ => {
-      var request = gapi.client.drive.files.get({
-        fileId: this.timelineId
-      });
-      request.execute(this.fetchDriveFile.bind(this, resolve, reject));
-    });
+    var url = new URL(`https://www.googleapis.com/drive/v2/files/${this.timelineId}`);
+    url.searchParams.append('fields', 'version, downloadUrl, copyable, title, originalFilename, fileSize')
+    url.searchParams.append('key', config.apiKey);
+
+    var headers = new Headers();
+    var user = gapi.auth2.getAuthInstance().currentUser.get();
+    var accessToken = user.getAuthResponse().access_token;
+    headers.append('Authorization', 'Bearer ' + accessToken);
+
+    fetch(url.toString(), {headers: headers})
+      .then(resp => resp.json())
+      .then(this.handleDriveFileMetadata.bind(this));
   }
 
-  fetchDriveFile(resolve, reject, response) {
+  handleDriveFileMetadata(response) {
     document.title = `${response.originalFilename} | ${document.title}`;
     this.totalSize = +response.fileSize;
 
-    if (response.error || !response.downloadUrl) {
-      this.hideDevTools();
-      this.statusElem.textContent = `Drive API error: ${response.message}`;
+    if (!response.downloadUrl) {
+      this.makeDevToolsVisible(false);
+      this.updateStatus(`File not available over CORS`);
       return reject(new Error(response.message, response.error));
     }
 
-    this.showDevTools();
-    this.statusElem.textContent = 'Opening timeline file. Please wait...';
-    var url = response.downloadUrl + '&alt=media'; // forces file contents in response body.
-    this.downloadFile(url, function(payload) {
-      if (payload === null) {
-        this.hideDevTools();
-        this.statusElem.textContent = 'Download of Drive asset failed.';
-        return reject();
-      }
+    if (response.error) {
+      this.makeDevToolsVisible(false);
+      this.updateStatus(`Drive API error: ${response.message}`);
+      return reject(new Error(response.message, response.error));
+    }
 
-      return resolve(payload);
-    });
+    this.makeDevToolsVisible(true);
+    this.updateStatus('Starting download of timeline from Drive. Please wait...');
+    var url = response.downloadUrl + '&alt=media'; // forces file contents in response body.
+    this.fetchDriveAsset(url, this.handleDriveAsset.bind(this));
   }
 
-  downloadFile(url, callback) {
-    var accessToken = gapi.auth.getToken().access_token;
+  fetchDriveAsset(url, callback) {
+    // Use an XHR rather than fetch so we can have progress events
     var xhr = new XMLHttpRequest();
     xhr.open('GET', url);
+    var user = gapi.auth2.getAuthInstance().currentUser.get();
+    var accessToken = user.getAuthResponse().access_token;
     xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
     xhr.onprogress = this.updateProgress.bind(this);
     xhr.onload = _ => callback(xhr.responseText);
@@ -152,8 +159,21 @@ class Viewer {
     xhr.send();
   }
 
+  handleDriveAsset(payload) {
+    if (payload === null) {
+      this.makeDevToolsVisible(false);
+      this.updateStatus('Download of Drive asset failed.');
+      throw new Error('XHR of Drive asset failed');
+    }
+    const msg = `✅ Timeline downloaded from Drive. (${payload.length} bytes)`;
+    this.updateStatus(msg);
+    console.log(msg)
+    return this.driveFileLoadedresolve(payload);
+  }
+
   updateProgress(evt) {
     try {
+      this.updateStatus(`Download progress: ${((evt.loaded / this.totalSize) * 100).toFixed(2)}%`);
       if (!this.loadingStarted) {
         this.loadingStarted = true;
         WebInspector.inspectorView.showPanel('timeline').then(panel => panel && panel.loadingStarted());
