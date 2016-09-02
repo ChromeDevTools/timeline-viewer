@@ -8,7 +8,7 @@
 <body>
     <div class="welcome w-100 sans-serif bg-white">
         <h1 class="f2 f-subheadline-ns mb0">
-            <a href="https://chromedevtools.github.io/timeline-viewer/">DevTools Timeline Viewer</a>
+            DevTools Timeline Viewer
         </h1>
         <h4 class="gray f6 mb4 ttu tracked">
             Shareable URLs for your Chrome DevTools Timeline traces.
@@ -65,6 +65,12 @@
     <!--<script src="Runtime.js"></script>-->
     <script src="https://chrome-devtools-frontend.appspot.com/serve_file/@913de510430509b3a185e36e6ad568fe29392df6/inspector.js" id="devtoolsscript"></script>
     <script>
+      function init() {
+        // only works in Chrome because browser devtools
+        if (!(window.chrome && chrome.loadTimes)) {
+          document.getElementById('status').textContent = 'Sorry y\'all, Chrome required to view traces.';
+          return;
+        }
         window.viewer = new Viewer();
 
         // hooks for the apis.google client.js
@@ -74,8 +80,10 @@
         self.authBtn = viewer.authBtn;
 
         // We are monkeypatching window.loadResourcePromise, which is from devtools' Runtime.js
-        _loadResourcePromise = self.loadResourcePromise;
+        self._loadResourcePromise = self.loadResourcePromise;
         self.loadResourcePromise = viewer.loadResourcePromise.bind(viewer);
+      }
+      init();
     </script>
     <script async src="https://apis.google.com/js/client.js?onload=checkAuth"></script>
 
