@@ -47,6 +47,7 @@ class Viewer {
     WebInspector.DeferredTempFile = function() {};
     WebInspector.DeferredTempFile.prototype = {
       write: _ => { },
+      remove: _ => { },
       finishWriting: _ => { }
     };
   }
