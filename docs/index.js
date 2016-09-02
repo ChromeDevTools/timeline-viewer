@@ -210,7 +210,11 @@ class Viewer {
       callbetween && callbetween(xhr);
       xhr.onprogress = this.updateProgress.bind(this);
       xhr.onload = _ => resolve(xhr.responseText);
-      xhr.onerror = err => reject(err);
+      xhr.onerror = (err => {
+        this.makeDevToolsVisible(false);
+        this.updateStatus('Download of asset failed. ' + ((xhr.readyState == xhr.DONE) ? 'CORS headers likely not applied.' : ''));
+        reject(err);
+      }).bind(this);
       xhr.send();
     });
   }
