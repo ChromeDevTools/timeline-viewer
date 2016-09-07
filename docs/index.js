@@ -31,7 +31,9 @@ class Viewer {
 
     // Start loading DevTools. (checkAuth will be racing against it)
     this.statusElem.hidden = false;
+
     this.initializeDevTools();
+    this.makeDevToolsVisible(true);
   }
 
   parseURLforTimelineId(url) {
@@ -49,10 +51,8 @@ class Viewer {
   }
 
   initializeDevTools() {
-    // configure devtools
-    this.makeDevToolsVisible(true);
-    if (self.Runtime && Runtime.experiments)
-      Runtime.experiments._supportEnabled = true;
+    if (self.Runtime && Runtime.experiments) Runtime.experiments._supportEnabled = true;
+
     // nerf some oddness
     WebInspector.DeferredTempFile = function() {};
     WebInspector.DeferredTempFile.prototype = {
@@ -60,6 +60,12 @@ class Viewer {
       remove: _ => { },
       finishWriting: _ => { }
     };
+
+    // WebInspector.settings is created in a window onload listener
+    window.addEventListener('load', _ => {
+      WebInspector.settings.createSetting('timelineCaptureNetwork', true);
+      WebInspector.settings.createSetting('timelineCaptureFilmStrip', true);
+    });
   }
 
   startSplitViewIfNeeded(urls) {
