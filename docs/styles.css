@@ -16,6 +16,10 @@ html{font-family:sans-serif;line-height:1.15;-ms-text-size-adjust:100%;-webkit-t
   display: block;
 }
 
+.fullbleed, .fullbleed body {
+    padding: 0;
+    margin: 0;
+}
 
 *, *:before, *:after {
   box-sizing: inherit;

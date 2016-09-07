@@ -21,8 +21,8 @@ class Viewer {
       this.driveAssetLoadedResolver = resolve;
     });
 
-    this.parseURLforTimelineId();
-    if (!this.timelineURL) {
+    this.parseURLforTimelineId(this.timelineURL);
+    if (!this.timelineURL || this.startSplitViewIfNeeded(this.timelineURL)) {
       document.getElementById('howto').hidden = false;
       return;
     }
@@ -32,16 +32,16 @@ class Viewer {
     this.initializeDevTools();
   }
 
-  parseURLforTimelineId() {
+  parseURLforTimelineId(url) {
     try {
-      const parsedURL = new URL(this.timelineURL);
+      const parsedURL = new URL(url);
       if (parsedURL.protocol === 'drive:') {
         this.timelineProvider = 'drive';
         this.timelineId = parsedURL.pathname.replace(/^\/+/, '');
       }
     } catch (e) {
        // legacy URLs, without a drive:// prefix.
-      this.timelineId = this.timelineURL
+      this.timelineId = url;
       this.timelineProvider = 'drive';
     }
   }
@@ -58,6 +58,26 @@ class Viewer {
       remove: _ => { },
       finishWriting: _ => { }
     };
+  }
+
+  startSplitViewIfNeeded(urls) {
+    urls = urls.split(',');
+
+    if (urls.length > 1) {
+      var frameset = document.createElement('frameset');
+      frameset.setAttribute('rows', Array(urls.length).fill(`${100/2}%`).join(','));
+
+      urls.forEach(url => {
+        var frame = document.createElement('frame');
+        frame.setAttribute('src', `./?loadTimelineFromURL=${url.trim()}`);
+        frameset.appendChild(frame);
+      });
+      document.body.appendChild(frameset);
+      document.documentElement.classList.add('fullbleed');
+      document.querySelector('.welcome').remove();
+      return true;
+    }
+    return false;
   }
 
   makeDevToolsVisible(bool) {
