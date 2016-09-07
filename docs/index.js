@@ -9,9 +9,30 @@ class Viewer {
 
     this.totalSize = 50 * 1000 * 1000;
     this.loadingStarted = false;
-    this.statusElem = document.getElementById('status');
+
+    // remote location of devtools we're using
     this.devtoolsBase = document.getElementById('devtoolsscript').src.replace(/inspector\.js.*/, '');
 
+    this.statusElem = document.getElementById('status');
+    this.authBtn = document.getElementById('auth');
+    this.authBtn.addEventListener('click', this.checkAuth.bind(this));
+
+    this.driveAssetLoaded = new Promise((resolve, reject) => {
+      this.driveAssetLoadedResolver = resolve;
+    });
+
+    this.parseURLforTimelineId();
+    if (!this.timelineURL) {
+      document.getElementById('howto').hidden = false;
+      return;
+    }
+
+    // Start loading DevTools. (checkAuth will be racing against it)
+    this.statusElem.hidden = false;
+    this.initializeDevTools();
+  }
+
+  parseURLforTimelineId() {
     try {
       const parsedURL = new URL(this.timelineURL);
       if (parsedURL.protocol === 'drive:') {
@@ -23,22 +44,9 @@ class Viewer {
       this.timelineId = this.timelineURL
       this.timelineProvider = 'drive';
     }
+  }
 
-    this.authBtn = document.getElementById('auth');
-    this.authBtn.addEventListener('click', this.checkAuth.bind(this));
-
-    this.driveAssetLoaded = new Promise((resolve, reject) => {
-      this.driveAssetLoadedResolver = resolve;
-    });
-
-    if (!this.timelineURL) {
-      document.getElementById('howto').hidden = false;
-      return;
-    }
-
-    // show loading message..
-    this.statusElem.hidden = false;
-
+  initializeDevTools() {
     // configure devtools
     this.makeDevToolsVisible(true);
     if (self.Runtime && Runtime.experiments)
@@ -107,14 +115,16 @@ class Viewer {
   }
 
   loadResourcePromise(url) {
-    var parsedURL = new URL(url);
-    var parsedLocation = new URL(location.href);
+    var URLtoLoad = new URL(url);
+    var URLofViewer = new URL(location.href);
+    var URLdevtoolsBase = new URL(this.devtoolsBase);
 
-    // hosted devtools is confused.
-    if (parsedURL && parsedURL.origin === parsedLocation.origin) {
-      var regex = new RegExp('^.*' + parsedLocation.pathname)
-      url = url.replace(regex, this.devtoolsBase);
-      return _loadResourcePromise(url);
+    // hosted devtools gets confused
+    // if DevTools is requesting a file thats on our origin, we'll redirect it to devtoolsBase
+    if (URLtoLoad && URLtoLoad.origin === URLofViewer.origin) {
+      var relativeURLtoLoad = URLtoLoad.pathname.replace(/^\//,'');
+      var redirectedURL = new URL(relativeURLtoLoad, this.devtoolsBase)
+      return _loadResourcePromise(redirectedURL.toString());
     }
 
     if (this.timelineProvider === 'drive')
@@ -126,10 +136,10 @@ class Viewer {
     }
 
     // adjustments for CORS
-    parsedURL.hostname = parsedURL.hostname.replace('github.com', 'githubusercontent.com');
-    parsedURL.hostname = parsedURL.hostname.replace('www.dropbox.com', 'dl.dropboxusercontent.com');
+    URLtoLoad.hostname = URLtoLoad.hostname.replace('github.com', 'githubusercontent.com');
+    URLtoLoad.hostname = URLtoLoad.hostname.replace('www.dropbox.com', 'dl.dropboxusercontent.com');
 
-    return this.doCORSrequest(parsedURL.toString()).then(payload => payload);
+    return this.doCORSrequest(URLtoLoad.toString()).then(payload => payload);
   }
 
   requestDriveFileMeta() {
