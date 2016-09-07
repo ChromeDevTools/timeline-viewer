@@ -15,6 +15,8 @@ class Viewer {
 
     this.statusElem = document.getElementById('status');
     this.authBtn = document.getElementById('auth');
+    this.docsElem = document.getElementById('howto');
+
     this.authBtn.addEventListener('click', this.checkAuth.bind(this));
 
     this.driveAssetLoaded = new Promise((resolve, reject) => {
@@ -23,7 +25,7 @@ class Viewer {
 
     this.parseURLforTimelineId(this.timelineURL);
     if (!this.timelineURL || this.startSplitViewIfNeeded(this.timelineURL)) {
-      document.getElementById('howto').hidden = false;
+      this.docsElem.hidden = false;
       return;
     }
 
@@ -123,7 +125,7 @@ class Viewer {
       this.updateStatus(`Drive API status: not signed in`);
 
       this.authBtn.hidden = false;
-      document.getElementById('howto').hidden = false;
+      this.docsElem.hidden = false;
       this.makeDevToolsVisible(false);
       return new Error(`Google auth error`);
     }
@@ -142,7 +144,7 @@ class Viewer {
     // hosted devtools gets confused
     // if DevTools is requesting a file thats on our origin, we'll redirect it to devtoolsBase
     if (URLtoLoad && URLtoLoad.origin === URLofViewer.origin) {
-      var relativeURLtoLoad = URLtoLoad.pathname.replace(/^\//,'');
+      var relativeURLtoLoad = URLtoLoad.pathname.replace(URLofViewer.pathname, '').replace(/^\//,'');
       var redirectedURL = new URL(relativeURLtoLoad, this.devtoolsBase)
       return _loadResourcePromise(redirectedURL.toString());
     }
