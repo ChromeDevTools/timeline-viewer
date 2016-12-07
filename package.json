@@ -15,7 +15,7 @@
     "gulp-webserver": "^0.9.1"
   },
   "dependencies": {
-    "chrome-devtools-frontend": "^1.0.414956"
+    "chrome-devtools-frontend": "1.0.437031"
   },
   "directories": {
     "doc": "docs"
