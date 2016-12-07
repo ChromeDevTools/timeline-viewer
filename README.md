@@ -20,6 +20,8 @@ Visit your <a href="https://security.google.com/settings/security/permissions?pl
 
 ## Dev
 
+Master branch's `docs` folder is what's published to gh-pages, to simplify deployment.
+
 Auth keys have localhost:8000 whitelisted, so you can hack there.
 
 * Private file: http://localhost:8000/?loadTimelineFromURL=0BzvYe7bYFf--aVhZM1RNR2N3cGc
