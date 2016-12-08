@@ -63,7 +63,7 @@
     <script src="timeline_viewer_config.js"></script>
     <script src="timeline_viewer.js"></script>
 
-    <script src="https://chrome-devtools-frontend.appspot.com/serve_file/@caa9926b73d5c11bc5952e64862c065c127b5e30/inspector.js" id="devtoolsscript"></script>
+    <script src="https://chrome-devtools-frontend.appspot.com/serve_file/@52993968095ae578c1a43d6b429e52e8f33d525e/inspector.js" id="devtoolsscript"></script>
     <script>
       function init() {
         // only works in Chrome because browser devtools
@@ -80,8 +80,7 @@
         self.authBtn = viewer.authBtn;
 
         // We are monkeypatching window.loadResourcePromise, which is from devtools' Runtime.js
-        self._loadResourcePromise = self.loadResourcePromise;
-        self.loadResourcePromise = viewer.loadResourcePromise.bind(viewer);
+        viewer.monkeypatchLoadResourcePromise();
       }
       init();
     </script>
@@ -90,6 +89,14 @@
 
     <body class="undocked" id="-blink-dev-tools"></body>
 
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
 
+      ga('create', 'UA-60854461-2', 'auto');
+      ga('send', 'pageview');
+  </script>
 </body>
 </html>
