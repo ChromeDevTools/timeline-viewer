@@ -320,3 +320,9 @@ form.addEventListener('submit', evt => {
     });
 });
 
+// don't let devtools trap ctrl-r
+document.addEventListener('keydown', event => {
+  if (self.UI && UI.KeyboardShortcut.eventHasCtrlOrMeta(event) && String.fromCharCode(event.which).toLowerCase() === 'r') {
+      event.handled = true;
+    }
+});
