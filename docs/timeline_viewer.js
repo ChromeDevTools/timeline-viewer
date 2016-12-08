@@ -57,14 +57,16 @@ class Viewer {
     }
 
     Common.moduleSetting = function (module) {
-      if (module === 'showNativeFunctionsInJSProfile') return { get: _ => true };
-      return {
+      var ret = {
         addChangeListener: _ => { },
         removeChangeListener: _ => { },
         get: _ => new Map(),
         set: _ => { },
         getAsArray: _ => []
       };
+      if (module === 'showNativeFunctionsInJSProfile')
+        ret.get = _ => true;
+      return ret;
     };
 
     // nerf some oddness
