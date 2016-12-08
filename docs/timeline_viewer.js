@@ -77,8 +77,8 @@ class Viewer {
 
     // Common.settings is created in a window onload listener
     window.addEventListener('load', _ => {
-      Common.settings.createSetting('timelineCaptureNetwork', true);
-      Common.settings.createSetting('timelineCaptureFilmStrip', true);
+      Common.settings.createSetting('timelineCaptureNetwork', true).set(true)
+      Common.settings.createSetting('timelineCaptureFilmStrip', true).set(true)
     });
   }
 
@@ -283,11 +283,26 @@ class Viewer {
 
       UI.inspectorView.showPanel('timeline').then(_ => {
         const panel = Timeline.TimelinePanel.instance();
+        // start progress
         if (!this.loadingStarted) {
           this.loadingStarted = true;
           panel && panel.loadingStarted();
         }
+        // update progress
         panel && panel.loadingProgress(evt.loaded / (evt.total || this.totalSize));
+
+        // flip off filmstrip or network if theres no data in the trace
+        if (!this.netReqMuted) {
+          this.netReqMuted = true;
+          var oldSetMarkers = panel._setMarkers;
+          panel._setMarkers = function () {
+            if (panel._model.networkRequests().length === 0)
+              Common.settings.createSetting('timelineCaptureNetwork', true).set(false)
+            if (panel._filmStripModel._frames.length === 0)
+              Common.settings.createSetting('timelineCaptureFilmStrip', true).set(false)
+            oldSetMarkers.call(panel);
+          }
+        }
       });
     } catch (e) {}
   }
