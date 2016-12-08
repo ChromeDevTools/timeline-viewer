@@ -63,7 +63,7 @@
     <script src="timeline_viewer_config.js"></script>
     <script src="timeline_viewer.js"></script>
 
-    <script src="https://chrome-devtools-frontend.appspot.com/serve_file/@caa9926b73d5c11bc5952e64862c065c127b5e30/inspector.js" id="devtoolsscript"></script>
+    <script src="https://chrome-devtools-frontend.appspot.com/serve_file/@52993968095ae578c1a43d6b429e52e8f33d525e/inspector.js" id="devtoolsscript"></script>
     <script>
       function init() {
         // only works in Chrome because browser devtools
@@ -80,8 +80,7 @@
         self.authBtn = viewer.authBtn;
 
         // We are monkeypatching window.loadResourcePromise, which is from devtools' Runtime.js
-        self._loadResourcePromise = self.loadResourcePromise;
-        self.loadResourcePromise = viewer.loadResourcePromise.bind(viewer);
+        viewer.monkeypatchLoadResourcePromise();
       }
       init();
     </script>

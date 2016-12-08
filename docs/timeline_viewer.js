@@ -51,20 +51,34 @@ class Viewer {
   }
 
   initializeDevTools() {
-    if (self.Runtime && Runtime.experiments) Runtime.experiments._supportEnabled = true;
+    Runtime.experiments._supportEnabled = true;
+    Runtime.experiments.isEnabled = name => {
+      return name == 'timelineV8RuntimeCallStats'
+    }
+
+    Common.moduleSetting = function (module) {
+      if (module === 'showNativeFunctionsInJSProfile') return { get: _ => true };
+      return {
+        addChangeListener: _ => { },
+        removeChangeListener: _ => { },
+        get: _ => new Map(),
+        set: _ => { },
+        getAsArray: _ => []
+      };
+    };
 
     // nerf some oddness
-    WebInspector.DeferredTempFile = function() {};
-    WebInspector.DeferredTempFile.prototype = {
+    Bindings.DeferredTempFile = function() {};
+    Bindings.DeferredTempFile.prototype = {
       write: _ => { },
       remove: _ => { },
       finishWriting: _ => { }
     };
 
-    // WebInspector.settings is created in a window onload listener
+    // Common.settings is created in a window onload listener
     window.addEventListener('load', _ => {
-      WebInspector.settings.createSetting('timelineCaptureNetwork', true);
-      WebInspector.settings.createSetting('timelineCaptureFilmStrip', true);
+      Common.settings.createSetting('timelineCaptureNetwork', true);
+      Common.settings.createSetting('timelineCaptureFilmStrip', true);
     });
   }
 
@@ -142,6 +156,11 @@ class Viewer {
     this.requestDriveFileMeta();
   }
 
+  monkeypatchLoadResourcePromise() {
+      this._orig_loadResourcePromise = Runtime.loadResourcePromise;
+      Runtime.loadResourcePromise = viewer.loadResourcePromise.bind(viewer);
+  }
+
   loadResourcePromise(url) {
     var URLtoLoad = new URL(url);
     var URLofViewer = new URL(location.href);
@@ -152,7 +171,7 @@ class Viewer {
     if (URLtoLoad && URLtoLoad.origin === URLofViewer.origin) {
       var relativeURLtoLoad = URLtoLoad.pathname.replace(URLofViewer.pathname, '').replace(/^\//,'');
       var redirectedURL = new URL(relativeURLtoLoad, this.devtoolsBase)
-      return _loadResourcePromise(redirectedURL.toString());
+      return this._orig_loadResourcePromise(redirectedURL.toString());
     }
 
     if (this.timelineProvider === 'drive')
@@ -160,7 +179,7 @@ class Viewer {
 
     // pass through URLs that aren't our timelineURL param
     if (url !== this.timelineURL) {
-      return _loadResourcePromise(url);
+      return this._orig_loadResourcePromise(url);
     }
 
     // adjustments for CORS
@@ -261,11 +280,13 @@ class Viewer {
   updateProgress(evt) {
     try {
       this.updateStatus(`Download progress: ${((evt.loaded / this.totalSize) * 100).toFixed(2)}%`);
-      if (!this.loadingStarted) {
-        this.loadingStarted = true;
-        WebInspector.inspectorView.showPanel('timeline').then(panel => panel && panel.loadingStarted());
-      }
-      WebInspector.inspectorView.showPanel('timeline').then(panel => {
+
+      UI.inspectorView.showPanel('timeline').then(_ => {
+        const panel = Timeline.TimelinePanel.instance();
+        if (!this.loadingStarted) {
+          this.loadingStarted = true;
+          panel && panel.loadingStarted();
+        }
         panel && panel.loadingProgress(evt.loaded / (evt.total || this.totalSize));
       });
     } catch (e) {}
