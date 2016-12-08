@@ -163,16 +163,16 @@ class Viewer {
       Runtime.loadResourcePromise = viewer.loadResourcePromise.bind(viewer);
   }
 
-  loadResourcePromise(url) {
-    var URLtoLoad = new URL(url);
+  loadResourcePromise(requestedURL) {
+    var url = new URL(requestedURL);
     var URLofViewer = new URL(location.href);
     var URLdevtoolsBase = new URL(this.devtoolsBase);
 
     // hosted devtools gets confused
     // if DevTools is requesting a file thats on our origin, we'll redirect it to devtoolsBase
-    if (URLtoLoad && URLtoLoad.origin === URLofViewer.origin) {
-      var relativeURLtoLoad = URLtoLoad.pathname.replace(URLofViewer.pathname, '').replace(/^\//,'');
-      var redirectedURL = new URL(relativeURLtoLoad, this.devtoolsBase)
+    if (url && url.origin === URLofViewer.origin) {
+      var relativeurl = url.pathname.replace(URLofViewer.pathname, '').replace(/^\//,'');
+      var redirectedURL = new URL(relativeurl, this.devtoolsBase)
       return this._orig_loadResourcePromise(redirectedURL.toString());
     }
 
@@ -180,15 +180,15 @@ class Viewer {
       return this.driveAssetLoaded.then(payload => payload);
 
     // pass through URLs that aren't our timelineURL param
-    if (url !== this.timelineURL) {
+    if (requestedURL !== this.timelineURL) {
       return this._orig_loadResourcePromise(url);
     }
 
     // adjustments for CORS
-    URLtoLoad.hostname = URLtoLoad.hostname.replace('github.com', 'githubusercontent.com');
-    URLtoLoad.hostname = URLtoLoad.hostname.replace('www.dropbox.com', 'dl.dropboxusercontent.com');
+    url.hostname = url.hostname.replace('github.com', 'githubusercontent.com');
+    url.hostname = url.hostname.replace('www.dropbox.com', 'dl.dropboxusercontent.com');
 
-    return this.doCORSrequest(URLtoLoad.toString()).then(payload => payload);
+    return this.doCORSrequest(url.href).then(payload => payload);
   }
 
   requestDriveFileMeta() {
