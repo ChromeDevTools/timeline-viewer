@@ -1,4 +1,4 @@
-
+// single monolithic class, begging to be broken apart into modules...
 class Viewer {
 
   constructor() {
@@ -42,6 +42,10 @@ class Viewer {
       if (parsedURL.protocol === 'drive:') {
         this.timelineProvider = 'drive';
         this.timelineId = parsedURL.pathname.replace(/^\/+/, '');
+      }
+      if (parsedURL.hostname === "drive.google.com") {
+        this.timelineProvider = 'drive';
+        this.timelineId = parsedURL.pathname.match(/\b[0-9a-zA-Z]{5,40}\b/)[0];
       }
     } catch (e) {
        // legacy URLs, without a drive:// prefix.
