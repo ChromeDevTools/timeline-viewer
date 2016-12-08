@@ -26,4 +26,11 @@ Auth keys have localhost:8000 whitelisted, so you can hack there.
 
 * Private file: http://localhost:8000/?loadTimelineFromURL=0BzvYe7bYFf--aVhZM1RNR2N3cGc
 
+### Updating DevTools Version
 
+* Remote debug Chrome on Android (Dev channel or Canary).
+* (Verify it works as expected)
+* Open devtools on devtools
+* Look at `location.href` and grab the hash out of it
+  * `copy(new URL(location.href).pathname.match(/@(\w+)/)[1])`
+* Pop that into the hash in `docs/index.html`
