@@ -20,6 +20,10 @@ Visit your <a href="https://security.google.com/settings/security/permissions?pl
 
 ## Dev
 
+Run:
+ - `yarn` or `npm i`
+ - `yarn run dev` or `npm run dev` - it will open site in browser and run server for you.
+
 Master branch's `docs` folder is what's published to gh-pages, to simplify deployment.
 
 Auth keys have localhost:8000 whitelisted, so you can hack there.
