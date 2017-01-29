@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "opn http://localhost:8080/ && http-server docs -a localhost"
+    "dev": "opn http://localhost:8000/ && http-server docs -a localhost -p 8000"
   },
   "author": "Paul Irish",
   "license": "Apache-2.0",
