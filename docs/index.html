@@ -62,6 +62,7 @@
 
     <script src="timeline_viewer_config.js"></script>
     <script src="timeline_viewer.js"></script>
+    <script src="service-worker.js"></script>
 
     <script src="https://chrome-devtools-frontend.appspot.com/serve_file/@062d7b445d6d0ebf509fd923ef027a0a3c6818b1/inspector.js" id="devtoolsscript"></script>
     <script>
@@ -83,6 +84,8 @@
         viewer.monkeypatchLoadResourcePromise();
       }
       init();
+
+      if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js');
     </script>
     <script async src="https://apis.google.com/js/client.js?onload=checkAuth"></script>
 
