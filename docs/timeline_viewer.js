@@ -14,6 +14,8 @@ class Viewer {
     this.devtoolsBase = document.getElementById('devtoolsscript').src.replace(/inspector\.js.*/, '');
 
     this.statusElem = document.getElementById('status');
+    this.networkOnlineStatusElem = document.getElementById('online-status');
+    this.networkOfflineStatusElem = document.getElementById('offline-status');
     this.authBtn = document.getElementById('auth');
     this.docsElem = document.getElementById('howto');
 
@@ -32,8 +34,37 @@ class Viewer {
     // Start loading DevTools. (checkAuth will be racing against it)
     this.statusElem.hidden = false;
 
+    this.handleNetworkStatus();
     this.initializeDevTools();
     this.makeDevToolsVisible(true);
+  }
+
+  handleNetworkStatus() {
+    this.networkOnlineStatusElem.addEventListener('click', function() {
+      this.networkOnlineStatusElem.hidden = true;
+    }.bind(this));
+
+    this.networkOfflineStatusElem.addEventListener('click', function() {
+      this.networkOfflineStatusElem.hidden = true;
+    }.bind(this));
+
+    window.addEventListener('online', function() {
+      this.toggleNetworkStatusMessage();
+    }.bind(this), false);
+
+    window.addEventListener('offline', function() {
+      this.toggleNetworkStatusMessage( { status: 'offline' } );
+    }.bind(this), false);
+  }
+
+  toggleNetworkStatusMessage( options = { status: 'online' } ) {
+    if (options.status === 'online') {
+      this.networkOnlineStatusElem.hidden = false;
+      this.networkOfflineStatusElem.hidden = true;
+    } else {
+      this.networkOnlineStatusElem.hidden = true;
+      this.networkOfflineStatusElem.hidden = false;
+    }
   }
 
   parseURLforTimelineId(url) {
