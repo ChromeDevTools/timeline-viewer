@@ -40,6 +40,12 @@ class Viewer {
   }
 
   handleNetworkStatus() {
+    if (navigator.onLine) {
+      this.toggleNetworkStatusMessage();
+    } else {
+      this.toggleNetworkStatusMessage( { status: 'offline' } );
+    }
+
     this.networkOnlineStatusElem.addEventListener('click', function() {
       this.networkOnlineStatusElem.hidden = true;
     }.bind(this));
