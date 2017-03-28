@@ -1,4 +1,4 @@
-// single monolithic class, begging to be broken apart into modules...
+g// single monolithic class, begging to be broken apart into modules...
 class Viewer {
 
   constructor() {
@@ -222,9 +222,9 @@ class Viewer {
       this.makeDevToolsVisible(false);
       const reasons = error.errors.map(e => e.reason);
       let fileUnavailableStr = '';
-      letUnavailableStr += reasons.includes('notFound') ? 'Confirm you have Edit permissions to the file. ' : '';
+      fileUnavailableStr += reasons.includes('notFound') ? 'Confirm you have Edit permissions to the file. ' : '';
       if (reasons.includes('authError')) {
-        letUnavailableStr += 'Please sign in. ';
+        fileUnavailableStr += 'Please sign in. ';
         this.authBtn.hidden = false;
       }
       this.updateStatus(`${fileUnavailableStr} Drive API error: ${error.message}. (${reasons.join(', ')})`);
