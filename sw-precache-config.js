@@ -6,7 +6,8 @@ module.exports = {
     'docs/**.js'
   ],
   runtimeCaching: [{
-    urlPattern: /(https?:\/\/(?:www\.|(?!www))[^\s\.]+\.[^\s]{2,}|www\.[^\s]+\.[^\s]{2,})/,
+    // exclude googleapis, analitics, drive requests
+    urlPattern: /^((?!(googleapis|analytics|googleusercontent)).)*$/,
     handler: 'networkFirst'
   }],
   stripPrefix: 'docs/',
