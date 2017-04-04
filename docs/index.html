@@ -8,7 +8,7 @@
 <body>
     <div class="network-status-message bg-green" id="online-status" hidden>Online</div>
     <div class="network-status-message bg-orange" id="offline-status" hidden>Offline</div>
-    <div class="welcome w-100 sans-serif bg-white">
+    <div class="welcome w-100 sans-serif bg-white" id="dropbox">
         <h1 class="f2 f-subheadline-ns mb0">
             DevTools Timeline Viewer
         </h1>
@@ -28,6 +28,8 @@
                         (<a href="?loadTimelineFromURL=https://gist.github.com/paulirish/f83d30384954937dc3a1fae970a4ae52/raw/b25b27741c652d3091a316dfd8b58bf72f14aa74/twitch.json"  data-url="https://gist.github.com/paulirish/f83d30384954937dc3a1fae970a4ae52/raw/b25b27741c652d3091a316dfd8b58bf72f14aa74/twitch.json">example</a>),
                         <br> or any file available over CORS. Multiple URLS will generate a <a href="./?loadTimelineFromURL=https://www.dropbox.com/s/k84dlf4i1g55t7x/jooj123-before.json?dl=0,https://www.dropbox.com/s/5dzjiodggtouk32/jooj123-after.json?dl=0" data-url="https://www.dropbox.com/s/k84dlf4i1g55t7x/jooj123-before.json?dl=0,https://www.dropbox.com/s/5dzjiodggtouk32/jooj123-after.json?dl=0">split view</a>.
                     </small>
+                    <input type="checkbox" id="uploadToDrive" checked>
+                    <label for="uploadToDrive">Upload drag&drop file to Google Drive</label>
                 </form>
             </div>
         </article>

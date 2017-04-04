@@ -9,6 +9,8 @@ class Viewer {
 
     this.totalSize = 50 * 1000 * 1000;
     this.loadingStarted = false;
+    this.refreshPage = false;
+    this.uploadToDriveElem = document.getElementById('uploadToDrive');
 
     // remote location of devtools we're using
     this.devtoolsBase = document.getElementById('devtoolsscript').src.replace(/inspector\.js.*/, '');
@@ -26,7 +28,9 @@ class Viewer {
     });
 
     this.parseURLforTimelineId(this.timelineURL);
+
     if (!this.timelineURL || this.startSplitViewIfNeeded(this.timelineURL)) {
+      this.handleDropEvents();
       this.docsElem.hidden = false;
       return;
     }
@@ -71,6 +75,31 @@ class Viewer {
       this.networkOnlineStatusElem.hidden = true;
       this.networkOfflineStatusElem.hidden = false;
     }
+  }
+
+  handleDropEvents() {
+    const dropbox = document.getElementById('dropbox');
+    dropbox.addEventListener('dragenter', this.dragenter, false);
+    dropbox.addEventListener('dragover', this.dragover, false);
+    dropbox.addEventListener('drop', this.drop.bind(this), false);
+  }
+
+  dragenter(e) {
+    e.stopPropagation();
+    e.preventDefault();
+  }
+
+  dragover(e) {
+    e.stopPropagation();
+    e.preventDefault();
+  }
+
+  drop(e) {
+    e.stopPropagation();
+    e.preventDefault();
+
+    this.refreshPage = true;
+    this.handleFile(e.dataTransfer);
   }
 
   parseURLforTimelineId(url) {
@@ -120,8 +149,8 @@ class Viewer {
 
     // Common.settings is created in a window onload listener
     window.addEventListener('load', _ => {
-      Common.settings.createSetting('timelineCaptureNetwork', true).set(true)
-      Common.settings.createSetting('timelineCaptureFilmStrip', true).set(true)
+      Common.settings.createSetting('timelineCaptureNetwork', true).set(true);
+      Common.settings.createSetting('timelineCaptureFilmStrip', true).set(true);
     });
   }
 
@@ -201,7 +230,15 @@ class Viewer {
 
   monkeypatchLoadResourcePromise() {
       this._orig_loadResourcePromise = Runtime.loadResourcePromise;
-      Runtime.loadResourcePromise = viewer.loadResourcePromise.bind(viewer);
+      Runtime.loadResourcePromise = viewer.loadResource.bind(viewer);
+  }
+
+  loadResource(requestedURL) {
+    return this.loadResourcePromise(requestedURL)
+      .then(resp => {
+        this.monkeyPatchingHandleDrop();
+        return resp;
+      });
   }
 
   loadResourcePromise(requestedURL) {
@@ -303,21 +340,30 @@ class Viewer {
     return this.driveAssetLoadedResolver(payload);
   }
 
-  doCORSrequest(url, callbetween) {
+  doCORSrequest(url, callbetween, method='GET', body) {
     return new Promise((resolve, reject) => {
       // Use an XHR rather than fetch so we can have progress events
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', url);
+      const xhr = new XMLHttpRequest();
+      xhr.open(method, url);
       callbetween && callbetween(xhr);
       xhr.onprogress = this.updateProgress.bind(this);
-      xhr.onload = _ => resolve(xhr.responseText);
-      xhr.onerror = (err => {
+      xhr.onload = _ => {
+        return resolve(xhr.responseText);
+      };
+      xhr.onerror = err => {
         this.makeDevToolsVisible(false);
         this.updateStatus('Download of asset failed. ' + ((xhr.readyState == xhr.DONE) ? 'CORS headers likely not applied.' : ''));
         reject(err);
-      }).bind(this);
-      xhr.send();
+      };
+
+      xhr.send(body);
     });
+  }
+
+  setAuthHeaders(xhr) {
+    const user = gapi.auth2.getAuthInstance().currentUser.get();
+    const accessToken = user.getAuthResponse().access_token;
+    xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
   }
 
   updateProgress(evt) {
@@ -325,29 +371,147 @@ class Viewer {
       this.updateStatus(`Download progress: ${((evt.loaded / this.totalSize) * 100).toFixed(2)}%`);
 
       UI.inspectorView.showPanel('timeline').then(_ => {
-        const panel = Timeline.TimelinePanel.instance();
-        // start progress
-        if (!this.loadingStarted) {
-          this.loadingStarted = true;
-          panel && panel.loadingStarted();
-        }
-        // update progress
-        panel && panel.loadingProgress(evt.loaded / (evt.total || this.totalSize));
+        try {
+          const panel = Timeline.TimelinePanel.instance();
+          // start progress
+          if (!this.loadingStarted) {
+            this.loadingStarted = true;
+            panel && panel.loadingStarted();
+          }
 
-        // flip off filmstrip or network if theres no data in the trace
-        if (!this.netReqMuted) {
+          // update progress
+          panel && panel.loadingProgress(evt.loaded / (evt.total || this.totalSize));
+
+          // flip off filmstrip or network if theres no data in the trace
           this.netReqMuted = true;
           var oldSetMarkers = panel._setMarkers;
-          panel._setMarkers = function () {
-            if (panel._model.networkRequests().length === 0)
-              Common.settings.createSetting('timelineCaptureNetwork', true).set(false)
-            if (panel._filmStripModel._frames.length === 0)
-              Common.settings.createSetting('timelineCaptureFilmStrip', true).set(false)
-            oldSetMarkers.call(panel);
+          if (panel._model) {
+            panel._setMarkers = function () {
+              if (panel._model.networkRequests().length === 0)
+                Common.settings.createSetting('timelineCaptureNetwork', true).set(false)
+              if (panel._filmStripModel._frames.length === 0)
+                Common.settings.createSetting('timelineCaptureFilmStrip', true).set(false)
+              oldSetMarkers.call(panel);
+            }
           }
-        }
+        } catch(e) {}
       });
     } catch (e) {}
+  }
+
+  monkeyPatchingHandleDrop() {
+    if (window.Timeline && window.Timeline.TimelinePanel) {
+      const timelinePanel = Timeline.TimelinePanel.instance();
+      const dropTarget = timelinePanel._dropTarget;
+      const handleDrop = dropTarget._handleDrop;
+      dropTarget._handleDrop = function(dataTransfer) {
+        // showing timeline and upload file asynchronously
+        if (viewer.uploadToDriveElem.checked) {
+          viewer.refreshPage = false;
+          viewer.netReqMuted = true;
+          viewer.handleFile(dataTransfer);
+        }
+        handleDrop.apply(dropTarget, arguments);
+      };
+    }
+  }
+
+  handleFile(dataTransfer) {
+    if (!this.uploadToDriveElem.checked) return;
+
+    const items = dataTransfer.items;
+    if (!items.length)
+      return;
+
+    const item = items[0];
+
+    if (item.kind === 'string') {
+      handleDrop.apply(dropTarget, arguments);
+    } else if (item.kind === 'file') {
+      var entry = items[0].webkitGetAsEntry();
+      if (!entry.isFile)
+        return;
+
+      entry.file(file => {
+        this.readFileContent(file);
+      });
+    }
+  }
+
+  readFileContent(file) {
+    const reader = new FileReader();
+    reader.onload = event => {
+      this.uploadTimelineData(event, file);
+    };
+    reader.readAsBinaryString(file);
+  }
+
+  uploadTimelineData(event, file) {
+    console.log('Started loading file on Google Drive ...');
+
+    const contentType = file.type || 'application/octet-stream';
+
+    const fileMetadata = {
+      title: `${file.name}-${Date.now()}.json`,
+      mimeType: contentType,
+      writersCanShare: true,
+      uploadType: 'multipart'
+    };
+    const media = {
+      mimeType: contentType,
+      body: event.target.result
+    };
+
+    const boundary = Math.random().toString().substr(2);
+    const delimiter = `\r\n--${boundary}\r\n`;
+    const close_delim = `\r\n--${boundary}--`;
+
+    // much prettier then template literals because of mess with LF
+    const multipartRequestBody =
+      delimiter +
+      'Content-Type: application/json\r\n\r\n' +
+      JSON.stringify(fileMetadata) +
+      delimiter +
+      'Content-Type: ' + contentType + '\r\n\r\n' +
+      media.body +
+      close_delim;
+
+    this.doCORSrequest('https://www.googleapis.com/upload/drive/v2/files', xhr => {
+      this.setAuthHeaders(xhr);
+      xhr.setRequestHeader('Content-type', 'multipart/mixed; charset=utf-8; boundary=' + boundary);
+    }, 'POST', multipartRequestBody)
+      .then(response => JSON.parse(response))
+      .then(data => {
+        return this.shareFile(data.id).then(_ => data)
+      })
+      .then(data => {
+        if (data.error) return;
+        this.changeUrl(data.id);
+        console.log('File successfully uploaded on Google Drive');
+      });
+  }
+
+  shareFile(fileId) {
+    const url = `https://www.googleapis.com/drive/v2/files/${fileId}/permissions`;
+    const permData = {
+      role: 'writer',
+      type: 'anyone'
+    };
+    return this.doCORSrequest(url, xhr => {
+      this.setAuthHeaders(xhr);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+    }, 'POST', JSON.stringify(permData));
+  }
+
+  changeUrl(id) {
+    let url = `?loadTimelineFromURL=drive://${id}`;
+    if (this.refreshPage) {
+      window.location.href = `/${url}`;
+    } else {
+      const state = {'file_id': id};
+      const title = 'Timeline Viewer';
+      history.replaceState(state, title, url);
+    }
   }
 }
 
