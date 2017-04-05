@@ -6,6 +6,8 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <div class="network-status-message bg-green" id="online-status" hidden>Online</div>
+    <div class="network-status-message bg-orange" id="offline-status" hidden>Offline</div>
     <div class="welcome w-100 sans-serif bg-white">
         <h1 class="f2 f-subheadline-ns mb0">
             DevTools Timeline Viewer
@@ -62,6 +64,7 @@
 
     <script src="timeline_viewer_config.js"></script>
     <script src="timeline_viewer.js"></script>
+    <script src="service-worker.js"></script>
 
     <script src="https://chrome-devtools-frontend.appspot.com/serve_file/@b90ffba2e47896e76a0ce9bd4f2b92cd7bb26a03/inspector.js" id="devtoolsscript"></script>
     <script>
@@ -83,6 +86,8 @@
         viewer.monkeypatchLoadResourcePromise();
       }
       init();
+
+      if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js');
     </script>
     <script async src="https://apis.google.com/js/client.js?onload=checkAuth"></script>
 

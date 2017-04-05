@@ -5,13 +5,15 @@
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "opn http://localhost:8080/ && http-server docs -a localhost"
+    "dev": "npm run generate-sw && opn http://localhost:8000/ && http-server docs -a localhost -p 8000",
+    "generate-sw": "sw-precache --config=./sw-precache-config.js --root=docs"
   },
   "author": "Paul Irish",
   "license": "Apache-2.0",
   "devDependencies": {
     "http-server": "^0.9.0",
-    "opn-cli": "^3.1.0"
+    "opn-cli": "^3.1.0",
+    "sw-precache": "^5.0.0"
   },
   "dependencies": {},
   "directories": {
