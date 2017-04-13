@@ -111,6 +111,40 @@ class Viewer {
     });
   }
 
+  handleNetworkStatus() {
+    if (navigator.onLine) {
+      this.toggleNetworkStatusMessage();
+    } else {
+      this.toggleNetworkStatusMessage( { status: 'offline' } );
+    }
+
+    this.networkOnlineStatusElem.addEventListener('click', function() {
+      this.networkOnlineStatusElem.hidden = true;
+    }.bind(this));
+
+    this.networkOfflineStatusElem.addEventListener('click', function() {
+      this.networkOfflineStatusElem.hidden = true;
+    }.bind(this));
+
+    window.addEventListener('online', function() {
+      this.toggleNetworkStatusMessage();
+    }.bind(this), false);
+
+    window.addEventListener('offline', function() {
+      this.toggleNetworkStatusMessage( { status: 'offline' } );
+    }.bind(this), false);
+  }
+
+  toggleNetworkStatusMessage( options = { status: 'online' } ) {
+    if (options.status === 'online') {
+      this.networkOnlineStatusElem.hidden = false;
+      this.networkOfflineStatusElem.hidden = true;
+    } else {
+      this.networkOnlineStatusElem.hidden = true;
+      this.networkOfflineStatusElem.hidden = false;
+    }
+  }
+
   parseURLforTimelineId(url) {
     try {
       const parsedURL = new URL(url);
@@ -326,9 +360,9 @@ class Viewer {
       this.makeDevToolsVisible(false);
       const reasons = error.errors.map(e => e.reason);
       let fileUnavailableStr = '';
-      letUnavailableStr += reasons.includes('notFound') ? 'Confirm you have Edit permissions to the file. ' : '';
+      fileUnavailableStr += reasons.includes('notFound') ? 'Confirm you have Edit permissions to the file. ' : '';
       if (reasons.includes('authError')) {
-        letUnavailableStr += 'Please sign in. ';
+        fileUnavailableStr += 'Please sign in. ';
         this.authBtn.hidden = false;
       }
       this.updateStatus(`${fileUnavailableStr} Drive API error: ${error.message}. (${reasons.join(', ')})`);
