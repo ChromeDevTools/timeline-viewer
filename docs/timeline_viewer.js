@@ -337,13 +337,13 @@ class Viewer {
         // flip off filmstrip or network if theres no data in the trace
         if (!this.netReqMuted) {
           this.netReqMuted = true;
-          var oldSetMarkers = panel._setMarkers;
+          const oldSetMarkers = panel._setMarkers;
           panel._setMarkers = function () {
-            if (panel._model.networkRequests().length === 0)
-              Common.settings.createSetting('timelineCaptureNetwork', true).set(false)
-            if (panel._filmStripModel._frames.length === 0)
-              Common.settings.createSetting('timelineCaptureFilmStrip', true).set(false)
-            oldSetMarkers.call(panel);
+            if (this._performanceModel._timelineModel.networkRequests().length === 0)
+              Common.settings.createSetting('timelineCaptureNetwork', true).set(false);
+            if (this._performanceModel.filmStripModel()._frames.length === 0)
+              Common.settings.createSetting('timelineCaptureFilmStrip', true).set(false);
+            oldSetMarkers.call(this, this._performanceModel._timelineModel);
           }
         }
       });
