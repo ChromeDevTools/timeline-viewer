@@ -27,6 +27,8 @@ class Viewer {
 
     this.parseURLforTimelineId(this.timelineURL);
     if (!this.timelineURL || this.startSplitViewIfNeeded(this.timelineURL)) {
+      this.splitViewContainer = document.getElementById('split-view-container');
+      this.isSplitView = this.splitViewContainer ? true : false;
       this.docsElem.hidden = false;
       return;
     }
@@ -129,11 +131,13 @@ class Viewer {
     urls = urls.split(',');
 
     if (urls.length > 1) {
-      var frameset = document.createElement('frameset');
+      const frameset = document.createElement('frameset');
+      frameset.setAttribute('id', 'split-view-container');
       frameset.setAttribute('rows', Array(urls.length).fill(`${100/2}%`).join(','));
 
-      urls.forEach(url => {
-        var frame = document.createElement('frame');
+      urls.forEach((url, index) => {
+        const frame = document.createElement('frame');
+        frame.setAttribute('id', `split-view-${index}`);
         frame.setAttribute('src', `./?loadTimelineFromURL=${url.trim()}`);
         frameset.appendChild(frame);
       });
@@ -310,7 +314,15 @@ class Viewer {
       xhr.open('GET', url);
       callbetween && callbetween(xhr);
       xhr.onprogress = this.updateProgress.bind(this);
-      xhr.onload = _ => resolve(xhr.responseText);
+      xhr.onload = _ => {
+        if (this.isSplitView) {
+          return this.splitViewTimlineLoaded()
+            .then(this.synchronizeRange.bind(this))
+            .then(_ => xhr.responseText);
+        } else {
+          return resolve(xhr.responseText);
+        }
+      };
       xhr.onerror = (err => {
         this.makeDevToolsVisible(false);
         this.updateStatus('Download of asset failed. ' + ((xhr.readyState == xhr.DONE) ? 'CORS headers likely not applied.' : ''));
@@ -348,6 +360,44 @@ class Viewer {
         }
       });
     } catch (e) {}
+  }
+
+  splitViewTimlineLoaded() {
+    return new Promise(resolve => {
+      let isLoaded = false;
+      const checkLoading = setInterval(() => {
+        const frames = document.getElementsByTagName('frame');
+        for (let frame of frames) {
+          const Timeline = frame.contentWindow['Timeline'];
+          const panel = Timeline.TimelinePanel.instance();
+          if (panel._state === Timeline.TimelinePanel.State.Idle) {
+            isLoaded = true;
+          } else {
+            isLoaded = false;
+            return;
+          }
+        }
+        if (isLoaded) {
+          clearInterval(checkLoading);
+          resolve();
+        }
+      }, 500);
+    });
+  }
+
+  synchronizeRange() {
+    const panel = document.getElementById('split-view-0').contentWindow['Timeline'].TimelinePanel.instance();
+    const startTime = panel._windowStartTime;
+    const endTime = panel._windowEndTime;
+
+    const frames = document.getElementsByTagName('frame');
+    for (let frame of frames) {
+      const Timeline = frame.contentWindow['Timeline'];
+      const panel = Timeline.TimelinePanel.instance();
+      panel._windowStartTime = startTime;
+      panel._windowEndTime = endTime;
+      panel._revealTimeRange(startTime, endTime);
+    }
   }
 }
 
