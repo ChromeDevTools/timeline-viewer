@@ -387,16 +387,22 @@ class Viewer {
 
   synchronizeRange() {
     const panel = document.getElementById('split-view-0').contentWindow['Timeline'].TimelinePanel.instance();
-    const startTime = panel._windowStartTime;
-    const endTime = panel._windowEndTime;
+    const tracingModelMinimumRecordTime = panel._performanceModel.tracingModel().minimumRecordTime();
+    const tracingModelMaximumRecordTime = panel._performanceModel.tracingModel().maximumRecordTime();
 
     const frames = document.getElementsByTagName('frame');
     for (let frame of frames) {
       const Timeline = frame.contentWindow['Timeline'];
       const panel = Timeline.TimelinePanel.instance();
-      panel._windowStartTime = startTime;
-      panel._windowEndTime = endTime;
-      panel._revealTimeRange(startTime, endTime);
+      const performanceModel = panel._performanceModel;
+      const tracingModel = performanceModel.tracingModel();
+
+      tracingModel._minimumRecordTime = tracingModelMinimumRecordTime;
+      tracingModel._maximumRecordTime = tracingModelMaximumRecordTime;
+
+      performanceModel.setTracingModel(tracingModel);
+
+      panel._setModel(performanceModel);
     }
   }
 }
