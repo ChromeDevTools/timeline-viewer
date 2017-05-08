@@ -1,8 +1,13 @@
 // single monolithic class, begging to be broken apart into modules...
+
+'use strict';
+/* global Viewer, SyncView */
+
 class Viewer {
 
   constructor() {
     this.params = new URL(location.href).searchParams;
+    this.syncView = new SyncView();
     this.timelineURL = this.params.get('loadTimelineFromURL');
     this.timelineId;
     this.timelineProvider = 'url';
@@ -27,6 +32,8 @@ class Viewer {
 
     this.parseURLforTimelineId(this.timelineURL);
     if (!this.timelineURL || this.startSplitViewIfNeeded(this.timelineURL)) {
+      this.splitViewContainer = document.getElementById('split-view-container');
+      this.isSplitView = this.splitViewContainer ? true : false;
       this.docsElem.hidden = false;
       return;
     }
@@ -118,10 +125,14 @@ class Viewer {
       finishWriting: _ => { }
     };
 
+    var viewerInstance = this;
+
     // Common.settings is created in a window onload listener
     window.addEventListener('load', _ => {
-      Common.settings.createSetting('timelineCaptureNetwork', true).set(true)
-      Common.settings.createSetting('timelineCaptureFilmStrip', true).set(true)
+      Common.settings.createSetting('timelineCaptureNetwork', true).set(true);
+      Common.settings.createSetting('timelineCaptureFilmStrip', true).set(true);
+
+      viewerInstance.syncView.monkepatchSetWindowPosition(viewerInstance);
     });
   }
 
@@ -129,11 +140,13 @@ class Viewer {
     urls = urls.split(',');
 
     if (urls.length > 1) {
-      var frameset = document.createElement('frameset');
+      const frameset = document.createElement('frameset');
+      frameset.setAttribute('id', 'split-view-container');
       frameset.setAttribute('rows', Array(urls.length).fill(`${100/2}%`).join(','));
 
-      urls.forEach(url => {
-        var frame = document.createElement('frame');
+      urls.forEach((url, index) => {
+        const frame = document.createElement('frame');
+        frame.setAttribute('id', `split-view-${index}`);
         frame.setAttribute('src', `./?loadTimelineFromURL=${url.trim()}`);
         frameset.appendChild(frame);
       });
@@ -204,6 +217,9 @@ class Viewer {
       Runtime.loadResourcePromise = viewer.loadResourcePromise.bind(viewer);
   }
 
+
+
+  // monkeypatched method for devtools
   loadResourcePromise(requestedURL) {
     var url = new URL(requestedURL);
     var URLofViewer = new URL(location.href);
@@ -310,7 +326,15 @@ class Viewer {
       xhr.open('GET', url);
       callbetween && callbetween(xhr);
       xhr.onprogress = this.updateProgress.bind(this);
-      xhr.onload = _ => resolve(xhr.responseText);
+      xhr.onload = _ => {
+        if (this.isSplitView) {
+          return this.syncView.splitViewTimlineLoaded()
+            .then(_ => this.syncView.synchronizeRange())
+            .then(_ => xhr.responseText);
+        } else {
+          return resolve(xhr.responseText);
+        }
+      };
       xhr.onerror = (err => {
         this.makeDevToolsVisible(false);
         this.updateStatus('Download of asset failed. ' + ((xhr.readyState == xhr.DONE) ? 'CORS headers likely not applied.' : ''));
