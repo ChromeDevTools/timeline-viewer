@@ -1,6 +1,6 @@
 'use strict';
 
-/* globals SyncView, PerfUI */
+/* globals SyncView, PerfUI, Timeline */
 
 class SyncView {
 
@@ -15,10 +15,8 @@ class SyncView {
     return new Promise(resolve => {
       let isLoaded = false;
       const checkLoading = setInterval(() => {
-        const frames = document.getElementsByTagName('frame');
-        for (const frame of frames) {
-          const Timeline = frame.contentWindow['Timeline'];
-          const panel = Timeline.TimelinePanel.instance();
+        const panels = SyncView.panels();
+        for (let panel of panels) {
           if (panel._state === Timeline.TimelinePanel.State.Idle) {
             isLoaded = true;
           } else {
@@ -35,16 +33,14 @@ class SyncView {
   }
 
   synchronizeRange() {
-    const panel = document.getElementById('split-view-0').contentWindow['Timeline'].TimelinePanel.instance();
-    const tracingModelMinimumRecordTime = panel._performanceModel.tracingModel().minimumRecordTime();
-    const tracingModelMaximumRecordTime = panel._performanceModel.tracingModel().maximumRecordTime();
+    const originalPanel = SyncView.originalPanel();
+    const tracingModelMinimumRecordTime = originalPanel._performanceModel.tracingModel().minimumRecordTime();
+    const tracingModelMaximumRecordTime = originalPanel._performanceModel.tracingModel().maximumRecordTime();
     const referenceDuration = tracingModelMaximumRecordTime - tracingModelMinimumRecordTime;
 
-    const frames = document.getElementsByTagName('frame');
-    for (let frame of frames) {
-      const Timeline = frame.contentWindow['Timeline'];
-      const panel = Timeline.TimelinePanel.instance();
-      const performanceModel = panel._performanceModel;
+    const targetPanels = SyncView.targetPanels();
+    for (let targetPanel of targetPanels) {
+      const performanceModel = targetPanel._performanceModel;
       const tracingModel = performanceModel.tracingModel();
 
       // trace times are trace-specific and not 0-based
@@ -53,7 +49,7 @@ class SyncView {
 
       performanceModel.setTracingModel(tracingModel);
 
-      panel._setModel(performanceModel);
+      targetPanel._setModel(performanceModel);
     }
   }
 
@@ -84,17 +80,19 @@ class SyncView {
     const selectionMs = getSelectionTimes();
 
     // calculate what target frames should be:
-    // TODO should not be hardcoding the 2nd frame, but instead iterating over frames and excluding same-frame..
-    const targetPanel = window.parent.document.getElementById('split-view-1').contentWindow['Timeline'].TimelinePanel.instance();
-    const absoluteMin = targetPanel._overviewPane._overviewCalculator.minimumBoundary();
-    const targetTraceLengthMs = targetPanel._overviewPane._overviewCalculator.maximumBoundary() - absoluteMin;
 
-    const windowPercentages = {
-      left: selectionMs.start / targetTraceLengthMs,
-      right: (selectionMs.start + selectionMs.duration) / targetTraceLengthMs
-    };
-    // call it on the frame's PerfUI.OverviewGrid.Window
-    targetPanel._overviewPane._overviewGrid._window._setWindow(windowPercentages.left, windowPercentages.right);
+    const targetPanels = SyncView.targetPanels();
+    for (let targetPanel of targetPanels) {
+      const absoluteMin = targetPanel._overviewPane._overviewCalculator.minimumBoundary();
+      const targetTraceLengthMs = targetPanel._overviewPane._overviewCalculator.maximumBoundary() - absoluteMin;
+
+      const windowPercentages = {
+        left: selectionMs.start / targetTraceLengthMs,
+        right: (selectionMs.start + selectionMs.duration) / targetTraceLengthMs
+      };
+      // call it on the frame's PerfUI.OverviewGrid.Window
+      targetPanel._overviewPane._overviewGrid._window._setWindow(windowPercentages.left, windowPercentages.right);
+    }
   }
 
   /**
@@ -114,6 +112,24 @@ class SyncView {
       start: windowLeft,
       end: windowRight
     };
+  }
+
+  static panels() {
+    const framesNodes = window.parent.document.getElementsByTagName('frame');
+    const frames = Array.from(framesNodes);
+    return frames.reduce((panel, frame) => {
+      return panel.concat(frame.contentWindow['Timeline'].TimelinePanel.instance());
+    }, []);
+  }
+
+  static originalPanel() {
+    return SyncView.panels()[0];
+  }
+
+  static targetPanels() {
+    const panels = SyncView.panels();
+    panels.shift();
+    return panels;
   }
 
 }
