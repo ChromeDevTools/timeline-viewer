@@ -389,6 +389,7 @@ class Viewer {
     const panel = document.getElementById('split-view-0').contentWindow['Timeline'].TimelinePanel.instance();
     const tracingModelMinimumRecordTime = panel._performanceModel.tracingModel().minimumRecordTime();
     const tracingModelMaximumRecordTime = panel._performanceModel.tracingModel().maximumRecordTime();
+    const referenceDuration = tracingModelMaximumRecordTime - tracingModelMinimumRecordTime;
 
     const frames = document.getElementsByTagName('frame');
     for (let frame of frames) {
@@ -397,8 +398,9 @@ class Viewer {
       const performanceModel = panel._performanceModel;
       const tracingModel = performanceModel.tracingModel();
 
-      tracingModel._minimumRecordTime = tracingModelMinimumRecordTime;
-      tracingModel._maximumRecordTime = tracingModelMaximumRecordTime;
+      // trace times are trace-specific and not 0-based
+      const baseTime = tracingModel.minimumRecordTime();
+      tracingModel._maximumRecordTime = Math.min(baseTime + referenceDuration, tracingModel._maximumRecordTime);
 
       performanceModel.setTracingModel(tracingModel);
 
