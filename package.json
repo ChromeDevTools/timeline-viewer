@@ -6,11 +6,14 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "npm run generate-sw && opn http://localhost:8000/ && http-server docs -a localhost -p 8000",
+    "lint": "[ \"$CI\" = true ] && eslint --quiet -f codeframe . || eslint .",
     "generate-sw": "sw-precache --config=./sw-precache-config.js --root=docs"
   },
   "author": "Paul Irish",
   "license": "Apache-2.0",
   "devDependencies": {
+    "eslint": "^3.19.0",
+    "eslint-config-google": "^0.7.1",
     "http-server": "^0.9.0",
     "opn-cli": "^3.1.0",
     "sw-precache": "^5.0.0"
