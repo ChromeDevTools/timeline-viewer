@@ -3,6 +3,7 @@ class Viewer {
 
   constructor() {
     this.params = new URL(location.href).searchParams;
+    this.syncView = new SyncView();
     this.timelineURL = this.params.get('loadTimelineFromURL');
     this.timelineId;
     this.timelineProvider = 'url';
@@ -120,11 +121,68 @@ class Viewer {
       finishWriting: _ => { }
     };
 
+
+
     // Common.settings is created in a window onload listener
     window.addEventListener('load', _ => {
-      Common.settings.createSetting('timelineCaptureNetwork', true).set(true)
-      Common.settings.createSetting('timelineCaptureFilmStrip', true).set(true)
+      Common.settings.createSetting('timelineCaptureNetwork', true).set(true);
+      Common.settings.createSetting('timelineCaptureFilmStrip', true).set(true);
+
+      PerfUI.OverviewGrid.Window.prototype._setWindowPosition = function(...args){
+        var viewerInstance = viewer;
+        viewer.setWindowPositionPatch.call(this, ...args, viewerInstance);
+      };
     });
+  }
+
+  /**
+   * monkey patched for PerfUI.OverviewGrid.Window.prototype._setWindowPosition
+   * @param {?number} start
+   * @param {?number} end
+   * @param {?Viewer} viewerInstance
+   */
+  setWindowPositionPatch(start, end, viewerInstance) {
+    // this fn should ony be called comign from the user, not us.
+    const isMonkeyPatched = !!viewerInstance;
+
+    // proceed w/ original code for our origin frame:
+    //    https://github.com/ChromeDevTools/devtools-frontend/blob/3becf6724b90a6a4cd41b2cf10f053c7efd166fe/front_end/perf_ui/OverviewGrid.js#L357-L366
+    var clientWidth = this._parentElement.clientWidth;
+    var windowLeft = typeof start === 'number' ? start / clientWidth : this.windowLeft;
+    var windowRight = typeof end === 'number' ? end / clientWidth : this.windowRight;
+    // make the call
+    this._setWindow(windowLeft, windowRight);
+
+    // now: our edits...
+
+    const originPanel = window.Timeline.TimelinePanel.instance();
+    const originTraceStart = originPanel._overviewPane._overviewCalculator.minimumBoundary();
+
+    const originTraceLengthMs = originPanel._overviewPane._overviewCalculator.maximumBoundary() - originTraceStart;
+    const originSelectionPct = {start: windowLeft, end: windowRight};
+
+    // calculate the selectionStart offset of origin frame
+    const originSelectionStartMs = originSelectionPct.start * originTraceLengthMs;
+    const originSelectionDurationMs = (originSelectionPct.end - originSelectionPct.start) * originTraceLengthMs;
+    const originSelectionEndMs = originSelectionStartMs + originSelectionDurationMs; // do i need this?
+
+    // we want to start X ms in and end Y ms later
+
+    // calculate what target frames should be:
+    // get instances of frames PerfUI.OverviewGrid.Window
+    //
+    const targetPanel = window.parent.document.getElementById('split-view-1').contentWindow['Timeline'].TimelinePanel.instance();
+    const absoluteMin = targetPanel._overviewPane._overviewCalculator.minimumBoundary();
+    const targetTraceLengthMs = targetPanel._overviewPane._overviewCalculator.maximumBoundary() - absoluteMin;
+
+    const selectionStart = absoluteMin + originSelectionStartMs;
+    const selectionEnd = selectionStart + originSelectionDurationMs;
+
+    const windowPercentages = {
+      left: originSelectionStartMs / targetTraceLengthMs,
+      right: (originSelectionStartMs + originSelectionDurationMs) / targetTraceLengthMs
+    }
+    targetPanel._overviewPane._overviewGrid._window._setWindow(windowPercentages.left, windowPercentages.right);
   }
 
   startSplitViewIfNeeded(urls) {
@@ -208,6 +266,9 @@ class Viewer {
       Runtime.loadResourcePromise = viewer.loadResourcePromise.bind(viewer);
   }
 
+
+
+  // monkeypatched method for devtools
   loadResourcePromise(requestedURL) {
     var url = new URL(requestedURL);
     var URLofViewer = new URL(location.href);
