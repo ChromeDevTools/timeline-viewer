@@ -11,7 +11,7 @@ class SyncView {
     };
   }
 
-  splitViewTimlineLoaded() {
+  splitViewTimelineLoaded() {
     return new Promise(resolve => {
       let isLoaded = false;
       const checkLoading = setInterval(() => {
