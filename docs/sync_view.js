@@ -15,8 +15,10 @@ class SyncView {
     return new Promise(resolve => {
       let isLoaded = false;
       const checkLoading = setInterval(() => {
-        const panels = SyncView.panels();
-        for (let panel of panels) {
+        const framesNodes = window.parent.document.getElementsByTagName('frame');
+        for (let frame of framesNodes) {
+          const Timeline = frame.contentWindow['Timeline'];
+          const panel = Timeline.TimelinePanel.instance();
           if (panel._state === Timeline.TimelinePanel.State.Idle) {
             isLoaded = true;
           } else {
@@ -51,6 +53,12 @@ class SyncView {
 
       targetPanel._setModel(performanceModel);
     }
+
+    const selectionPcts = {
+      start: originalPanel._overviewPane._overviewGrid._window.windowLeft,
+      end: originalPanel._overviewPane._overviewGrid._window.windowRight
+    };
+    this._setWindowPosition(selectionPcts);
   }
 
   /**
@@ -62,11 +70,14 @@ class SyncView {
   static setWindowPositionPatch(start, end, viewerInstance) {
     // proceed w/ original code for our origin frame
     const selectionPcts = SyncView.originalSetWindowPosition.call(this, start, end);
+    viewerInstance.syncView._setWindowPosition(selectionPcts);
+  }
 
+  _setWindowPosition(selectionPcts) {
     function getSelectionTimes() {
-      const originPanel = window.Timeline.TimelinePanel.instance();
-      const originTraceStart = originPanel._overviewPane._overviewCalculator.minimumBoundary();
-      const originTraceLengthMs = originPanel._overviewPane._overviewCalculator.maximumBoundary() - originTraceStart;
+      const originalPanel = SyncView.originalPanel();
+      const originTraceStart = originalPanel._overviewPane._overviewCalculator.minimumBoundary();
+      const originTraceLengthMs = originalPanel._overviewPane._overviewCalculator.maximumBoundary() - originTraceStart;
 
       // calculate the selectionStart offset of origin frame
       const originSelectionStartMs = selectionPcts.start * originTraceLengthMs;
