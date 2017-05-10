@@ -1,6 +1,6 @@
 'use strict';
 
-/* globals SyncView, PerfUI, Timeline */
+/* globals SyncView, PerfUI */
 
 class SyncView {
 
@@ -15,9 +15,8 @@ class SyncView {
     return new Promise(resolve => {
       let isLoaded = false;
       const checkLoading = setInterval(() => {
-        const framesNodes = window.parent.document.getElementsByTagName('frame');
-        for (let frame of framesNodes) {
-          const Timeline = frame.contentWindow['Timeline'];
+        const timelines = SyncView.timelines();
+        for (let Timeline of timelines) {
           const panel = Timeline.TimelinePanel.instance();
           if (panel._state === Timeline.TimelinePanel.State.Idle) {
             isLoaded = true;
@@ -125,12 +124,15 @@ class SyncView {
     };
   }
 
+  static timelines() {
+    const frames = window.parent.document.getElementsByTagName('frame');
+    return Array.from(frames)
+      .map(frame => frame.contentWindow['Timeline']);
+  }
+
   static panels() {
-    const framesNodes = window.parent.document.getElementsByTagName('frame');
-    const frames = Array.from(framesNodes);
-    return frames.reduce((panel, frame) => {
-      return panel.concat(frame.contentWindow['Timeline'].TimelinePanel.instance());
-    }, []);
+    const timelines = SyncView.timelines();
+    return timelines.map(Timeline => Timeline.TimelinePanel.instance());
   }
 
   static originalPanel() {
@@ -138,9 +140,7 @@ class SyncView {
   }
 
   static targetPanels() {
-    const panels = SyncView.panels();
-    panels.shift();
-    return panels;
+    return SyncView.panels().filter(panel => panel !== SyncView.originalPanel());
   }
 
 }
