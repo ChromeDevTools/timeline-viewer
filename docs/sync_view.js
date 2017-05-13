@@ -36,13 +36,13 @@ class SyncView {
     });
   }
 
-  synchronizeRange() {
-    const originalPanel = SyncView.originalPanel();
+  static synchronizeRange(originalPanel, viewerInstance) {
+    viewerInstance._originalPanel = originalPanel;
     const tracingModelMinimumRecordTime = originalPanel._performanceModel.tracingModel().minimumRecordTime();
     const tracingModelMaximumRecordTime = originalPanel._performanceModel.tracingModel().maximumRecordTime();
     const referenceDuration = tracingModelMaximumRecordTime - tracingModelMinimumRecordTime;
 
-    const targetPanels = SyncView.targetPanels();
+    const targetPanels = viewerInstance.targetPanels();
     for (let targetPanel of targetPanels) {
       const performanceModel = targetPanel._performanceModel;
       const tracingModel = performanceModel.tracingModel();
@@ -60,7 +60,7 @@ class SyncView {
       start: originalPanel._overviewPane._overviewGrid._window.windowLeft,
       end: originalPanel._overviewPane._overviewGrid._window.windowRight
     };
-    this._setWindowPosition(selectionPcts);
+    viewerInstance._setWindowPosition(selectionPcts);
   }
 
   /**
@@ -72,12 +72,13 @@ class SyncView {
   static setWindowPositionPatch(start, end, viewerInstance) {
     // proceed w/ original code for our origin frame
     const selectionPcts = SyncView.originalSetWindowPosition.call(this, start, end);
+    this._originalPanel = Timeline.TimelinePanel.instance();
     viewerInstance.syncView._setWindowPosition(selectionPcts);
   }
 
   _setWindowPosition(selectionPcts) {
-    function getSelectionTimes() {
-      const originalPanel = SyncView.originalPanel();
+    const getSelectionTimes = _ => {
+      const originalPanel = this.originalPanel();
       const originTraceStart = originalPanel._overviewPane._overviewCalculator.minimumBoundary();
       const originTraceLengthMs = originalPanel._overviewPane._overviewCalculator.maximumBoundary() - originTraceStart;
 
@@ -88,13 +89,13 @@ class SyncView {
         start: originSelectionStartMs,
         duration: originSelectionDurationMs
       };
-    }
+    };
 
     const selectionMs = getSelectionTimes();
 
     // calculate what target frames should be:
 
-    const targetPanels = SyncView.targetPanels();
+    const targetPanels = this.targetPanels();
     for (let targetPanel of targetPanels) {
       const absoluteMin = targetPanel._overviewPane._overviewCalculator.minimumBoundary();
       const targetTraceLengthMs = targetPanel._overviewPane._overviewCalculator.maximumBoundary() - absoluteMin;
@@ -138,12 +139,15 @@ class SyncView {
     return timelines.map(Timeline => Timeline.TimelinePanel.instance());
   }
 
-  static originalPanel() {
-    return SyncView.panels()[0];
+  originalPanel() {
+    if (!this._originalPanel)
+      this._originalPanel = Timeline.TimelinePanel.instance();
+
+    return this._originalPanel;
   }
 
-  static targetPanels() {
-    return SyncView.panels().filter(panel => panel !== SyncView.originalPanel());
+  targetPanels() {
+    return SyncView.panels().filter(panel => panel !== this.originalPanel());
   }
 
 }
