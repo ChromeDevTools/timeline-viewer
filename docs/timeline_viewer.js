@@ -328,8 +328,8 @@ class Viewer {
       xhr.onprogress = this.updateProgress.bind(this);
       xhr.onload = _ => {
         if (this.isSplitView) {
-          return this.syncView.splitViewTimlineLoaded()
-            .then(_ => this.syncView.synchronizeRange())
+          return this.syncView.splitViewTimelineLoaded()
+            .then(_ => SyncView.synchronizeRange(SyncView.panels()[0], this.syncView))
             .then(_ => xhr.responseText);
         } else {
           return resolve(xhr.responseText);

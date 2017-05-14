@@ -14,13 +14,12 @@ class SyncView {
     };
   }
 
-  splitViewTimlineLoaded() {
+  splitViewTimelineLoaded() {
     return new Promise(resolve => {
       let isLoaded = false;
       const checkLoading = setInterval(() => {
-        const frames = document.getElementsByTagName('frame');
-        for (const frame of frames) {
-          const Timeline = frame.contentWindow['Timeline'];
+        const timelines = SyncView.timelines();
+        for (let Timeline of timelines) {
           const panel = Timeline.TimelinePanel.instance();
           if (panel._state === Timeline.TimelinePanel.State.Idle) {
             isLoaded = true;
@@ -37,17 +36,15 @@ class SyncView {
     });
   }
 
-  synchronizeRange() {
-    const panel = document.getElementById('split-view-0').contentWindow['Timeline'].TimelinePanel.instance();
-    const tracingModelMinimumRecordTime = panel._performanceModel.tracingModel().minimumRecordTime();
-    const tracingModelMaximumRecordTime = panel._performanceModel.tracingModel().maximumRecordTime();
+  static synchronizeRange(originalPanel, viewerInstance) {
+    viewerInstance._originalPanel = originalPanel;
+    const tracingModelMinimumRecordTime = originalPanel._performanceModel.tracingModel().minimumRecordTime();
+    const tracingModelMaximumRecordTime = originalPanel._performanceModel.tracingModel().maximumRecordTime();
     const referenceDuration = tracingModelMaximumRecordTime - tracingModelMinimumRecordTime;
 
-    const frames = document.getElementsByTagName('frame');
-    for (let frame of frames) {
-      const Timeline = frame.contentWindow['Timeline'];
-      const panel = Timeline.TimelinePanel.instance();
-      const performanceModel = panel._performanceModel;
+    const targetPanels = viewerInstance.targetPanels();
+    for (let targetPanel of targetPanels) {
+      const performanceModel = targetPanel._performanceModel;
       const tracingModel = performanceModel.tracingModel();
 
       // trace times are trace-specific and not 0-based
@@ -56,8 +53,14 @@ class SyncView {
 
       performanceModel.setTracingModel(tracingModel);
 
-      panel._setModel(performanceModel);
+      targetPanel._setModel(performanceModel);
     }
+
+    const selectionPcts = {
+      start: originalPanel._overviewPane._overviewGrid._window.windowLeft,
+      end: originalPanel._overviewPane._overviewGrid._window.windowRight
+    };
+    viewerInstance._setWindowPosition(selectionPcts);
   }
 
   /**
@@ -69,11 +72,15 @@ class SyncView {
   static setWindowPositionPatch(start, end, viewerInstance) {
     // proceed w/ original code for our origin frame
     const selectionPcts = SyncView.originalSetWindowPosition.call(this, start, end);
+    this._originalPanel = Timeline.TimelinePanel.instance();
+    viewerInstance.syncView._setWindowPosition(selectionPcts);
+  }
 
-    function getSelectionTimes() {
-      const originPanel = window.Timeline.TimelinePanel.instance();
-      const originTraceStart = originPanel._overviewPane._overviewCalculator.minimumBoundary();
-      const originTraceLengthMs = originPanel._overviewPane._overviewCalculator.maximumBoundary() - originTraceStart;
+  _setWindowPosition(selectionPcts) {
+    const getSelectionTimes = _ => {
+      const originalPanel = this.originalPanel();
+      const originTraceStart = originalPanel._overviewPane._overviewCalculator.minimumBoundary();
+      const originTraceLengthMs = originalPanel._overviewPane._overviewCalculator.maximumBoundary() - originTraceStart;
 
       // calculate the selectionStart offset of origin frame
       const originSelectionStartMs = selectionPcts.start * originTraceLengthMs;
@@ -82,22 +89,24 @@ class SyncView {
         start: originSelectionStartMs,
         duration: originSelectionDurationMs
       };
-    }
+    };
 
     const selectionMs = getSelectionTimes();
 
     // calculate what target frames should be:
-    // TODO should not be hardcoding the 2nd frame, but instead iterating over frames and excluding same-frame..
-    const targetPanel = window.parent.document.getElementById('split-view-1').contentWindow['Timeline'].TimelinePanel.instance();
-    const absoluteMin = targetPanel._overviewPane._overviewCalculator.minimumBoundary();
-    const targetTraceLengthMs = targetPanel._overviewPane._overviewCalculator.maximumBoundary() - absoluteMin;
 
-    const windowPercentages = {
-      left: selectionMs.start / targetTraceLengthMs,
-      right: (selectionMs.start + selectionMs.duration) / targetTraceLengthMs
-    };
-    // call it on the frame's PerfUI.OverviewGrid.Window
-    targetPanel._overviewPane._overviewGrid._window._setWindow(windowPercentages.left, windowPercentages.right);
+    const targetPanels = this.targetPanels();
+    for (let targetPanel of targetPanels) {
+      const absoluteMin = targetPanel._overviewPane._overviewCalculator.minimumBoundary();
+      const targetTraceLengthMs = targetPanel._overviewPane._overviewCalculator.maximumBoundary() - absoluteMin;
+
+      const windowPercentages = {
+        left: selectionMs.start / targetTraceLengthMs,
+        right: (selectionMs.start + selectionMs.duration) / targetTraceLengthMs
+      };
+      // call it on the frame's PerfUI.OverviewGrid.Window
+      targetPanel._overviewPane._overviewGrid._window._setWindow(windowPercentages.left, windowPercentages.right);
+    }
   }
 
   /**
@@ -117,6 +126,28 @@ class SyncView {
       start: windowLeft,
       end: windowRight
     };
+  }
+
+  static timelines() {
+    const frames = window.parent.document.getElementsByTagName('frame');
+    return Array.from(frames)
+      .map(frame => frame.contentWindow['Timeline']);
+  }
+
+  static panels() {
+    const timelines = SyncView.timelines();
+    return timelines.map(Timeline => Timeline.TimelinePanel.instance());
+  }
+
+  originalPanel() {
+    if (!this._originalPanel)
+      this._originalPanel = Timeline.TimelinePanel.instance();
+
+    return this._originalPanel;
+  }
+
+  targetPanels() {
+    return SyncView.panels().filter(panel => panel !== this.originalPanel());
   }
 
 }
