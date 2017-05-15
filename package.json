@@ -11,7 +11,7 @@
     "generate-sw-dev": "npm run generate-sw && npm run checkout-sw",
     "generate-sw-prod": "npm run generate-sw && npm run commit-sw",
     "checkout-sw": "git checkout docs/service-worker.js",
-    "commit-sw": "git add docs/service-worker.js && git commit -m \"generate service-worker\" "
+    "commit-sw": "if [ -n \"$(git status --porcelain)\" ]; then git commit -am \"generate service-worker\" fi"
   },
   "author": "Paul Irish",
   "license": "Apache-2.0",
