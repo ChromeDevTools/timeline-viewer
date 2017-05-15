@@ -142,6 +142,7 @@ class SyncView {
   originalPanel() {
     if (!this._originalPanel)
       this._originalPanel = Timeline.TimelinePanel.instance();
+
     return this._originalPanel;
   }
 
