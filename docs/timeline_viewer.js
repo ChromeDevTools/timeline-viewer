@@ -42,8 +42,7 @@ class Viewer {
       this.isSplitView = this.splitViewContainer ? true : false;
       this.canUploadToDrive = true;
       this.welcomeView = true;
-      // fixme
-      // this.handleDragEvents();
+      this.handleDragEvents();
       this.docsElem.hidden = false;
     }
 
@@ -88,7 +87,8 @@ class Viewer {
 
   handleDragEvents() {
     const dropboxEl = document.getElementById('dropbox');
-    dropboxEl.addEventListener('dragover', this.dragover.bind(this), false);
+    if (dropboxEl)
+      dropboxEl.addEventListener('dragover', this.dragover.bind(this), false);
   }
 
   toggleUploadToDriveElem(display) {
@@ -244,6 +244,7 @@ class Viewer {
       document.body.appendChild(frameset);
       document.documentElement.classList.add('fullbleed');
       document.querySelector('.welcome').remove();
+      document.querySelector('.top-message-container').remove();
       return true;
     }
     return false;
@@ -500,12 +501,13 @@ class Viewer {
   }
 
   uploadTimelineData() {
-    Timeline.TimelinePanel.instance()._tracingModelBackingStorage._file.read(event => {
+    Timeline.TimelinePanel.instance()._backingStorage._file.read(event => {
       this.uploadData(event.target.result);
     });
   }
 
   uploadData(traceData) {
+    this.toggleUploadToDriveElem(false);
     this.showInfoMessage('Uploading trace on Google Drive ...');
 
     const contentType = 'application/octet-stream';
