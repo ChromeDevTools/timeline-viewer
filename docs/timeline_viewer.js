@@ -489,6 +489,8 @@ class Viewer {
   }
 
   monkeyPatchingHandleDrop() {
+    //@todo add detection for correct panel in split view
+    //@todo sync traces after dropping file
     if (window.Timeline && window.Timeline.TimelinePanel) {
       const timelinePanel = Timeline.TimelinePanel.instance();
       const dropTarget = timelinePanel._dropTarget;
