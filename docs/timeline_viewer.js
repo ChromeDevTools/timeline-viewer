@@ -1,8 +1,13 @@
 // single monolithic class, begging to be broken apart into modules...
+
+'use strict';
+/* global Viewer, SyncView */
+
 class Viewer {
 
   constructor() {
     this.params = new URL(location.href).searchParams;
+    this.syncView = new SyncView();
     this.timelineURL = this.params.get('loadTimelineFromURL');
     this.timelineId;
     this.timelineProvider = 'url';
@@ -33,9 +38,12 @@ class Viewer {
     this.parseURLforTimelineId(this.timelineURL);
 
     if (!this.timelineURL || this.startSplitViewIfNeeded(this.timelineURL)) {
+      this.splitViewContainer = document.getElementById('split-view-container');
+      this.isSplitView = this.splitViewContainer ? true : false;
       this.canUploadToDrive = true;
       this.welcomeView = true;
-      this.handleDragEvents();
+      // fixme
+      // this.handleDragEvents();
       this.docsElem.hidden = false;
     }
 
@@ -208,10 +216,14 @@ class Viewer {
 
     };
 
+    var viewerInstance = this;
+
     // Common.settings is created in a window onload listener
     window.addEventListener('load', _ => {
       Common.settings.createSetting('timelineCaptureNetwork', true).set(true);
       Common.settings.createSetting('timelineCaptureFilmStrip', true).set(true);
+
+      viewerInstance.syncView.monkepatchSetWindowPosition(viewerInstance);
     });
   }
 
@@ -219,11 +231,13 @@ class Viewer {
     urls = urls.split(',');
 
     if (urls.length > 1) {
-      var frameset = document.createElement('frameset');
+      const frameset = document.createElement('frameset');
+      frameset.setAttribute('id', 'split-view-container');
       frameset.setAttribute('rows', Array(urls.length).fill(`${100/2}%`).join(','));
 
-      urls.forEach(url => {
-        var frame = document.createElement('frame');
+      urls.forEach((url, index) => {
+        const frame = document.createElement('frame');
+        frame.setAttribute('id', `split-view-${index}`);
         frame.setAttribute('src', `./?loadTimelineFromURL=${url.trim()}`);
         frameset.appendChild(frame);
       });
@@ -305,6 +319,7 @@ class Viewer {
       });
   }
 
+  // monkeypatched method for devtools
   loadResourcePromise(requestedURL) {
     var url = new URL(requestedURL);
     var URLofViewer = new URL(location.href);
@@ -417,7 +432,13 @@ class Viewer {
         xhr.onprogress = this.updateProgress.bind(this);
       }
       xhr.onload = _ => {
-        return resolve(xhr.responseText);
+        if (this.isSplitView) {
+          return this.syncView.splitViewTimelineLoaded()
+            .then(_ => SyncView.synchronizeRange(SyncView.panels()[0], this.syncView))
+            .then(_ => xhr.responseText);
+        } else {
+          return resolve(xhr.responseText);
+        }
       };
       xhr.onerror = err => {
         this.makeDevToolsVisible(false);
@@ -440,30 +461,28 @@ class Viewer {
       this.updateStatus(`Download progress: ${((evt.loaded / this.totalSize) * 100).toFixed(2)}%`);
 
       UI.inspectorView.showPanel('timeline').then(_ => {
-        try {
-          const panel = Timeline.TimelinePanel.instance();
-          // start progress
-          if (!this.loadingStarted) {
-            this.loadingStarted = true;
-            panel && panel.loadingStarted();
-          }
+        const panel = Timeline.TimelinePanel.instance();
+        // start progress
+        if (!this.loadingStarted) {
+          this.loadingStarted = true;
+          panel && panel.loadingStarted();
+        }
 
-          // update progress
-          panel && panel.loadingProgress(evt.loaded / (evt.total || this.totalSize));
+        // update progress
+        panel && panel.loadingProgress(evt.loaded / (evt.total || this.totalSize));
 
-          if (!this.netReqMuted) {
-            // flip off filmstrip or network if theres no data in the trace
-            this.netReqMuted = true;
-            var oldSetMarkers = panel._setMarkers;
-            panel._setMarkers = function () {
-              if (panel._model.networkRequests().length === 0)
-                Common.settings.createSetting('timelineCaptureNetwork', true).set(false)
-              if (panel._filmStripModel._frames.length === 0)
-                Common.settings.createSetting('timelineCaptureFilmStrip', true).set(false)
-              oldSetMarkers.call(panel);
-            }
+        // flip off filmstrip or network if theres no data in the trace
+        if (!this.netReqMuted) {
+          this.netReqMuted = true;
+          const oldSetMarkers = panel._setMarkers;
+          panel._setMarkers = function () {
+            if (this._performanceModel._timelineModel.networkRequests().length === 0)
+              Common.settings.createSetting('timelineCaptureNetwork', true).set(false);
+            if (this._performanceModel.filmStripModel()._frames.length === 0)
+              Common.settings.createSetting('timelineCaptureFilmStrip', true).set(false);
+            oldSetMarkers.call(this, this._performanceModel._timelineModel);
           }
-        } catch(e) {}
+        }
       });
     } catch (e) {}
   }
