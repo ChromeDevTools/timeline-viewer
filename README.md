@@ -30,6 +30,11 @@ Auth keys have localhost:8000 whitelisted, so you can hack there.
 
 * Private file: http://localhost:8000/?loadTimelineFromURL=0BzvYe7bYFf--aVhZM1RNR2N3cGc
 
+## Testing 
+
+[Cypress](https://cypress.io) is used for integration testing.
+To run test just invoke `yarn test`
+
 ### Updating DevTools Version
 
 * Remote debug Chrome on Android (Dev channel or Canary).
