@@ -57,34 +57,6 @@ class Viewer {
     }
   }
 
-  handleNetworkStatus() {
-    if (navigator.onLine) {
-      this.toggleNetworkStatusMessage();
-    } else {
-      this.toggleNetworkStatusMessage( { status: 'offline' } );
-    }
-
-    window.addEventListener('online', function() {
-      this.toggleUploadToDriveElem(this.canUploadToDrive);
-      this.toggleNetworkStatusMessage();
-    }.bind(this), false);
-
-    window.addEventListener('offline', function() {
-      this.toggleUploadToDriveElem(false);
-      this.toggleNetworkStatusMessage( { status: 'offline' } );
-    }.bind(this), false);
-  }
-
-  toggleNetworkStatusMessage( options = { status: 'online' } ) {
-    if (options.status === 'online') {
-      this.networkOnlineStatusElem.hidden = false;
-      this.networkOfflineStatusElem.hidden = true;
-    } else {
-      this.networkOnlineStatusElem.hidden = true;
-      this.networkOfflineStatusElem.hidden = false;
-    }
-  }
-
   handleDragEvents() {
     const dropboxEl = document.getElementById('dropbox');
     if (dropboxEl)
