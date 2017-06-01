@@ -14,28 +14,36 @@ class Viewer {
 
     this.totalSize = 50 * 1000 * 1000;
     this.loadingStarted = false;
-
+    this.refreshPage = false;
+    this.canUploadToDrive = false;
+    this.welcomeView = false;
     // remote location of devtools we're using
     this.devtoolsBase = document.getElementById('devtoolsscript').src.replace(/inspector\.js.*/, '');
 
     this.statusElem = document.getElementById('status');
+    this.infoMessageElem = document.getElementById('info-message');
+    this.uploadToDriveElem = document.getElementById('upload-to-drive');
     this.networkOnlineStatusElem = document.getElementById('online-status');
     this.networkOfflineStatusElem = document.getElementById('offline-status');
     this.authBtn = document.getElementById('auth');
     this.docsElem = document.getElementById('howto');
 
     this.authBtn.addEventListener('click', this.checkAuth.bind(this));
+    this.uploadToDriveElem.addEventListener('click', this.uploadTimelineData.bind(this));
 
     this.driveAssetLoaded = new Promise((resolve, reject) => {
       this.driveAssetLoadedResolver = resolve;
     });
 
     this.parseURLforTimelineId(this.timelineURL);
+
     if (!this.timelineURL || this.startSplitViewIfNeeded(this.timelineURL)) {
       this.splitViewContainer = document.getElementById('split-view-container');
       this.isSplitView = this.splitViewContainer ? true : false;
+      this.canUploadToDrive = true;
+      this.welcomeView = true;
+      this.handleDragEvents();
       this.docsElem.hidden = false;
-      return;
     }
 
     // Start loading DevTools. (checkAuth will be racing against it)
@@ -43,7 +51,72 @@ class Viewer {
 
     this.handleNetworkStatus();
     this.initializeDevTools();
+
+    if (!this.welcomeView) {
+      this.makeDevToolsVisible(true);
+    }
+  }
+
+  handleNetworkStatus() {
+    if (navigator.onLine) {
+      this.toggleNetworkStatusMessage();
+    } else {
+      this.toggleNetworkStatusMessage( { status: 'offline' } );
+    }
+
+    window.addEventListener('online', function() {
+      this.toggleUploadToDriveElem(this.canUploadToDrive);
+      this.toggleNetworkStatusMessage();
+    }.bind(this), false);
+
+    window.addEventListener('offline', function() {
+      this.toggleUploadToDriveElem(false);
+      this.toggleNetworkStatusMessage( { status: 'offline' } );
+    }.bind(this), false);
+  }
+
+  toggleNetworkStatusMessage( options = { status: 'online' } ) {
+    if (options.status === 'online') {
+      this.networkOnlineStatusElem.hidden = false;
+      this.networkOfflineStatusElem.hidden = true;
+    } else {
+      this.networkOnlineStatusElem.hidden = true;
+      this.networkOfflineStatusElem.hidden = false;
+    }
+  }
+
+  handleDragEvents() {
+    const dropboxEl = document.getElementById('dropbox');
+    if (dropboxEl)
+      dropboxEl.addEventListener('dragover', this.dragover.bind(this), false);
+  }
+
+  toggleUploadToDriveElem(display) {
+    this.uploadToDriveElem.hidden = !display;
+  }
+
+  showInfoMessage(text) {
+    this.infoMessageElem.textContent = text;
+    this.infoMessageElem.hidden = false;
+
+    setTimeout(() => {
+      this.hideInfoMessage();
+    }, 3000);
+  }
+
+  hideInfoMessage() {
+    this.infoMessageElem.textContent = '';
+    this.infoMessageElem.hidden = true;
+  }
+
+  dragover(e) {
+    e.stopPropagation();
+    e.preventDefault();
     this.makeDevToolsVisible(true);
+    // we fair that all timeline resources are uploaded
+    UI.inspectorView.showPanel('timeline').then(_ => {
+      this.toggleUploadToDriveElem(this.canUploadToDrive);
+    });
   }
 
   handleNetworkStatus() {
@@ -118,11 +191,29 @@ class Viewer {
     };
 
     // nerf some oddness
-    Bindings.DeferredTempFile = function() {};
+    Bindings.DeferredTempFile = function() {
+      this._chunks = [];
+      this._file = null;
+    };
     Bindings.DeferredTempFile.prototype = {
-      write: _ => { },
-      remove: _ => { },
-      finishWriting: _ => { }
+      write: function(strings) {
+        this._chunks = this._chunks.concat(strings);
+      },
+      remove: function() {
+        this._file = null;
+        this._chunks = [];
+      },
+      finishWriting: function() {
+        this._file = new Blob(this._chunks.filter(Object), { type: "text/plain" });
+      },
+      read: function(callback) {
+        if (this._file) {
+          const reader = new FileReader();
+          reader.addEventListener('loadend', callback);
+          reader.readAsText(this._file);
+        }
+      }
+
     };
 
     var viewerInstance = this;
@@ -153,12 +244,14 @@ class Viewer {
       document.body.appendChild(frameset);
       document.documentElement.classList.add('fullbleed');
       document.querySelector('.welcome').remove();
+      document.querySelector('.top-message-container').remove();
       return true;
     }
     return false;
   }
 
   makeDevToolsVisible(bool) {
+    this.welcomeView = !bool;
     document.documentElement.classList[bool ? 'remove' : 'add']('hide-devtools');
   }
 
@@ -202,6 +295,7 @@ class Viewer {
 
       this.authBtn.hidden = false;
       this.docsElem.hidden = false;
+      this.canUploadToDrive = false;
       this.makeDevToolsVisible(false);
       return new Error(`Google auth error`);
     }
@@ -209,15 +303,22 @@ class Viewer {
     this.authBtn.hidden = true;
     this.updateStatus('Drive API status: successfully signed in');
     this.statusElem.hidden = false;
+    this.canUploadToDrive = true;
     this.requestDriveFileMeta();
   }
 
   monkeypatchLoadResourcePromise() {
       this._orig_loadResourcePromise = Runtime.loadResourcePromise;
-      Runtime.loadResourcePromise = viewer.loadResourcePromise.bind(viewer);
+      Runtime.loadResourcePromise = viewer.loadResource.bind(viewer);
   }
 
-
+  loadResource(requestedURL) {
+    return this.loadResourcePromise(requestedURL)
+      .then(resp => {
+        this.monkeyPatchingHandleDrop();
+        return resp;
+      });
+  }
 
   // monkeypatched method for devtools
   loadResourcePromise(requestedURL) {
@@ -315,17 +416,22 @@ class Viewer {
   handleDriveAsset(payload) {
     const msg = `✅ Timeline downloaded from Drive. (${payload.length} bytes)`;
     this.updateStatus(msg);
-    console.log(msg);
+    this.showInfoMessage(msg);
     return this.driveAssetLoadedResolver(payload);
   }
 
-  doCORSrequest(url, callbetween) {
+  doCORSrequest(url, callbetween, method='GET', body) {
+    this.netReqMuted = false;
+    this.loadingStarted = false;
     return new Promise((resolve, reject) => {
       // Use an XHR rather than fetch so we can have progress events
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', url);
+      const xhr = new XMLHttpRequest();
+      xhr.open(method, url);
       callbetween && callbetween(xhr);
-      xhr.onprogress = this.updateProgress.bind(this);
+      //show progress only while getting data
+      if (method === 'GET') {
+        xhr.onprogress = this.updateProgress.bind(this);
+      }
       xhr.onload = _ => {
         if (this.isSplitView) {
           return this.syncView.splitViewTimelineLoaded()
@@ -335,13 +441,20 @@ class Viewer {
           return resolve(xhr.responseText);
         }
       };
-      xhr.onerror = (err => {
+      xhr.onerror = err => {
         this.makeDevToolsVisible(false);
         this.updateStatus('Download of asset failed. ' + ((xhr.readyState == xhr.DONE) ? 'CORS headers likely not applied.' : ''));
         reject(err);
-      }).bind(this);
-      xhr.send();
+      };
+
+      xhr.send(body);
     });
+  }
+
+  setAuthHeaders(xhr) {
+    const user = gapi.auth2.getAuthInstance().currentUser.get();
+    const accessToken = user.getAuthResponse().access_token;
+    xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
   }
 
   updateProgress(evt) {
@@ -355,6 +468,7 @@ class Viewer {
           this.loadingStarted = true;
           panel && panel.loadingStarted();
         }
+
         // update progress
         panel && panel.loadingProgress(evt.loaded / (evt.total || this.totalSize));
 
@@ -372,6 +486,108 @@ class Viewer {
         }
       });
     } catch (e) {}
+  }
+
+  monkeyPatchingHandleDrop() {
+    //@todo add detection for correct panel in split view
+    //@todo sync traces after dropping file
+    if (window.Timeline && window.Timeline.TimelinePanel) {
+      const timelinePanel = Timeline.TimelinePanel.instance();
+      const dropTarget = timelinePanel._dropTarget;
+      const handleDrop = dropTarget._handleDrop;
+      dropTarget._handleDrop = function(dataTransfer) {
+        viewer.toggleUploadToDriveElem(viewer.canUploadToDrive);
+        handleDrop.apply(dropTarget, arguments);
+      };
+    }
+  }
+
+  uploadTimelineData() {
+    Timeline.TimelinePanel.instance()._backingStorage._file.read(event => {
+      this.uploadData(event.target.result);
+    });
+  }
+
+  uploadData(traceData) {
+    this.toggleUploadToDriveElem(false);
+    this.showInfoMessage('Uploading trace on Google Drive ...');
+
+    const contentType = 'application/octet-stream';
+
+    const fileMetadata = {
+      title: `TimelineData-${Date.now()}.json`,
+      mimeType: contentType,
+      writersCanShare: true,
+      uploadType: 'multipart'
+    };
+    const media = {
+      mimeType: contentType,
+      body: traceData
+    };
+
+    const boundary = Math.random().toString().substr(2);
+    const delimiter = `\r\n--${boundary}\r\n`;
+    const close_delim = `\r\n--${boundary}--`;
+
+    // much prettier then template literals because of mess with LF
+    const multipartRequestBody =
+      delimiter +
+      'Content-Type: application/json\r\n\r\n' +
+      JSON.stringify(fileMetadata) +
+      delimiter +
+      'Content-Type: ' + contentType + '\r\n\r\n' +
+      media.body +
+      close_delim;
+
+    this.doCORSrequest('https://www.googleapis.com/upload/drive/v2/files', xhr => {
+      this.setAuthHeaders(xhr);
+      xhr.setRequestHeader('Content-type', 'multipart/mixed; charset=utf-8; boundary=' + boundary);
+    }, 'POST', multipartRequestBody)
+      .then(response => JSON.parse(response))
+      .then(data => {
+        return this.shareFile(data.id).then(_ => data)
+      })
+      .then(data => {
+        if (data.error) return;
+        this.changeUrl(data.id);
+        this.showInfoMessage('Trace successfully uploaded on Google Drive');
+      })
+      .catch(_ => {
+        this.toggleUploadToDriveElem(this.canUploadToDrive);
+        this.showInfoMessage('Trace was not uploaded on Google Drive :(');
+      });
+  }
+
+  shareFile(fileId) {
+    const url = new URL(`https://www.googleapis.com/drive/v2/files/${fileId}/permissions`);
+    const body = {
+      role: 'writer',
+      type: 'anyone'
+    };
+    url.searchParams.append('key', config.apiKey);
+
+    const headers = new Headers();
+    const user = gapi.auth2.getAuthInstance().currentUser.get();
+    const accessToken = user.getAuthResponse().access_token;
+    headers.append('Authorization', 'Bearer ' + accessToken);
+    headers.append('Content-Type', 'application/json');
+
+    return fetch(url.toString(), {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(body)
+    });
+  }
+
+  changeUrl(id) {
+    let url = `?loadTimelineFromURL=drive://${id}`;
+    if (this.refreshPage) {
+      window.location.href = `/${url}`;
+    } else {
+      const state = {'file_id': id};
+      const title = 'Timeline Viewer';
+      history.replaceState(state, title, url);
+    }
   }
 }
 
