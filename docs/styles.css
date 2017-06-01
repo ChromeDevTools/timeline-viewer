@@ -16,22 +16,53 @@ html{font-family:sans-serif;line-height:1.15;-ms-text-size-adjust:100%;-webkit-t
   display: block;
 }
 
-.network-status-message {
-  padding: 7px;
-  width: 150px;
+.top-message-container {
   position: absolute;
-  z-index: 999;
-  opacity: 0.7;
   top: 0;
   right: 0;
+  background-color: #f3f3f3;
+  width: 100%;
+  border-bottom: 1px solid #ccc;
+}
+
+.top-message {
+  padding: 7px;
+  width: 150px;
+  z-index: 999;
+  opacity: 0.7;
   text-align: center;
   color: #000000;
+  float: right;
+  margin-left: 10px;
+}
+.top-message:before {
+  vertical-align: middle;
+  padding-right: 5px;
+}
+
+.online-status-message:before {
+  content: '\2600';
+}
+
+.offline-status-message:before {
+  content: '\26C5';
+}
+
+.upload-btn {
   cursor: pointer;
 }
 
-.network-status-message:after {
-  content: 'x';
-  padding-left: 90px;
+.upload-btn:before {
+  content: '\25b2';
+}
+
+.info-message {
+  float: left;
+  width: 500px;
+}
+
+.info-message:before {
+ content: '\261D';
 }
 
 .fullbleed, .fullbleed body {
@@ -108,6 +139,7 @@ html.hide-devtools {
 
 
 /* edits on the devtools UI */
+.root-view { margin-top: 28px; }
 .root-view /deep/ .largeicon-node-search { display: none; }
 
 .timeline /deep/ .toolbar-has-glyph,
