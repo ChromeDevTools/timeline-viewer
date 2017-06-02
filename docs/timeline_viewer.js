@@ -1,7 +1,7 @@
 // single monolithic class, begging to be broken apart into modules...
 
 'use strict';
-/* global Viewer, SyncView */
+/* global SyncView, GoogleAuth */
 
 class Viewer {
 
@@ -30,6 +30,8 @@ class Viewer {
 
     this.authBtn.addEventListener('click', this.checkAuth.bind(this));
     this.uploadToDriveElem.addEventListener('click', this.uploadTimelineData.bind(this));
+
+    this.auth = new GoogleAuth();
 
     this.driveAssetLoaded = new Promise((resolve, reject) => {
       this.driveAssetLoadedResolver = resolve;
@@ -231,30 +233,9 @@ class Viewer {
     this.statusElem.textContent = str;
   }
 
-  signOut() {
-    try {
-      gapi.auth2.getAuthInstance().signOut()
-    } catch(e){}
-  }
-
-  checkAuth(opts) {
+  checkAuth() {
     const handleAuth = this.handleAuthResult.bind(this);
-    const oAuthOptions = {
-      fetch_basic_profile: false,
-      client_id: config.clientId,
-      scope: config.scopes.join(' ')
-    };
-
-    gapi.load('client:auth2', function() {
-      gapi.client.setApiKey(config.apiKey);
-
-      // if we have no authinstance yet, initialize
-      if (!gapi.auth2.getAuthInstance())
-        return gapi.auth2.init(oAuthOptions).then(handleAuth);
-
-      // handle the click
-      gapi.auth2.getAuthInstance().signIn(oAuthOptions).then(handleAuth)
-    }.bind(this));
+    this.auth.checkAuth(handleAuth);
 
     return false;
   }
@@ -262,14 +243,14 @@ class Viewer {
   handleAuthResult() {
     if (this.timelineProvider !== 'drive') return;
 
-    if (gapi.auth2.getAuthInstance().isSignedIn.get() === false) {
-      this.updateStatus(`Drive API status: not signed in`);
+    if (this.auth.isSignedIn() === false) {
+      this.updateStatus('Drive API status: not signed in');
 
       this.authBtn.hidden = false;
       this.docsElem.hidden = false;
       this.canUploadToDrive = false;
       this.makeDevToolsVisible(false);
-      return new Error(`Google auth error`);
+      return new Error('Google auth error');
     }
 
     this.authBtn.hidden = true;
@@ -326,11 +307,11 @@ class Viewer {
     if (!this.timelineId) return;
 
     var url = new URL(`https://www.googleapis.com/drive/v2/files/${this.timelineId}`);
-    url.searchParams.append('fields', 'version, downloadUrl, copyable, title, originalFilename, fileSize')
+    url.searchParams.append('fields', 'version, downloadUrl, copyable, title, originalFilename, fileSize');
     url.searchParams.append('key', config.apiKey);
 
     var headers = new Headers();
-    var user = gapi.auth2.getAuthInstance().currentUser.get();
+    var user = this.auth.getAuthInstance().currentUser.get();
     var accessToken = user.getAuthResponse().access_token;
     headers.append('Authorization', 'Bearer ' + accessToken);
 
@@ -379,7 +360,7 @@ class Viewer {
 
   fetchDriveAsset(url, callback) {
     return this.doCORSrequest(url, function(xhr) {
-      var user = gapi.auth2.getAuthInstance().currentUser.get();
+      var user = this.auth.getAuthInstance().currentUser.get();
       var accessToken = user.getAuthResponse().access_token;
       xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
     });
@@ -424,7 +405,7 @@ class Viewer {
   }
 
   setAuthHeaders(xhr) {
-    const user = gapi.auth2.getAuthInstance().currentUser.get();
+    const user = this.auth.getAuthInstance().currentUser.get();
     const accessToken = user.getAuthResponse().access_token;
     xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
   }
@@ -539,7 +520,7 @@ class Viewer {
     url.searchParams.append('key', config.apiKey);
 
     const headers = new Headers();
-    const user = gapi.auth2.getAuthInstance().currentUser.get();
+    const user = this.auth.getAuthInstance().currentUser.get();
     const accessToken = user.getAuthResponse().access_token;
     headers.append('Authorization', 'Bearer ' + accessToken);
     headers.append('Content-Type', 'application/json');
