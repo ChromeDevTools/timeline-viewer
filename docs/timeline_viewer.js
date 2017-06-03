@@ -1,7 +1,7 @@
 // single monolithic class, begging to be broken apart into modules...
 
 'use strict';
-/* global SyncView, GoogleAuth */
+/* global SyncView, GoogleAuth, Utils*/
 
 class Viewer {
 
@@ -32,6 +32,7 @@ class Viewer {
     this.uploadToDriveElem.addEventListener('click', this.uploadTimelineData.bind(this));
 
     this.auth = new GoogleAuth();
+    this.utils = new Utils();
 
     this.driveAssetLoaded = new Promise((resolve, reject) => {
       this.driveAssetLoadedResolver = resolve;
@@ -299,23 +300,23 @@ class Viewer {
     url.hostname = url.hostname.replace('github.com', 'githubusercontent.com');
     url.hostname = url.hostname.replace('www.dropbox.com', 'dl.dropboxusercontent.com');
 
-    return this.doCORSrequest(url.href).then(payload => payload);
+    return this.fetchTimelineAsset(url.href).then(payload => payload);
   }
 
   requestDriveFileMeta() {
     // if there's no this.timelineId then let's skip all this drive API stuff.
     if (!this.timelineId) return;
 
-    var url = new URL(`https://www.googleapis.com/drive/v2/files/${this.timelineId}`);
+    const url = new URL(`https://www.googleapis.com/drive/v2/files/${this.timelineId}`);
     url.searchParams.append('fields', 'version, downloadUrl, copyable, title, originalFilename, fileSize');
     url.searchParams.append('key', config.apiKey);
 
-    var headers = new Headers();
-    var user = this.auth.getAuthInstance().currentUser.get();
-    var accessToken = user.getAuthResponse().access_token;
+    const headers = new Headers();
+    const user = this.auth.getAuthInstance().currentUser.get();
+    const accessToken = user.getAuthResponse().access_token;
     headers.append('Authorization', 'Bearer ' + accessToken);
 
-    fetch(url.toString(), {headers: headers})
+    this.utils.fetch(url.toString(), {headers: headers})
       .then(resp => resp.json())
       .then(this.handleDriveFileMetadata.bind(this));
   }
@@ -359,11 +360,7 @@ class Viewer {
   }
 
   fetchDriveAsset(url, callback) {
-    return this.doCORSrequest(url, function(xhr) {
-      var user = this.auth.getAuthInstance().currentUser.get();
-      var accessToken = user.getAuthResponse().access_token;
-      xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
-    });
+    return this.fetchTimelineAsset(url, this.setAuthHeaders.bind(this));
   }
 
   handleDriveAsset(payload) {
@@ -373,35 +370,26 @@ class Viewer {
     return this.driveAssetLoadedResolver(payload);
   }
 
-  doCORSrequest(url, callbetween, method='GET', body) {
+  fetchTimelineAsset(url, addRequestHeaders = Function.prototype, method = 'GET', body) {
     this.netReqMuted = false;
     this.loadingStarted = false;
-    return new Promise((resolve, reject) => {
-      // Use an XHR rather than fetch so we can have progress events
-      const xhr = new XMLHttpRequest();
-      xhr.open(method, url);
-      callbetween && callbetween(xhr);
-      //show progress only while getting data
-      if (method === 'GET') {
-        xhr.onprogress = this.updateProgress.bind(this);
-      }
-      xhr.onload = _ => {
+    return this.utils.fetch(url, {
+      url, addRequestHeaders: addRequestHeaders.bind(this), method, body,
+      onprogress: this.updateProgress.bind(this),
+    }, true)
+      .then(xhr => {
         if (this.isSplitView) {
           return this.syncView.splitViewTimelineLoaded()
             .then(_ => SyncView.synchronizeRange(SyncView.panels()[0], this.syncView))
             .then(_ => xhr.responseText);
         } else {
-          return resolve(xhr.responseText);
+          return xhr.responseText;
         }
-      };
-      xhr.onerror = err => {
+      })
+      .catch((error, xhr) => {
         this.makeDevToolsVisible(false);
         this.updateStatus('Download of asset failed. ' + ((xhr.readyState == xhr.DONE) ? 'CORS headers likely not applied.' : ''));
-        reject(err);
-      };
-
-      xhr.send(body);
-    });
+      });
   }
 
   setAuthHeaders(xhr) {
@@ -492,6 +480,7 @@ class Viewer {
       media.body +
       close_delim;
 
+    // todo use fetch instead of xhr. it's broken now...
     this.doCORSrequest('https://www.googleapis.com/upload/drive/v2/files', xhr => {
       this.setAuthHeaders(xhr);
       xhr.setRequestHeader('Content-type', 'multipart/mixed; charset=utf-8; boundary=' + boundary);
@@ -525,7 +514,7 @@ class Viewer {
     headers.append('Authorization', 'Bearer ' + accessToken);
     headers.append('Content-Type', 'application/json');
 
-    return fetch(url.toString(), {
+    return this.utils.fetch(url.toString(), {
       method: 'POST',
       headers: headers,
       body: JSON.stringify(body)
