@@ -1,7 +1,7 @@
 // single monolithic class, begging to be broken apart into modules...
 
 'use strict';
-/* global SyncView, GoogleAuth, Utils*/
+/* global SyncView, GoogleAuth, Utils, DevTools */
 
 class Viewer {
 
@@ -33,6 +33,7 @@ class Viewer {
 
     this.auth = new GoogleAuth();
     this.utils = new Utils();
+    this.devTools = new DevTools({viewerInstance: this});
 
     this.driveAssetLoaded = new Promise((resolve, reject) => {
       this.driveAssetLoadedResolver = resolve;
@@ -53,7 +54,7 @@ class Viewer {
     this.statusElem.hidden = false;
 
     this.handleNetworkStatus();
-    this.initializeDevTools();
+    this.devTools.init();
 
     if (!this.welcomeView) {
       this.makeDevToolsVisible(true);
@@ -146,62 +147,6 @@ class Viewer {
     }
   }
 
-  initializeDevTools() {
-    Runtime.experiments._supportEnabled = true;
-    Runtime.experiments.isEnabled = name => {
-      return name == 'timelineV8RuntimeCallStats'
-    }
-
-    Common.moduleSetting = function (module) {
-      var ret = {
-        addChangeListener: _ => { },
-        removeChangeListener: _ => { },
-        get: _ => new Map(),
-        set: _ => { },
-        getAsArray: _ => []
-      };
-      if (module === 'showNativeFunctionsInJSProfile')
-        ret.get = _ => true;
-      return ret;
-    };
-
-    // nerf some oddness
-    Bindings.DeferredTempFile = function() {
-      this._chunks = [];
-      this._file = null;
-    };
-    Bindings.DeferredTempFile.prototype = {
-      write: function(strings) {
-        this._chunks = this._chunks.concat(strings);
-      },
-      remove: function() {
-        this._file = null;
-        this._chunks = [];
-      },
-      finishWriting: function() {
-        this._file = new Blob(this._chunks.filter(Object), { type: "text/plain" });
-      },
-      read: function(callback) {
-        if (this._file) {
-          const reader = new FileReader();
-          reader.addEventListener('loadend', callback);
-          reader.readAsText(this._file);
-        }
-      }
-
-    };
-
-    var viewerInstance = this;
-
-    // Common.settings is created in a window onload listener
-    window.addEventListener('load', _ => {
-      Common.settings.createSetting('timelineCaptureNetwork', true).set(true);
-      Common.settings.createSetting('timelineCaptureFilmStrip', true).set(true);
-
-      viewerInstance.syncView.monkepatchSetWindowPosition(viewerInstance);
-    });
-  }
-
   startSplitViewIfNeeded(urls) {
     urls = urls.split(',');
 
@@ -261,15 +206,10 @@ class Viewer {
     this.requestDriveFileMeta();
   }
 
-  monkeypatchLoadResourcePromise() {
-      this._orig_loadResourcePromise = Runtime.loadResourcePromise;
-      Runtime.loadResourcePromise = viewer.loadResource.bind(viewer);
-  }
-
   loadResource(requestedURL) {
     return this.loadResourcePromise(requestedURL)
       .then(resp => {
-        this.monkeyPatchingHandleDrop();
+        this.devTools.monkeyPatchingHandleDrop();
         return resp;
       });
   }
@@ -427,20 +367,6 @@ class Viewer {
         }
       });
     } catch (e) {}
-  }
-
-  monkeyPatchingHandleDrop() {
-    //@todo add detection for correct panel in split view
-    //@todo sync traces after dropping file
-    if (window.Timeline && window.Timeline.TimelinePanel) {
-      const timelinePanel = Timeline.TimelinePanel.instance();
-      const dropTarget = timelinePanel._dropTarget;
-      const handleDrop = dropTarget._handleDrop;
-      dropTarget._handleDrop = function(dataTransfer) {
-        viewer.toggleUploadToDriveElem(viewer.canUploadToDrive);
-        handleDrop.apply(dropTarget, arguments);
-      };
-    }
   }
 
   uploadTimelineData() {
