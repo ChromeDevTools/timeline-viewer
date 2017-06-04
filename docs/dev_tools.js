@@ -61,12 +61,13 @@ class DevTools {
   }
 
   monkepatchSetWindowPosition() {
+    const viewerInstance = this.viewerInstance;
     const plzRepeat = _ => setTimeout(_ => this.monkepatchSetWindowPosition(this.viewerInstance), 100);
     if (typeof PerfUI === 'undefined' || typeof PerfUI.OverviewGrid === 'undefined' ) return plzRepeat();
 
     PerfUI.OverviewGrid.Window.prototype._setWindowPosition = function(start, end) {
       const overviewGridWindow = this;
-      SyncView.setWindowPositionPatch.call(overviewGridWindow, start, end, this.viewerInstance);
+      SyncView.setWindowPositionPatch.call(overviewGridWindow, start, end, viewerInstance);
     };
   }
 

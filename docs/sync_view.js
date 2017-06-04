@@ -1,6 +1,6 @@
 'use strict';
 
-/* globals SyncView, PerfUI */
+/* globals Timeline, SyncView, PerfUI */
 
 class SyncView {
 
