@@ -1,7 +1,5 @@
-// single monolithic class, begging to be broken apart into modules...
-
 'use strict';
-/* global SyncView, GoogleAuth, Utils, DevTools */
+/* global SyncView, GoogleAuth, Utils, DevTools, GoogleDrive */
 
 class Viewer {
 
@@ -34,6 +32,7 @@ class Viewer {
     this.auth = new GoogleAuth();
     this.utils = new Utils();
     this.devTools = new DevTools({viewerInstance: this});
+    this.gdrive = new GoogleDrive({viewerInstance: this});
 
     this.driveAssetLoaded = new Promise((resolve, reject) => {
       this.driveAssetLoadedResolver = resolve;
@@ -136,7 +135,7 @@ class Viewer {
         this.timelineProvider = 'drive';
         this.timelineId = parsedURL.pathname.replace(/^\/+/, '');
       }
-      if (parsedURL.hostname === "drive.google.com") {
+      if (parsedURL.hostname === 'drive.google.com') {
         this.timelineProvider = 'drive';
         this.timelineId = parsedURL.pathname.match(/\b[0-9a-zA-Z]{5,40}\b/)[0];
       }
@@ -252,7 +251,7 @@ class Viewer {
     url.searchParams.append('key', config.apiKey);
 
     const headers = new Headers();
-    const user = this.auth.getAuthInstance().currentUser.get();
+    const user = GoogleAuth.getAuthInstance().currentUser.get();
     const accessToken = user.getAuthResponse().access_token;
     headers.append('Authorization', 'Bearer ' + accessToken);
 
@@ -333,7 +332,7 @@ class Viewer {
   }
 
   setAuthHeaders(xhr) {
-    const user = this.auth.getAuthInstance().currentUser.get();
+    const user = GoogleAuth.getAuthInstance().currentUser.get();
     const accessToken = user.getAuthResponse().access_token;
     xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
   }
@@ -378,45 +377,15 @@ class Viewer {
   uploadData(traceData) {
     this.toggleUploadToDriveElem(false);
     this.showInfoMessage('Uploading trace on Google Drive ...');
-
-    const contentType = 'application/octet-stream';
-
-    const fileMetadata = {
-      title: `TimelineData-${Date.now()}.json`,
-      mimeType: contentType,
-      writersCanShare: true,
-      uploadType: 'multipart'
-    };
-    const media = {
-      mimeType: contentType,
-      body: traceData
-    };
-
-    const boundary = Math.random().toString().substr(2);
-    const delimiter = `\r\n--${boundary}\r\n`;
-    const close_delim = `\r\n--${boundary}--`;
-
-    // much prettier then template literals because of mess with LF
-    const multipartRequestBody =
-      delimiter +
-      'Content-Type: application/json\r\n\r\n' +
-      JSON.stringify(fileMetadata) +
-      delimiter +
-      'Content-Type: ' + contentType + '\r\n\r\n' +
-      media.body +
-      close_delim;
-
-    // todo use fetch instead of xhr. it's broken now...
-    this.doCORSrequest('https://www.googleapis.com/upload/drive/v2/files', xhr => {
-      this.setAuthHeaders(xhr);
-      xhr.setRequestHeader('Content-type', 'multipart/mixed; charset=utf-8; boundary=' + boundary);
-    }, 'POST', multipartRequestBody)
-      .then(response => JSON.parse(response))
+    this.gdrive.uploadData('name.json', traceData)
       .then(data => {
-        return this.shareFile(data.id).then(_ => data)
+        if (data.error) throw data.error;
+        else return data;
       })
       .then(data => {
-        if (data.error) return;
+        return this.gdrive.insertPermission(data.id).then(_ => data);
+      })
+      .then(data => {
         this.changeUrl(data.id);
         this.showInfoMessage('Trace successfully uploaded on Google Drive');
       })
@@ -426,29 +395,8 @@ class Viewer {
       });
   }
 
-  shareFile(fileId) {
-    const url = new URL(`https://www.googleapis.com/drive/v2/files/${fileId}/permissions`);
-    const body = {
-      role: 'writer',
-      type: 'anyone'
-    };
-    url.searchParams.append('key', config.apiKey);
-
-    const headers = new Headers();
-    const user = this.auth.getAuthInstance().currentUser.get();
-    const accessToken = user.getAuthResponse().access_token;
-    headers.append('Authorization', 'Bearer ' + accessToken);
-    headers.append('Content-Type', 'application/json');
-
-    return this.utils.fetch(url.toString(), {
-      method: 'POST',
-      headers: headers,
-      body: JSON.stringify(body)
-    });
-  }
-
   changeUrl(id) {
-    let url = `?loadTimelineFromURL=drive://${id}`;
+    const url = `?loadTimelineFromURL=drive://${id}`;
     if (this.refreshPage) {
       window.location.href = `/${url}`;
     } else {
@@ -458,9 +406,6 @@ class Viewer {
     }
   }
 }
-
-
-
 const form = document.querySelector('form');
 form.addEventListener('submit', evt => {
     evt.preventDefault();

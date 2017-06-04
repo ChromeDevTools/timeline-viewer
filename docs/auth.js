@@ -1,5 +1,7 @@
 'use strict';
 
+/* global gapi, GoogleAuth */
+
 class GoogleAuth {
   constructor() {
     this.config = {
@@ -24,7 +26,7 @@ class GoogleAuth {
       gapi.client.setApiKey(this.config.apiKey);
 
       // if we have no authinstance yet, initialize
-      if (!this.getAuthInstance())
+      if (!GoogleAuth.getAuthInstance())
         return gapi.auth2.init(oAuthOptions).then(callback);
 
       // handle the click
@@ -32,17 +34,21 @@ class GoogleAuth {
     });
   }
   isSignedIn() {
-    return this.getAuthInstance().isSignedIn.get();
+    return GoogleAuth.getAuthInstance().isSignedIn.get();
   }
   signIn(oAuthOptions) {
-    return this.getAuthInstance().signIn(oAuthOptions);
+    return GoogleAuth.getAuthInstance().signIn(oAuthOptions);
   }
   signOut() {
     try {
       this.getAuthInstance().signOut();
     } catch(e) {}
   }
-  getAuthInstance() {
+  static getAuthInstance() {
     return gapi.auth2.getAuthInstance();
+  }
+  static getUserAccessToken() {
+    const user = GoogleAuth.getAuthInstance().currentUser.get();
+    return user.getAuthResponse().access_token;
   }
 }
