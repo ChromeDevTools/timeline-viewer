@@ -37,7 +37,7 @@
 /* eslint-disable indent, no-unused-vars, no-multiple-empty-lines, max-nested-callbacks, space-before-function-paren, quotes, comma-spacing */
 'use strict';
 
-var precacheConfig = [["Images/toolbarButtonGlyphs.png","d71330d9fb3d9263767c817a5b341fd3"],["google8b1867cdabba50ce.html","6f460bcd31c3a7f9d1c5cb2da7b6b3d1"],["index.html","1d21fd5e3881a879a74ef791cdf4cd9a"],["styles.css","53f1f50ee0373e476c918a8dc4dfe2c3"],["sync_view.js","f8d5e83d7bde10d841ac3bb11eff248c"],["timeline_viewer.js","f3faeb418e4959a6dff9c8186b8a0a6f"],["timeline_viewer_config.js","abb2d272401849734ff25be2ba212904"]];
+var precacheConfig = [["Images/toolbarButtonGlyphs.png","d71330d9fb3d9263767c817a5b341fd3"],["auth.js","4839021943a1012f4b79973c60a29db5"],["dev_tools.js","4ee976588b687892d5024eb35936c97d"],["google8b1867cdabba50ce.html","6f460bcd31c3a7f9d1c5cb2da7b6b3d1"],["index.html","a97a748129ce1aa376759217f3e7e317"],["storage.js","85e2efe6b210e75057ed5c69a3bb0b83"],["styles.css","53f1f50ee0373e476c918a8dc4dfe2c3"],["sync_view.js","ae1128b6b5a0f0f381299f1e9e605ced"],["timeline_viewer.js","52f242245cb074858029b61e87514b49"],["utils.js","b905f48a3fb60ed6b39dcea8aecf4c06"]];
 var cacheName = 'sw-precache-v3-sw-precache-' + (self.registration ? self.registration.scope : '');
 
 
