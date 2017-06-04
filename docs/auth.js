@@ -11,9 +11,15 @@ class GoogleAuth {
         // 'https://www.googleapis.com/auth/drive.readonly',
         'https://www.googleapis.com/auth/drive'
       ],
-      apiKey: 'AIzaSyCm6pJvqmwajgKlO2B0HW6veVRkvgoj308',
-      clientId: '963139201929-9do1gni449dij7611muu9to5d0b6p9gh.apps.googleusercontent.com'
+      apiKey: GoogleAuth.apiKey,
+      clientId: GoogleAuth.clientId
     };
+  }
+  static get apiKey() {
+    return 'AIzaSyCm6pJvqmwajgKlO2B0HW6veVRkvgoj308';
+  }
+  static get clientId() {
+    return '963139201929-9do1gni449dij7611muu9to5d0b6p9gh.apps.googleusercontent.com';
   }
   checkAuth(callback) {
     const oAuthOptions = {

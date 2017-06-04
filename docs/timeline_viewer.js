@@ -1,5 +1,5 @@
 'use strict';
-/* global SyncView, GoogleAuth, Utils, DevTools, GoogleDrive */
+/* global UI, Timeline, Common, SyncView, GoogleAuth, Utils, DevTools, GoogleDrive */
 
 class Viewer {
 
@@ -98,27 +98,27 @@ class Viewer {
     if (navigator.onLine) {
       this.toggleNetworkStatusMessage();
     } else {
-      this.toggleNetworkStatusMessage( { status: 'offline' } );
+      this.toggleNetworkStatusMessage({status: 'offline'});
     }
 
-    this.networkOnlineStatusElem.addEventListener('click', function() {
+    this.networkOnlineStatusElem.addEventListener('click', _ => {
       this.networkOnlineStatusElem.hidden = true;
-    }.bind(this));
+    });
 
-    this.networkOfflineStatusElem.addEventListener('click', function() {
+    this.networkOfflineStatusElem.addEventListener('click', _ => {
       this.networkOfflineStatusElem.hidden = true;
-    }.bind(this));
+    });
 
-    window.addEventListener('online', function() {
+    window.addEventListener('online', _ => {
       this.toggleNetworkStatusMessage();
-    }.bind(this), false);
+    }, false);
 
-    window.addEventListener('offline', function() {
-      this.toggleNetworkStatusMessage( { status: 'offline' } );
-    }.bind(this), false);
+    window.addEventListener('offline', _ => {
+      this.toggleNetworkStatusMessage({status: 'offline'});
+    }, false);
   }
 
-  toggleNetworkStatusMessage( options = { status: 'online' } ) {
+  toggleNetworkStatusMessage(options = {status: 'online'}) {
     if (options.status === 'online') {
       this.networkOnlineStatusElem.hidden = false;
       this.networkOfflineStatusElem.hidden = true;
@@ -152,7 +152,7 @@ class Viewer {
     if (urls.length > 1) {
       const frameset = document.createElement('frameset');
       frameset.setAttribute('id', 'split-view-container');
-      frameset.setAttribute('rows', Array(urls.length).fill(`${100/2}%`).join(','));
+      frameset.setAttribute('rows', new Array(urls.length).fill(`${100/2}%`).join(','));
 
       urls.forEach((url, index) => {
         const frame = document.createElement('frame');
@@ -215,15 +215,14 @@ class Viewer {
 
   // monkeypatched method for devtools
   loadResourcePromise(requestedURL) {
-    var url = new URL(requestedURL);
-    var URLofViewer = new URL(location.href);
-    var URLdevtoolsBase = new URL(this.devtoolsBase);
+    const url = new URL(requestedURL);
+    const URLofViewer = new URL(location.href);
 
     // hosted devtools gets confused
     // if DevTools is requesting a file thats on our origin, we'll redirect it to devtoolsBase
     if (url && url.origin === URLofViewer.origin) {
-      var relativeurl = url.pathname.replace(URLofViewer.pathname, '').replace(/^\//,'');
-      var redirectedURL = new URL(relativeurl, this.devtoolsBase)
+      const relativeurl = url.pathname.replace(URLofViewer.pathname, '').replace(/^\//,'');
+      const redirectedURL = new URL(relativeurl, this.devtoolsBase);
       return this._orig_loadResourcePromise(redirectedURL.toString());
     }
 
@@ -248,14 +247,12 @@ class Viewer {
 
     const url = new URL(`https://www.googleapis.com/drive/v2/files/${this.timelineId}`);
     url.searchParams.append('fields', 'version, downloadUrl, copyable, title, originalFilename, fileSize');
-    url.searchParams.append('key', config.apiKey);
+    url.searchParams.append('key', GoogleAuth.apiKey);
 
     const headers = new Headers();
-    const user = GoogleAuth.getAuthInstance().currentUser.get();
-    const accessToken = user.getAuthResponse().access_token;
-    headers.append('Authorization', 'Bearer ' + accessToken);
+    headers.append('Authorization', `Bearer ${GoogleAuth.getUserAccessToken()}`);
 
-    this.utils.fetch(url.toString(), {headers: headers})
+    this.utils.fetch(url.toString(), {headers})
       .then(resp => resp.json())
       .then(this.handleDriveFileMetadata.bind(this));
   }
@@ -287,18 +284,18 @@ class Viewer {
     this.makeDevToolsVisible(true);
     this.updateStatus('Starting download of timeline from Drive. Please wait...');
     // alt=media forces file contents in response body.
-    var url = response.downloadUrl + '&alt=media';
+    const url = `${response.downloadUrl}&alt=media`;
 
     this.fetchDriveAsset(url)
       .then(payload => this.handleDriveAsset(payload))
-      .catch(err => {
+      .catch(_ => {
         this.makeDevToolsVisible(false);
         this.updateStatus('Download of Drive asset failed.');
         throw new Error('XHR of Drive asset failed');
       });
   }
 
-  fetchDriveAsset(url, callback) {
+  fetchDriveAsset(url) {
     return this.fetchTimelineAsset(url, this.setAuthHeaders.bind(this));
   }
 
@@ -332,9 +329,7 @@ class Viewer {
   }
 
   setAuthHeaders(xhr) {
-    const user = GoogleAuth.getAuthInstance().currentUser.get();
-    const accessToken = user.getAuthResponse().access_token;
-    xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
+    xhr.setRequestHeader('Authorization', `Bearer ${GoogleAuth.getUserAccessToken()}`);
   }
 
   updateProgress(evt) {
@@ -356,13 +351,13 @@ class Viewer {
         if (!this.netReqMuted) {
           this.netReqMuted = true;
           const oldSetMarkers = panel._setMarkers;
-          panel._setMarkers = function () {
+          panel._setMarkers = function() {
             if (this._performanceModel._timelineModel.networkRequests().length === 0)
               Common.settings.createSetting('timelineCaptureNetwork', true).set(false);
             if (this._performanceModel.filmStripModel()._frames.length === 0)
               Common.settings.createSetting('timelineCaptureFilmStrip', true).set(false);
             oldSetMarkers.call(this, this._performanceModel._timelineModel);
-          }
+          };
         }
       });
     } catch (e) {}
@@ -408,32 +403,30 @@ class Viewer {
 }
 const form = document.querySelector('form');
 form.addEventListener('submit', evt => {
-    evt.preventDefault();
-    const formdata = new FormData(evt.target)
-    const url = formdata.get('url');
-    if (!url) return;
-
-    const parsedURL = new URL(location.href);
-    parsedURL.searchParams.delete('loadTimelineFromURL')
-    // this is weird because we don't want url encoding of the URL
-    parsedURL.searchParams.append('loadTimelineFromURL', 'REPLACEME')
-    const newurl = parsedURL.toString().replace('REPLACEME', url);
-    location.href = newurl;
+  evt.preventDefault();
+  const formdata = new FormData(evt.target);
+  const url = formdata.get('url');
+  if (!url) return;
+  const parsedURL = new URL(location.href);
+  parsedURL.searchParams.delete('loadTimelineFromURL');
+  // this is weird because we don't want url encoding of the URL
+  parsedURL.searchParams.append('loadTimelineFromURL', 'REPLACEME');
+  location.href = parsedURL.toString().replace('REPLACEME', url);
 });
 
 [...document.querySelectorAll('a[data-url]')].forEach(elem => {
-    elem.addEventListener('click', evt => {
-        evt.preventDefault();
-        evt.cancelBubble = true;
-        var url = evt.target.dataset.url;
-        var input = document.querySelector('#enterurl');
-        input.value = url;
-    });
+  elem.addEventListener('click', evt => {
+    evt.preventDefault();
+    evt.cancelBubble = true;
+    const url = evt.target.dataset.url;
+    const input = document.querySelector('#enterurl');
+    input.value = url;
+  });
 });
 
 // don't let devtools trap ctrl-r
 document.addEventListener('keydown', event => {
   if (self.UI && UI.KeyboardShortcut.eventHasCtrlOrMeta(event) && String.fromCharCode(event.which).toLowerCase() === 'r') {
-      event.handled = true;
-    }
+    event.handled = true;
+  }
 });
