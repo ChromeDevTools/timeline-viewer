@@ -1,6 +1,6 @@
 'use strict';
 
-/* global gapi, GoogleAuth */
+/* global gapi, Utils, GoogleAuth */
 
 class GoogleDrive {
   constructor() {
@@ -53,19 +53,22 @@ class GoogleDrive {
     return new Promise(resolve => request.execute(resolve));
   }
   insertPermission(fileId, type = 'anyone', role = 'writer') {
+    const url = new URL(`https://www.googleapis.com/drive/v2/files/${fileId}/permissions`);
     const body = {
-      type: type,
-      role: role
+      role: role,
+      type: type
     };
-    const request = gapi.client.request({
-      path: `drive/v2/files/${fileId}/permissions`,
-      headers: {
-        'Authorization': `Bearer ${GoogleAuth.getUserAccessToken()}`,
-        'Content-type': 'application/json'
-      },
-      fileId: fileId,
-      resource: body
+    url.searchParams.append('key', GoogleAuth.apiKey);
+
+    const headers = new Headers();
+    headers.append('Authorization', `Bearer ${GoogleAuth.getUserAccessToken()}`);
+    headers.append('Content-Type', 'application/json');
+
+    // todo const request = gapi.client.drive.permissions.insert({
+    return this.utils.fetch(url.toString(), {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(body)
     });
-    return new Promise(resolve => request.execute(resolve));
   }
 }

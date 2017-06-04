@@ -365,7 +365,7 @@ class Viewer {
   uploadData(traceData) {
     this.toggleUploadToDriveElem(false);
     this.showInfoMessage('Uploading trace on Google Drive ...');
-    this.gdrive.uploadData('name.json', traceData)
+    this.gdrive.uploadData(`Timeline-data-${Date.now()}`, traceData)
       .then(data => {
         if (data.error) throw data.error;
         else return data;
