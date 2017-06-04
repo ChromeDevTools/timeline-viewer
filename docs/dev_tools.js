@@ -89,4 +89,16 @@ class DevTools {
       };
     }
   }
+
+  monkepatchSetMarkers() {
+    const panel = Timeline.TimelinePanel.instance();
+    const oldSetMarkers = panel._setMarkers;
+    panel._setMarkers = function() {
+      if (this._performanceModel._timelineModel.networkRequests().length === 0)
+        Common.settings.createSetting('timelineCaptureNetwork', true).set(false);
+      if (this._performanceModel.filmStripModel()._frames.length === 0)
+        Common.settings.createSetting('timelineCaptureFilmStrip', true).set(false);
+      oldSetMarkers.call(this, this._performanceModel._timelineModel);
+    };
+  }
 }
