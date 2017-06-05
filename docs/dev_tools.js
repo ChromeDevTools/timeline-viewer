@@ -1,7 +1,6 @@
 'use strict';
 
-/* global Timeline, Runtime, Common, Bindings, PerfUI, SyncView */
-
+// eslint-disable-next-line no-unused-vars
 class DevTools {
   constructor(options) {
     this.viewerInstance = options.viewerInstance;
@@ -84,7 +83,7 @@ class DevTools {
       const timelinePanel = Timeline.TimelinePanel.instance();
       const dropTarget = timelinePanel._dropTarget;
       const handleDrop = dropTarget._handleDrop;
-      dropTarget._handleDrop = function(dataTransfer) {
+      dropTarget._handleDrop = function(_) {
         viewerInstance.toggleUploadToDriveElem(viewerInstance.canUploadToDrive);
         handleDrop.apply(dropTarget, arguments);
       };

@@ -1,7 +1,6 @@
 'use strict';
 
-/* globals Timeline, SyncView, PerfUI */
-
+// eslint-disable-next-line no-unused-vars
 class SyncView {
 
   splitViewTimelineLoaded() {
@@ -9,7 +8,7 @@ class SyncView {
       let isLoaded = false;
       const checkLoading = setInterval(() => {
         const timelines = SyncView.timelines();
-        for (let Timeline of timelines) {
+        for (const Timeline of timelines) {
           const panel = Timeline.TimelinePanel.instance();
           if (panel._state === Timeline.TimelinePanel.State.Idle) {
             isLoaded = true;
@@ -33,7 +32,7 @@ class SyncView {
     const referenceDuration = tracingModelMaximumRecordTime - tracingModelMinimumRecordTime;
 
     const targetPanels = viewerInstance.targetPanels();
-    for (let targetPanel of targetPanels) {
+    for (const targetPanel of targetPanels) {
       const performanceModel = targetPanel._performanceModel;
       const tracingModel = performanceModel.tracingModel();
 
@@ -86,7 +85,7 @@ class SyncView {
     // calculate what target frames should be:
 
     const targetPanels = this.targetPanels();
-    for (let targetPanel of targetPanels) {
+    for (const targetPanel of targetPanels) {
       const absoluteMin = targetPanel._overviewPane._overviewCalculator.minimumBoundary();
       const targetTraceLengthMs = targetPanel._overviewPane._overviewCalculator.maximumBoundary() - absoluteMin;
 

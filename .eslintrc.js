@@ -4,7 +4,22 @@ module.exports = {
   "extends": ["eslint:recommended", "google"],
   "env": {
     "browser": true,
-    "es6": true
+    "es6": true,
+  },
+  "globals": {
+    gapi: true,
+    Bindings: true,
+    Common: true,
+    DevTools: true,
+    GoogleAuth: true,
+    GoogleDrive: true,
+    PerfUI: true,
+    Runtime: true,
+    SyncView: true,
+    Timeline: true,
+    UI: true,
+    Utils: true,
+    Viewer: true,
   },
   "rules": {
     // 2 == error, 1 == warning, 0 == off
