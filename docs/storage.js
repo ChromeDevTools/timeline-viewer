@@ -1,7 +1,6 @@
 'use strict';
 
-/* global gapi, Utils, GoogleAuth */
-
+// eslint-disable-next-line no-unused-vars
 class GoogleDrive {
   constructor() {
     this.utils = new Utils();

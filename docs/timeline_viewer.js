@@ -1,6 +1,6 @@
 'use strict';
-/* global UI, Timeline, Common, SyncView, GoogleAuth, Utils, DevTools, GoogleDrive */
 
+// eslint-disable-next-line no-unused-vars
 class Viewer {
 
   constructor() {
@@ -221,7 +221,7 @@ class Viewer {
     // hosted devtools gets confused
     // if DevTools is requesting a file thats on our origin, we'll redirect it to devtoolsBase
     if (url && url.origin === URLofViewer.origin) {
-      const relativeurl = url.pathname.replace(URLofViewer.pathname, '').replace(/^\//,'');
+      const relativeurl = url.pathname.replace(URLofViewer.pathname, '').replace(/^\//, '');
       const redirectedURL = new URL(relativeurl, this.devtoolsBase);
       return this._orig_loadResourcePromise(redirectedURL.toString());
     }
@@ -259,7 +259,7 @@ class Viewer {
 
   handleDriveFileMetadata(response) {
     document.title = `${response.originalFilename} | ${document.title}`;
-    this.totalSize = +response.fileSize;
+    this.totalSize = Number(response.fileSize);
     const error = response.error;
 
     if (error) {

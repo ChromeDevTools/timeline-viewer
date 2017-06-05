@@ -1,3 +1,6 @@
+'use strict';
+
+/* eslint-env mocha */
 describe('Timeline-Viewer index.html page', () => {
   beforeEach(() => {
     cy

@@ -1,7 +1,6 @@
 'use strict';
 
-/* global gapi, GoogleAuth */
-
+// eslint-disable-next-line no-unused-vars
 class GoogleAuth {
   constructor() {
     this.config = {
