@@ -1,7 +1,5 @@
-// single monolithic class, begging to be broken apart into modules...
-
 'use strict';
-/* global Viewer, SyncView */
+/* global UI, Timeline, Common, SyncView, GoogleAuth, Utils, DevTools, GoogleDrive */
 
 class Viewer {
 
@@ -14,63 +12,113 @@ class Viewer {
 
     this.totalSize = 50 * 1000 * 1000;
     this.loadingStarted = false;
-
+    this.refreshPage = false;
+    this.canUploadToDrive = false;
+    this.welcomeView = false;
     // remote location of devtools we're using
     this.devtoolsBase = document.getElementById('devtoolsscript').src.replace(/inspector\.js.*/, '');
 
     this.statusElem = document.getElementById('status');
+    this.infoMessageElem = document.getElementById('info-message');
+    this.uploadToDriveElem = document.getElementById('upload-to-drive');
     this.networkOnlineStatusElem = document.getElementById('online-status');
     this.networkOfflineStatusElem = document.getElementById('offline-status');
     this.authBtn = document.getElementById('auth');
     this.docsElem = document.getElementById('howto');
 
     this.authBtn.addEventListener('click', this.checkAuth.bind(this));
+    this.uploadToDriveElem.addEventListener('click', this.uploadTimelineData.bind(this));
+
+    this.auth = new GoogleAuth();
+    this.utils = new Utils();
+    this.devTools = new DevTools({viewerInstance: this});
+    this.gdrive = new GoogleDrive({viewerInstance: this});
 
     this.driveAssetLoaded = new Promise((resolve, reject) => {
       this.driveAssetLoadedResolver = resolve;
     });
 
     this.parseURLforTimelineId(this.timelineURL);
+
     if (!this.timelineURL || this.startSplitViewIfNeeded(this.timelineURL)) {
       this.splitViewContainer = document.getElementById('split-view-container');
       this.isSplitView = this.splitViewContainer ? true : false;
+      this.canUploadToDrive = true;
+      this.welcomeView = true;
+      this.handleDragEvents();
       this.docsElem.hidden = false;
-      return;
     }
 
     // Start loading DevTools. (checkAuth will be racing against it)
     this.statusElem.hidden = false;
 
     this.handleNetworkStatus();
-    this.initializeDevTools();
+    this.devTools.init();
+
+    if (!this.welcomeView) {
+      this.makeDevToolsVisible(true);
+    }
+  }
+
+  handleDragEvents() {
+    const dropboxEl = document.getElementById('dropbox');
+    if (dropboxEl)
+      dropboxEl.addEventListener('dragover', this.dragover.bind(this), false);
+  }
+
+  toggleUploadToDriveElem(display) {
+    this.uploadToDriveElem.hidden = !display;
+  }
+
+  showInfoMessage(text) {
+    this.infoMessageElem.textContent = text;
+    this.infoMessageElem.hidden = false;
+
+    setTimeout(() => {
+      this.hideInfoMessage();
+    }, 3000);
+  }
+
+  hideInfoMessage() {
+    this.infoMessageElem.textContent = '';
+    this.infoMessageElem.hidden = true;
+  }
+
+  dragover(e) {
+    e.stopPropagation();
+    e.preventDefault();
     this.makeDevToolsVisible(true);
+    // we fair that all timeline resources are uploaded
+    UI.inspectorView.showPanel('timeline').then(_ => {
+      this.toggleUploadToDriveElem(this.canUploadToDrive);
+    });
   }
 
   handleNetworkStatus() {
     if (navigator.onLine) {
       this.toggleNetworkStatusMessage();
     } else {
-      this.toggleNetworkStatusMessage( { status: 'offline' } );
+      this.toggleNetworkStatusMessage({status: 'offline'});
     }
 
-    this.networkOnlineStatusElem.addEventListener('click', function() {
+    this.networkOnlineStatusElem.addEventListener('click', _ => {
       this.networkOnlineStatusElem.hidden = true;
-    }.bind(this));
+    });
 
-    this.networkOfflineStatusElem.addEventListener('click', function() {
+    this.networkOfflineStatusElem.addEventListener('click', _ => {
       this.networkOfflineStatusElem.hidden = true;
-    }.bind(this));
+    });
 
-    window.addEventListener('online', function() {
+    window.addEventListener('online', _ => {
       this.toggleNetworkStatusMessage();
-    }.bind(this), false);
+    }, false);
 
-    window.addEventListener('offline', function() {
-      this.toggleNetworkStatusMessage( { status: 'offline' } );
-    }.bind(this), false);
+    window.addEventListener('offline', _ => {
+      this.toggleNetworkStatusMessage({status: 'offline'});
+    }, false);
   }
 
-  toggleNetworkStatusMessage( options = { status: 'online' } ) {
+  toggleNetworkStatusMessage(options = {status: 'online'}) {
     if (options.status === 'online') {
       this.networkOnlineStatusElem.hidden = false;
       this.networkOfflineStatusElem.hidden = true;
@@ -87,7 +135,7 @@ class Viewer {
         this.timelineProvider = 'drive';
         this.timelineId = parsedURL.pathname.replace(/^\/+/, '');
       }
-      if (parsedURL.hostname === "drive.google.com") {
+      if (parsedURL.hostname === 'drive.google.com') {
         this.timelineProvider = 'drive';
         this.timelineId = parsedURL.pathname.match(/\b[0-9a-zA-Z]{5,40}\b/)[0];
       }
@@ -98,51 +146,13 @@ class Viewer {
     }
   }
 
-  initializeDevTools() {
-    Runtime.experiments._supportEnabled = true;
-    Runtime.experiments.isEnabled = name => {
-      return name == 'timelineV8RuntimeCallStats'
-    }
-
-    Common.moduleSetting = function (module) {
-      var ret = {
-        addChangeListener: _ => { },
-        removeChangeListener: _ => { },
-        get: _ => new Map(),
-        set: _ => { },
-        getAsArray: _ => []
-      };
-      if (module === 'showNativeFunctionsInJSProfile')
-        ret.get = _ => true;
-      return ret;
-    };
-
-    // nerf some oddness
-    Bindings.DeferredTempFile = function() {};
-    Bindings.DeferredTempFile.prototype = {
-      write: _ => { },
-      remove: _ => { },
-      finishWriting: _ => { }
-    };
-
-    var viewerInstance = this;
-
-    // Common.settings is created in a window onload listener
-    window.addEventListener('load', _ => {
-      Common.settings.createSetting('timelineCaptureNetwork', true).set(true);
-      Common.settings.createSetting('timelineCaptureFilmStrip', true).set(true);
-
-      viewerInstance.syncView.monkepatchSetWindowPosition(viewerInstance);
-    });
-  }
-
   startSplitViewIfNeeded(urls) {
     urls = urls.split(',');
 
     if (urls.length > 1) {
       const frameset = document.createElement('frameset');
       frameset.setAttribute('id', 'split-view-container');
-      frameset.setAttribute('rows', Array(urls.length).fill(`${100/2}%`).join(','));
+      frameset.setAttribute('rows', new Array(urls.length).fill(`${100/2}%`).join(','));
 
       urls.forEach((url, index) => {
         const frame = document.createElement('frame');
@@ -153,12 +163,14 @@ class Viewer {
       document.body.appendChild(frameset);
       document.documentElement.classList.add('fullbleed');
       document.querySelector('.welcome').remove();
+      document.querySelector('.top-message-container').remove();
       return true;
     }
     return false;
   }
 
   makeDevToolsVisible(bool) {
+    this.welcomeView = !bool;
     document.documentElement.classList[bool ? 'remove' : 'add']('hide-devtools');
   }
 
@@ -166,30 +178,9 @@ class Viewer {
     this.statusElem.textContent = str;
   }
 
-  signOut() {
-    try {
-      gapi.auth2.getAuthInstance().signOut()
-    } catch(e){}
-  }
-
-  checkAuth(opts) {
+  checkAuth() {
     const handleAuth = this.handleAuthResult.bind(this);
-    const oAuthOptions = {
-      fetch_basic_profile: false,
-      client_id: config.clientId,
-      scope: config.scopes.join(' ')
-    };
-
-    gapi.load('client:auth2', function() {
-      gapi.client.setApiKey(config.apiKey);
-
-      // if we have no authinstance yet, initialize
-      if (!gapi.auth2.getAuthInstance())
-        return gapi.auth2.init(oAuthOptions).then(handleAuth);
-
-      // handle the click
-      gapi.auth2.getAuthInstance().signIn(oAuthOptions).then(handleAuth)
-    }.bind(this));
+    this.auth.checkAuth(handleAuth);
 
     return false;
   }
@@ -197,39 +188,41 @@ class Viewer {
   handleAuthResult() {
     if (this.timelineProvider !== 'drive') return;
 
-    if (gapi.auth2.getAuthInstance().isSignedIn.get() === false) {
-      this.updateStatus(`Drive API status: not signed in`);
+    if (this.auth.isSignedIn() === false) {
+      this.updateStatus('Drive API status: not signed in');
 
       this.authBtn.hidden = false;
       this.docsElem.hidden = false;
+      this.canUploadToDrive = false;
       this.makeDevToolsVisible(false);
-      return new Error(`Google auth error`);
+      return new Error('Google auth error');
     }
 
     this.authBtn.hidden = true;
     this.updateStatus('Drive API status: successfully signed in');
     this.statusElem.hidden = false;
+    this.canUploadToDrive = true;
     this.requestDriveFileMeta();
   }
 
-  monkeypatchLoadResourcePromise() {
-      this._orig_loadResourcePromise = Runtime.loadResourcePromise;
-      Runtime.loadResourcePromise = viewer.loadResourcePromise.bind(viewer);
+  loadResource(requestedURL) {
+    return this.loadResourcePromise(requestedURL)
+      .then(resp => {
+        this.devTools.monkeyPatchingHandleDrop();
+        return resp;
+      });
   }
-
-
 
   // monkeypatched method for devtools
   loadResourcePromise(requestedURL) {
-    var url = new URL(requestedURL);
-    var URLofViewer = new URL(location.href);
-    var URLdevtoolsBase = new URL(this.devtoolsBase);
+    const url = new URL(requestedURL);
+    const URLofViewer = new URL(location.href);
 
     // hosted devtools gets confused
     // if DevTools is requesting a file thats on our origin, we'll redirect it to devtoolsBase
     if (url && url.origin === URLofViewer.origin) {
-      var relativeurl = url.pathname.replace(URLofViewer.pathname, '').replace(/^\//,'');
-      var redirectedURL = new URL(relativeurl, this.devtoolsBase)
+      const relativeurl = url.pathname.replace(URLofViewer.pathname, '').replace(/^\//,'');
+      const redirectedURL = new URL(relativeurl, this.devtoolsBase);
       return this._orig_loadResourcePromise(redirectedURL.toString());
     }
 
@@ -245,23 +238,21 @@ class Viewer {
     url.hostname = url.hostname.replace('github.com', 'githubusercontent.com');
     url.hostname = url.hostname.replace('www.dropbox.com', 'dl.dropboxusercontent.com');
 
-    return this.doCORSrequest(url.href).then(payload => payload);
+    return this.fetchTimelineAsset(url.href).then(payload => payload);
   }
 
   requestDriveFileMeta() {
     // if there's no this.timelineId then let's skip all this drive API stuff.
     if (!this.timelineId) return;
 
-    var url = new URL(`https://www.googleapis.com/drive/v2/files/${this.timelineId}`);
-    url.searchParams.append('fields', 'version, downloadUrl, copyable, title, originalFilename, fileSize')
-    url.searchParams.append('key', config.apiKey);
+    const url = new URL(`https://www.googleapis.com/drive/v2/files/${this.timelineId}`);
+    url.searchParams.append('fields', 'version, downloadUrl, copyable, title, originalFilename, fileSize');
+    url.searchParams.append('key', GoogleAuth.apiKey);
 
-    var headers = new Headers();
-    var user = gapi.auth2.getAuthInstance().currentUser.get();
-    var accessToken = user.getAuthResponse().access_token;
-    headers.append('Authorization', 'Bearer ' + accessToken);
+    const headers = new Headers();
+    headers.append('Authorization', `Bearer ${GoogleAuth.getUserAccessToken()}`);
 
-    fetch(url.toString(), {headers: headers})
+    this.utils.fetch(url.toString(), {headers})
       .then(resp => resp.json())
       .then(this.handleDriveFileMetadata.bind(this));
   }
@@ -293,55 +284,52 @@ class Viewer {
     this.makeDevToolsVisible(true);
     this.updateStatus('Starting download of timeline from Drive. Please wait...');
     // alt=media forces file contents in response body.
-    var url = response.downloadUrl + '&alt=media';
+    const url = `${response.downloadUrl}&alt=media`;
 
     this.fetchDriveAsset(url)
       .then(payload => this.handleDriveAsset(payload))
-      .catch(err => {
+      .catch(_ => {
         this.makeDevToolsVisible(false);
         this.updateStatus('Download of Drive asset failed.');
         throw new Error('XHR of Drive asset failed');
       });
   }
 
-  fetchDriveAsset(url, callback) {
-    return this.doCORSrequest(url, function(xhr) {
-      var user = gapi.auth2.getAuthInstance().currentUser.get();
-      var accessToken = user.getAuthResponse().access_token;
-      xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
-    });
+  fetchDriveAsset(url) {
+    return this.fetchTimelineAsset(url, this.setAuthHeaders.bind(this));
   }
 
   handleDriveAsset(payload) {
     const msg = `✅ Timeline downloaded from Drive. (${payload.length} bytes)`;
     this.updateStatus(msg);
-    console.log(msg);
+    this.showInfoMessage(msg);
     return this.driveAssetLoadedResolver(payload);
   }
 
-  doCORSrequest(url, callbetween) {
-    return new Promise((resolve, reject) => {
-      // Use an XHR rather than fetch so we can have progress events
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', url);
-      callbetween && callbetween(xhr);
-      xhr.onprogress = this.updateProgress.bind(this);
-      xhr.onload = _ => {
+  fetchTimelineAsset(url, addRequestHeaders = Function.prototype, method = 'GET', body) {
+    this.netReqMuted = false;
+    this.loadingStarted = false;
+    return this.utils.fetch(url, {
+      url, addRequestHeaders: addRequestHeaders.bind(this), method, body,
+      onprogress: this.updateProgress.bind(this),
+    }, true)
+      .then(xhr => {
         if (this.isSplitView) {
           return this.syncView.splitViewTimelineLoaded()
             .then(_ => SyncView.synchronizeRange(SyncView.panels()[0], this.syncView))
             .then(_ => xhr.responseText);
         } else {
-          return resolve(xhr.responseText);
+          return xhr.responseText;
         }
-      };
-      xhr.onerror = (err => {
+      })
+      .catch((error, xhr) => {
         this.makeDevToolsVisible(false);
         this.updateStatus('Download of asset failed. ' + ((xhr.readyState == xhr.DONE) ? 'CORS headers likely not applied.' : ''));
-        reject(err);
-      }).bind(this);
-      xhr.send();
-    });
+      });
+  }
+
+  setAuthHeaders(xhr) {
+    xhr.setRequestHeader('Authorization', `Bearer ${GoogleAuth.getUserAccessToken()}`);
   }
 
   updateProgress(evt) {
@@ -355,56 +343,83 @@ class Viewer {
           this.loadingStarted = true;
           panel && panel.loadingStarted();
         }
+
         // update progress
         panel && panel.loadingProgress(evt.loaded / (evt.total || this.totalSize));
 
         // flip off filmstrip or network if theres no data in the trace
         if (!this.netReqMuted) {
           this.netReqMuted = true;
-          const oldSetMarkers = panel._setMarkers;
-          panel._setMarkers = function () {
-            if (this._performanceModel._timelineModel.networkRequests().length === 0)
-              Common.settings.createSetting('timelineCaptureNetwork', true).set(false);
-            if (this._performanceModel.filmStripModel()._frames.length === 0)
-              Common.settings.createSetting('timelineCaptureFilmStrip', true).set(false);
-            oldSetMarkers.call(this, this._performanceModel._timelineModel);
-          }
+          this.devTools.monkepatchSetMarkers();
         }
       });
     } catch (e) {}
   }
+
+  uploadTimelineData() {
+    Timeline.TimelinePanel.instance()._backingStorage._file.read(event => {
+      this.uploadData(event.target.result);
+    });
+  }
+
+  uploadData(traceData) {
+    this.toggleUploadToDriveElem(false);
+    this.showInfoMessage('Uploading trace on Google Drive ...');
+    this.gdrive.uploadData(`Timeline-data-${Date.now()}`, traceData)
+      .then(data => {
+        if (data.error) throw data.error;
+        else return data;
+      })
+      .then(data => {
+        return this.gdrive.insertPermission(data.id).then(_ => data);
+      })
+      .then(data => {
+        this.changeUrl(data.id);
+        this.showInfoMessage('Trace successfully uploaded on Google Drive');
+      })
+      .catch(_ => {
+        this.toggleUploadToDriveElem(this.canUploadToDrive);
+        this.showInfoMessage('Trace was not uploaded on Google Drive :(');
+      });
+  }
+
+  changeUrl(id) {
+    const url = `?loadTimelineFromURL=drive://${id}`;
+    if (this.refreshPage) {
+      window.location.href = `/${url}`;
+    } else {
+      const state = {'file_id': id};
+      const title = 'Timeline Viewer';
+      history.replaceState(state, title, url);
+    }
+  }
 }
-
-
-
 const form = document.querySelector('form');
 form.addEventListener('submit', evt => {
-    evt.preventDefault();
-    const formdata = new FormData(evt.target)
-    const url = formdata.get('url');
-    if (!url) return;
-
-    const parsedURL = new URL(location.href);
-    parsedURL.searchParams.delete('loadTimelineFromURL')
-    // this is weird because we don't want url encoding of the URL
-    parsedURL.searchParams.append('loadTimelineFromURL', 'REPLACEME')
-    const newurl = parsedURL.toString().replace('REPLACEME', url);
-    location.href = newurl;
+  evt.preventDefault();
+  const formdata = new FormData(evt.target);
+  const url = formdata.get('url');
+  if (!url) return;
+  const parsedURL = new URL(location.href);
+  parsedURL.searchParams.delete('loadTimelineFromURL');
+  // this is weird because we don't want url encoding of the URL
+  parsedURL.searchParams.append('loadTimelineFromURL', 'REPLACEME');
+  location.href = parsedURL.toString().replace('REPLACEME', url);
 });
 
 [...document.querySelectorAll('a[data-url]')].forEach(elem => {
-    elem.addEventListener('click', evt => {
-        evt.preventDefault();
-        evt.cancelBubble = true;
-        var url = evt.target.dataset.url;
-        var input = document.querySelector('#enterurl');
-        input.value = url;
-    });
+  elem.addEventListener('click', evt => {
+    evt.preventDefault();
+    evt.cancelBubble = true;
+    const url = evt.target.dataset.url;
+    const input = document.querySelector('#enterurl');
+    input.value = url;
+  });
 });
 
 // don't let devtools trap ctrl-r
 document.addEventListener('keydown', event => {
   if (self.UI && UI.KeyboardShortcut.eventHasCtrlOrMeta(event) && String.fromCharCode(event.which).toLowerCase() === 'r') {
-      event.handled = true;
-    }
+    event.handled = true;
+  }
 });

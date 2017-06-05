@@ -1,0 +1,13 @@
+language: node_js
+node_js:
+  - node
+cache:
+  yarn: true
+  directories:
+    - node_modules
+before_install:
+  - npm install -g yarn@v0.22.0
+install:
+  - yarn
+script:
+  - yarn run test

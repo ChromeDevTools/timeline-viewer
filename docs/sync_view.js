@@ -1,18 +1,8 @@
 'use strict';
 
-/* globals SyncView, PerfUI */
+/* globals Timeline, SyncView, PerfUI */
 
 class SyncView {
-
-  monkepatchSetWindowPosition(viewerInstance) {
-    const plzRepeat = _ => setTimeout(_ => this.monkepatchSetWindowPosition(viewerInstance), 100);
-    if (typeof PerfUI === 'undefined' || typeof PerfUI.OverviewGrid === 'undefined' ) return plzRepeat();
-
-    PerfUI.OverviewGrid.Window.prototype._setWindowPosition = function(start, end) {
-      const overviewGridWindow = this;
-      SyncView.setWindowPositionPatch.call(overviewGridWindow, start, end, viewerInstance);
-    };
-  }
 
   splitViewTimelineLoaded() {
     return new Promise(resolve => {

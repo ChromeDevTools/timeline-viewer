@@ -6,9 +6,13 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="network-status-message bg-green" id="online-status" hidden>Online</div>
-    <div class="network-status-message bg-orange" id="offline-status" hidden>Offline</div>
-    <div class="welcome w-100 sans-serif bg-white">
+    <div class="top-message-container">
+      <div class="top-message info-message" id="info-message" hidden></div>
+      <div class="top-message online-status-message bg-green" id="online-status" hidden>Online</div>
+      <div class="top-message offline-status-message bg-orange" id="offline-status" hidden>Offline</div>
+      <div class="top-message upload-btn bg-green" id="upload-to-drive" hidden>Upload to drive</div>
+    </div>
+    <div class="welcome w-100 sans-serif bg-white" id="dropbox">
         <h1 class="f2 f-subheadline-ns mb0">
             DevTools Timeline Viewer
         </h1>
@@ -21,13 +25,14 @@
             <div class="pa3 bt b--black-10 f6 f5-ns lh-copy">
                 <form>
                     <input type="text" name=url id="enterurl" placeholder="Enter public Dropbox URL or raw Gist URL" class="w-80">
-                    <input type="submit" class="btn btn--s btn--grayn" value="OK"></input>
+                    <input type="submit" class="btn btn--s btn--grayn" value="OK">
                     <small class="db black-50">
                         Works with <em>Dropbox public URLs</em> (<a href="?loadTimelineFromURL=https://www.dropbox.com/s/s1n8m8n5oddgoxx/timeline-docs.json?dl=0" data-url="https://www.dropbox.com/s/s1n8m8n5oddgoxx/timeline-docs.json?dl=0">example</a>),
                         <em>raw Gists</em>
                         (<a href="?loadTimelineFromURL=https://gist.github.com/paulirish/f83d30384954937dc3a1fae970a4ae52/raw/b25b27741c652d3091a316dfd8b58bf72f14aa74/twitch.json"  data-url="https://gist.github.com/paulirish/f83d30384954937dc3a1fae970a4ae52/raw/b25b27741c652d3091a316dfd8b58bf72f14aa74/twitch.json">example</a>),
                         <br> or any file available over CORS. Multiple URLS will generate a <a href="./?loadTimelineFromURL=https://www.dropbox.com/s/k84dlf4i1g55t7x/jooj123-before.json?dl=0,https://www.dropbox.com/s/5dzjiodggtouk32/jooj123-after.json?dl=0" data-url="https://www.dropbox.com/s/k84dlf4i1g55t7x/jooj123-before.json?dl=0,https://www.dropbox.com/s/5dzjiodggtouk32/jooj123-after.json?dl=0">split view</a>.
                     </small>
+                    <span>Drag&Drop timeline data file</span>
                 </form>
             </div>
         </article>
@@ -66,8 +71,11 @@
 
     </div>
 
-    <script src="timeline_viewer_config.js"></script>
+    <script src="utils.js"></script>
+    <script src="auth.js"></script>
+    <script src="dev_tools.js"></script>
     <script src="sync_view.js"></script>
+    <script src="storage.js"></script>
     <script src="timeline_viewer.js"></script>
     <script src="service-worker.js"></script>
 
@@ -79,16 +87,16 @@
           document.getElementById('status').textContent = 'Sorry y\'all, Chrome required to view traces.';
           return;
         }
-        window.viewer = new Viewer();
+        const viewer = new Viewer();
 
         // hooks for the apis.google client.js
         self.checkAuth = function() {
           return viewer.checkAuth({immediate: true});
-        }
+        };
         self.authBtn = viewer.authBtn;
 
         // We are monkeypatching window.loadResourcePromise, which is from devtools' Runtime.js
-        viewer.monkeypatchLoadResourcePromise();
+        viewer.devTools.monkeypatchLoadResourcePromise();
       }
       init();
 
