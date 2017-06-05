@@ -6,7 +6,8 @@ cache:
   directories:
     - node_modules
 before_install:
-  - npm install -g yarn@v0.22.0
+  - npm install -g yarn@latest
+  - yarn --version
 install:
   - yarn
 script:
