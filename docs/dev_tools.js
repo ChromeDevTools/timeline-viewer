@@ -4,6 +4,16 @@
 class DevTools {
   constructor(options) {
     this.viewerInstance = options.viewerInstance;
+    this.attachMonkeyPatchListeners();
+  }
+
+  attachMonkeyPatchListeners() {
+    // don't let devtools trap ctrl-r
+    document.addEventListener('keydown', event => {
+      if (self.UI && UI.KeyboardShortcut.eventHasCtrlOrMeta(event) && String.fromCharCode(event.which).toLowerCase() === 'r') {
+        event.handled = true;
+      }
+    });
   }
 
   init() {
