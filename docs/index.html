@@ -11,6 +11,7 @@
       <div class="top-message online-status-message bg-green" id="online-status" hidden>Online</div>
       <div class="top-message offline-status-message bg-orange" id="offline-status" hidden>Offline</div>
       <div class="top-message upload-btn bg-green" id="upload-to-drive" hidden>Upload to drive</div>
+      <div class="top-message upload-btn bg-green" id="update-version" hidden>Update version</div>
     </div>
     <div class="welcome w-100 sans-serif bg-white" id="dropbox">
         <h1 class="f2 f-subheadline-ns mb0">
@@ -97,10 +98,27 @@
 
         // We are monkeypatching window.loadResourcePromise, which is from devtools' Runtime.js
         viewer.devTools.monkeypatchLoadResourcePromise();
+
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker
+            .register('service-worker.js')
+            .then(registration => {
+              registration.onupdatefound = () => {
+                const installingWorker = registration.installing;
+                installingWorker.onstatechange = () => {
+                  if (installingWorker.state === 'activated') {
+                    viewer.showInfoMessage('Timeline Viewer is ready to be used offline');
+                  }
+                };
+              };
+            })
+            .catch(error => {
+              console.error('Error during service worker registration:', error);
+            });
+        }
       }
       init();
 
-      if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js');
     </script>
     <script async src="https://apis.google.com/js/client.js?onload=checkAuth"></script>
 
