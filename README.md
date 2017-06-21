@@ -1,6 +1,8 @@
 # DevTools Timeline Viewer
 ##### Shareable URLs for your Chrome DevTools Timeline traces.
 
+![drawing 1](https://user-images.githubusercontent.com/6231516/27319720-79933930-559b-11e7-8656-a1fa3c4a1697.png)
+
 Works with public github urls, github gists, and files on google drive (once authenticated).
 
 ---
