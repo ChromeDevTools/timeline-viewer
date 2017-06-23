@@ -26,8 +26,7 @@ class Viewer {
     this.authBtn = document.getElementById('auth');
     this.docsElem = document.getElementById('howto');
 
-    this.authBtn.addEventListener('click', this.checkAuth.bind(this));
-    this.uploadToDriveElem.addEventListener('click', this.uploadTimelineData.bind(this));
+    this.attachEventListeners();
 
     this.auth = new GoogleAuth();
     this.utils = new Utils();
@@ -58,6 +57,40 @@ class Viewer {
     if (!this.welcomeView) {
       this.makeDevToolsVisible(true);
     }
+  }
+
+  attachEventListeners() {
+    this.authBtn.addEventListener('click', this.checkAuth.bind(this));
+    this.uploadToDriveElem.addEventListener('click', this.uploadTimelineData.bind(this));
+    this.attachSubmitUrlListener();
+    this.attachPrefillUrlListener();
+  }
+
+  attachSubmitUrlListener() {
+    const form = document.querySelector('form');
+    form.addEventListener('submit', evt => {
+      evt.preventDefault();
+      const formdata = new FormData(evt.target);
+      const url = formdata.get('url');
+      if (!url) return;
+      const parsedURL = new URL(location.href);
+      parsedURL.searchParams.delete('loadTimelineFromURL');
+      // this is weird because we don't want url encoding of the URL
+      parsedURL.searchParams.append('loadTimelineFromURL', 'REPLACEME');
+      location.href = parsedURL.toString().replace('REPLACEME', url);
+    });
+  }
+
+  attachPrefillUrlListener() {
+    [...document.querySelectorAll('a[data-url]')].forEach(elem => {
+      elem.addEventListener('click', evt => {
+        evt.preventDefault();
+        evt.cancelBubble = true;
+        const url = evt.target.dataset.url;
+        const input = document.querySelector('#enterurl');
+        input.value = url;
+      });
+    });
   }
 
   handleDragEvents() {
@@ -394,32 +427,3 @@ class Viewer {
     }
   }
 }
-const form = document.querySelector('form');
-form.addEventListener('submit', evt => {
-  evt.preventDefault();
-  const formdata = new FormData(evt.target);
-  const url = formdata.get('url');
-  if (!url) return;
-  const parsedURL = new URL(location.href);
-  parsedURL.searchParams.delete('loadTimelineFromURL');
-  // this is weird because we don't want url encoding of the URL
-  parsedURL.searchParams.append('loadTimelineFromURL', 'REPLACEME');
-  location.href = parsedURL.toString().replace('REPLACEME', url);
-});
-
-[...document.querySelectorAll('a[data-url]')].forEach(elem => {
-  elem.addEventListener('click', evt => {
-    evt.preventDefault();
-    evt.cancelBubble = true;
-    const url = evt.target.dataset.url;
-    const input = document.querySelector('#enterurl');
-    input.value = url;
-  });
-});
-
-// don't let devtools trap ctrl-r
-document.addEventListener('keydown', event => {
-  if (self.UI && UI.KeyboardShortcut.eventHasCtrlOrMeta(event) && String.fromCharCode(event.which).toLowerCase() === 'r') {
-    event.handled = true;
-  }
-});
