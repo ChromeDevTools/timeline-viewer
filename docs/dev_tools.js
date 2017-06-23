@@ -30,6 +30,8 @@ class DevTools {
         set: _ => { },
         getAsArray: _ => []
       };
+      if (module === 'releaseNoteVersionSeen')
+        ret.get = _ => true;
       if (module === 'showNativeFunctionsInJSProfile')
         ret.get = _ => true;
       return ret;
@@ -62,7 +64,6 @@ class DevTools {
     };
     // Common.settings is created in a window onload listener
     window.addEventListener('load', _ => {
-      Common.settings.createSetting('releaseNoteVersionSeen', true).set(true);
       Common.settings.createSetting('timelineCaptureNetwork', true).set(true);
       Common.settings.createSetting('timelineCaptureFilmStrip', true).set(true);
 
