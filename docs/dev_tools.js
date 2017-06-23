@@ -31,7 +31,7 @@ class DevTools {
         getAsArray: _ => []
       };
       if (module === 'releaseNoteVersionSeen')
-        ret.get = _ => true;
+        ret.get = _ => Infinity;
       if (module === 'showNativeFunctionsInJSProfile')
         ret.get = _ => true;
       return ret;
