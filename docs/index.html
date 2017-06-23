@@ -41,9 +41,7 @@
         <article class="center mw5 mw6-ns br3 ba b--black-10 mv4">
             <h3 class="f4 bg-near-white br3 br--top black-60 mv0 pv2 ph3">View traces from Google Drive</h3>
             <div class="pa3 bt b--black-10 f6 f5-ns lh-copy">
-                <p id="status">
-                    Checking for Drive API authorization...
-                </p>
+                <p id="status">Checking for Drive API authorization...</p>
                 <div style="height: 45px">
                     <button id="auth" hidden>Authorize Drive API access</button>
                 </div>
@@ -71,57 +69,48 @@
         <small class="f6 gray dib mr3 mr4-ns mv4">Contribute! <a class="link dim" href="https://github.com/ChromeDevTools/timeline-viewer">github.com/ChromeDevTools/timeline-viewer</a></small>
 
     </div>
-
-    <script src="utils.js"></script>
-    <script src="auth.js"></script>
-    <script src="dev_tools.js"></script>
-    <script src="sync_view.js"></script>
-    <script src="storage.js"></script>
-    <script src="timeline_viewer.js"></script>
     <script src="service-worker.js"></script>
-
     <script src="https://chrome-devtools-frontend.appspot.com/serve_file/@b90ffba2e47896e76a0ce9bd4f2b92cd7bb26a03/inspector.js" id="devtoolsscript"></script>
+    <script src="https://apis.google.com/js/client.js" defer></script>
+    <script src="utils.js" defer></script>
+    <script src="auth.js" defer></script>
+    <script src="dev_tools.js" defer></script>
+    <script src="sync_view.js" defer></script>
+    <script src="storage.js" defer></script>
+    <script src="timeline_viewer.js" defer></script>
     <script>
-      function init() {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker
+          .register('service-worker.js')
+          .then(registration => {
+            registration.onupdatefound = () => {
+              const installingWorker = registration.installing;
+              installingWorker.onstatechange = () => {
+                if (installingWorker.state === 'activated') {
+                  viewer.showInfoMessage('Timeline Viewer is ready to be used offline');
+                }
+              };
+            };
+          })
+          .catch(error => {
+            console.error('Error during service worker registration:', error);
+          });
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
         // only works in Chrome because browser devtools
-        if (!(window.chrome && chrome.loadTimes)) {
+        if (!window.chrome) {
           document.getElementById('status').textContent = 'Sorry y\'all, Chrome required to view traces.';
           return;
         }
         const viewer = new Viewer();
 
-        // hooks for the apis.google client.js
-        self.checkAuth = function() {
-          return viewer.checkAuth({immediate: true});
-        };
-        self.authBtn = viewer.authBtn;
+        viewer.checkAuth({immediate: true});
 
         // We are monkeypatching window.loadResourcePromise, which is from devtools' Runtime.js
         viewer.devTools.monkeypatchLoadResourcePromise();
-
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker
-            .register('service-worker.js')
-            .then(registration => {
-              registration.onupdatefound = () => {
-                const installingWorker = registration.installing;
-                installingWorker.onstatechange = () => {
-                  if (installingWorker.state === 'activated') {
-                    viewer.showInfoMessage('Timeline Viewer is ready to be used offline');
-                  }
-                };
-              };
-            })
-            .catch(error => {
-              console.error('Error during service worker registration:', error);
-            });
-        }
-      }
-      init();
-
+      });
     </script>
-    <script async src="https://apis.google.com/js/client.js?onload=checkAuth"></script>
-
 
     <body class="undocked" id="-blink-dev-tools"></body>
 
