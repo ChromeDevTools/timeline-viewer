@@ -136,14 +136,6 @@ class Viewer {
       this.toggleNetworkStatusMessage({status: 'offline'});
     }
 
-    this.networkOnlineStatusElem.addEventListener('click', _ => {
-      this.networkOnlineStatusElem.hidden = true;
-    });
-
-    this.networkOfflineStatusElem.addEventListener('click', _ => {
-      this.networkOfflineStatusElem.hidden = true;
-    });
-
     window.addEventListener('online', _ => {
       this.toggleNetworkStatusMessage();
     }, false);
