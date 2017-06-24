@@ -23,15 +23,16 @@ class Viewer {
     this.uploadToDriveElem = document.getElementById('upload-to-drive');
     this.networkOnlineStatusElem = document.getElementById('online-status');
     this.networkOfflineStatusElem = document.getElementById('offline-status');
-    this.authBtn = document.getElementById('auth');
+    this.signInBtn = document.getElementById('signIn');
+    this.signOutBtn = document.getElementById('signOut');
     this.docsElem = document.getElementById('howto');
-
-    this.attachEventListeners();
 
     this.auth = new GoogleAuth();
     this.utils = new Utils();
     this.devTools = new DevTools({viewerInstance: this});
     this.gdrive = new GoogleDrive({viewerInstance: this});
+
+    this.attachEventListeners();
 
     this.driveAssetLoaded = new Promise((resolve, reject) => {
       this.driveAssetLoadedResolver = resolve;
@@ -60,7 +61,8 @@ class Viewer {
   }
 
   attachEventListeners() {
-    this.authBtn.addEventListener('click', this.checkAuth.bind(this));
+    this.signInBtn.addEventListener('click', this.checkAuth.bind(this));
+    this.signOutBtn.addEventListener('click', this.signOut.bind(this));
     this.uploadToDriveElem.addEventListener('click', this.uploadTimelineData.bind(this));
     this.attachSubmitUrlListener();
     this.attachPrefillUrlListener();
@@ -218,20 +220,29 @@ class Viewer {
     return false;
   }
 
+  signOut() {
+    this.auth.signOut().then(() => {
+      this.updateStatus('Drive API status: not signed in');
+      this.signInBtn.hidden = false;
+      this.signOutBtn.hidden = true;
+    });
+  }
+
   handleAuthResult() {
     if (this.timelineProvider !== 'drive') return;
 
     if (this.auth.isSignedIn() === false) {
       this.updateStatus('Drive API status: not signed in');
 
-      this.authBtn.hidden = false;
+      this.signInBtn.hidden = false;
       this.docsElem.hidden = false;
       this.canUploadToDrive = false;
       this.makeDevToolsVisible(false);
       return new Error('Google auth error');
     }
 
-    this.authBtn.hidden = true;
+    this.signInBtn.hidden = true;
+    this.signOutBtn.hidden = false;
     this.updateStatus('Drive API status: successfully signed in');
     this.statusElem.hidden = false;
     this.canUploadToDrive = true;
@@ -302,7 +313,7 @@ class Viewer {
       fileUnavailableStr += reasons.includes('notFound') ? 'Confirm you have Edit permissions to the file. ' : '';
       if (reasons.includes('authError')) {
         fileUnavailableStr += 'Please sign in. ';
-        this.authBtn.hidden = false;
+        this.signInBtn.hidden = false;
       }
       this.updateStatus(`${fileUnavailableStr} Drive API error: ${error.message}. (${reasons.join(', ')})`);
       throw new Error(response.message, response.error);
