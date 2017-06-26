@@ -80,7 +80,19 @@
     <script src="storage.js" defer></script>
     <script src="timeline_viewer.js" defer></script>
     <script>
-      if ('serviceWorker' in navigator) {
+      document.addEventListener('DOMContentLoaded', () => {
+        // only works in Chrome because browser devtools
+        if (!window.chrome) {
+          document.getElementById('status').textContent = 'Sorry y\'all, Chrome required to view traces.';
+          return;
+        }
+        const viewer = new Viewer();
+
+        viewer.checkAuth({immediate: true});
+
+        // We are monkeypatching window.loadResourcePromise, which is from devtools' Runtime.js
+        viewer.devTools.monkeypatchLoadResourcePromise();
+
         navigator.serviceWorker
           .register('service-worker.js')
           .then(registration => {
@@ -96,38 +108,6 @@
           .catch(error => {
             console.error('Error during service worker registration:', error);
           });
-      }
-
-      document.addEventListener('DOMContentLoaded', () => {
-        // only works in Chrome because browser devtools
-        if (!window.chrome) {
-          document.getElementById('status').textContent = 'Sorry y\'all, Chrome required to view traces.';
-          return;
-        }
-        const viewer = new Viewer();
-
-        viewer.checkAuth({immediate: true});
-
-        // We are monkeypatching window.loadResourcePromise, which is from devtools' Runtime.js
-        viewer.devTools.monkeypatchLoadResourcePromise();
-
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker
-            .register('service-worker.js')
-            .then(registration => {
-              registration.onupdatefound = () => {
-                const installingWorker = registration.installing;
-                installingWorker.onstatechange = () => {
-                  if (installingWorker.state === 'activated') {
-                    viewer.showInfoMessage('Timeline Viewer is ready to be used offline');
-                  }
-                };
-              };
-            })
-            .catch(error => {
-              console.error('Error during service worker registration:', error);
-            });
-        }
       });
     </script>
 
