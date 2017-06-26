@@ -45,7 +45,7 @@ class GoogleAuth {
     return GoogleAuth.getAuthInstance().signIn(oAuthOptions);
   }
   signOut() {
-    return GoogleAuth.getAuthInstance().signOut();
+    return GoogleAuth.getAuthInstance().disconnect();
   }
   static getAuthInstance() {
     return gapi.auth2.getAuthInstance();
