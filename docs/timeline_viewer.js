@@ -24,14 +24,15 @@ class Viewer {
     this.networkOnlineStatusElem = document.getElementById('online-status');
     this.networkOfflineStatusElem = document.getElementById('offline-status');
     this.authBtn = document.getElementById('auth');
+    this.revokeAccessBtn = document.getElementById('revoke-access');
     this.docsElem = document.getElementById('howto');
-
-    this.attachEventListeners();
 
     this.auth = new GoogleAuth();
     this.utils = new Utils();
     this.devTools = new DevTools({viewerInstance: this});
     this.gdrive = new GoogleDrive({viewerInstance: this});
+
+    this.attachEventListeners();
 
     this.driveAssetLoaded = new Promise((resolve, reject) => {
       this.driveAssetLoadedResolver = resolve;
@@ -61,6 +62,7 @@ class Viewer {
 
   attachEventListeners() {
     this.authBtn.addEventListener('click', this.checkAuth.bind(this));
+    this.revokeAccessBtn.addEventListener('click', this.revokeAccess.bind(this));
     this.uploadToDriveElem.addEventListener('click', this.uploadTimelineData.bind(this));
     this.attachSubmitUrlListener();
     this.attachPrefillUrlListener();
@@ -133,14 +135,6 @@ class Viewer {
     } else {
       this.toggleNetworkStatusMessage({status: 'offline'});
     }
-
-    this.networkOnlineStatusElem.addEventListener('click', _ => {
-      this.networkOnlineStatusElem.hidden = true;
-    });
-
-    this.networkOfflineStatusElem.addEventListener('click', _ => {
-      this.networkOfflineStatusElem.hidden = true;
-    });
 
     window.addEventListener('online', _ => {
       this.toggleNetworkStatusMessage();
@@ -218,6 +212,14 @@ class Viewer {
     return false;
   }
 
+  revokeAccess() {
+    this.auth.revokeAccess().then(() => {
+      this.updateStatus('Drive API status: not signed in');
+      this.authBtn.hidden = false;
+      this.revokeAccessBtn.hidden = true;
+    });
+  }
+
   handleAuthResult() {
     if (this.timelineProvider !== 'drive') return;
 
@@ -232,6 +234,7 @@ class Viewer {
     }
 
     this.authBtn.hidden = true;
+    this.revokeAccessBtn.hidden = false;
     this.updateStatus('Drive API status: successfully signed in');
     this.statusElem.hidden = false;
     this.canUploadToDrive = true;
