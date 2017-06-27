@@ -26,7 +26,7 @@
             <div class="pa3 bt b--black-10 f6 f5-ns lh-copy">
                 <form>
                     <input type="text" name=url id="enterurl" placeholder="Enter public Dropbox URL or raw Gist URL" class="w-80">
-                    <input type="submit" class="btn btn--s btn--grayn" value="OK">
+                    <input type="submit" class="btn btn--s btn--gray" value="OK">
                     <small class="db black-50">
                         Works with <em>Dropbox public URLs</em> (<a href="?loadTimelineFromURL=https://www.dropbox.com/s/s1n8m8n5oddgoxx/timeline-docs.json?dl=0" data-url="https://www.dropbox.com/s/s1n8m8n5oddgoxx/timeline-docs.json?dl=0">example</a>),
                         <em>raw Gists</em>
@@ -43,8 +43,8 @@
             <div class="pa3 bt b--black-10 f6 f5-ns lh-copy">
                 <p id="status">Checking for Drive API authorization...</p>
                 <div style="height: 45px">
-                    <button id="auth" hidden>Authorize Drive API access</button>
-                    <button id="revoke-access" hidden>Revoke API Access</button>
+                    <button class="btn btn--s btn--green" id="auth" hidden>Authorize Drive API access</button>
+                    <button class="btn btn--s btn--yellow" id="revoke-access" hidden>Revoke API Access</button>
                 </div>
             </div>
         </article>
