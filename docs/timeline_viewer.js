@@ -24,7 +24,7 @@ class Viewer {
     this.networkOnlineStatusElem = document.getElementById('online-status');
     this.networkOfflineStatusElem = document.getElementById('offline-status');
     this.signInBtn = document.getElementById('signIn');
-    this.signOutBtn = document.getElementById('signOut');
+    this.revokeAccessBtn = document.getElementById('revoke-access');
     this.docsElem = document.getElementById('howto');
 
     this.auth = new GoogleAuth();
@@ -62,7 +62,7 @@ class Viewer {
 
   attachEventListeners() {
     this.signInBtn.addEventListener('click', this.checkAuth.bind(this));
-    this.signOutBtn.addEventListener('click', this.signOut.bind(this));
+    this.revokeAccessBtn.addEventListener('click', this.revokeAccess.bind(this));
     this.uploadToDriveElem.addEventListener('click', this.uploadTimelineData.bind(this));
     this.attachSubmitUrlListener();
     this.attachPrefillUrlListener();
@@ -212,11 +212,11 @@ class Viewer {
     return false;
   }
 
-  signOut() {
-    this.auth.signOut().then(() => {
+  revokeAccess() {
+    this.auth.revokeAccess().then(() => {
       this.updateStatus('Drive API status: not signed in');
       this.signInBtn.hidden = false;
-      this.signOutBtn.hidden = true;
+      this.revokeAccessBtn.hidden = true;
     });
   }
 
@@ -234,7 +234,7 @@ class Viewer {
     }
 
     this.signInBtn.hidden = true;
-    this.signOutBtn.hidden = false;
+    this.revokeAccessBtn.hidden = false;
     this.updateStatus('Drive API status: successfully signed in');
     this.statusElem.hidden = false;
     this.canUploadToDrive = true;

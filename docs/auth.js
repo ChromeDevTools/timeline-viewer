@@ -44,7 +44,7 @@ class GoogleAuth {
   signIn(oAuthOptions) {
     return GoogleAuth.getAuthInstance().signIn(oAuthOptions);
   }
-  signOut() {
+  revokeAccess() {
     return GoogleAuth.getAuthInstance().disconnect();
   }
   static getAuthInstance() {
