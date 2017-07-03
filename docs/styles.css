@@ -48,23 +48,6 @@ html{font-family:sans-serif;line-height:1.15;-ms-text-size-adjust:100%;-webkit-t
   content: '\26C5';
 }
 
-.upload-btn {
-  cursor: pointer;
-}
-
-.upload-btn:before {
-  content: '\25b2';
-}
-
-.info-message {
-  float: left;
-  width: 500px;
-}
-
-.info-message:before {
- content: '\261D';
-}
-
 .fullbleed, .fullbleed body {
     padding: 0;
     margin: 0;

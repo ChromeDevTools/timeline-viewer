@@ -20,6 +20,7 @@ module.exports = {
     UI: true,
     Utils: true,
     Viewer: true,
+    Notify: true,
   },
   "rules": {
     // 2 == error, 1 == warning, 0 == off
