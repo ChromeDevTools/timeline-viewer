@@ -19,7 +19,6 @@ class Viewer {
     this.devtoolsBase = document.getElementById('devtoolsscript').src.replace(/inspector\.js.*/, '');
 
     this.statusElem = document.getElementById('status');
-    this.infoMessageElem = document.getElementById('info-message');
     this.uploadToDriveElem = document.getElementById('upload-to-drive');
     this.networkOnlineStatusElem = document.getElementById('online-status');
     this.networkOfflineStatusElem = document.getElementById('offline-status');
@@ -31,6 +30,7 @@ class Viewer {
     this.utils = new Utils();
     this.devTools = new DevTools({viewerInstance: this});
     this.gdrive = new GoogleDrive({viewerInstance: this});
+    this.notification = new Notify();
 
     this.attachEventListeners();
 
@@ -103,20 +103,6 @@ class Viewer {
 
   toggleUploadToDriveElem(display) {
     this.uploadToDriveElem.hidden = !display;
-  }
-
-  showInfoMessage(text) {
-    this.infoMessageElem.textContent = text;
-    this.infoMessageElem.hidden = false;
-
-    setTimeout(() => {
-      this.hideInfoMessage();
-    }, 3000);
-  }
-
-  hideInfoMessage() {
-    this.infoMessageElem.textContent = '';
-    this.infoMessageElem.hidden = true;
   }
 
   dragover(e) {
@@ -338,7 +324,7 @@ class Viewer {
   handleDriveAsset(payload) {
     const msg = `✅ Timeline downloaded from Drive. (${payload.length} bytes)`;
     this.updateStatus(msg);
-    this.showInfoMessage(msg);
+    this.notification.showInfoMessage(msg);
     return this.driveAssetLoadedResolver(payload);
   }
 
@@ -400,7 +386,7 @@ class Viewer {
 
   uploadData(traceData) {
     this.toggleUploadToDriveElem(false);
-    this.showInfoMessage('Uploading trace on Google Drive ...');
+    this.notification.showInfoMessage('Uploading trace on Google Drive ...');
     this.gdrive.uploadData(`Timeline-data-${Date.now()}`, traceData)
       .then(data => {
         if (data.error) throw data.error;
@@ -411,11 +397,11 @@ class Viewer {
       })
       .then(data => {
         this.changeUrl(data.id);
-        this.showInfoMessage('Trace successfully uploaded on Google Drive');
+        this.notification.showInfoMessage('Trace successfully uploaded on Google Drive');
       })
       .catch(_ => {
         this.toggleUploadToDriveElem(this.canUploadToDrive);
-        this.showInfoMessage('Trace was not uploaded on Google Drive :(');
+        this.notification.showInfoMessage('Trace was not uploaded on Google Drive :(');
       });
   }
 
