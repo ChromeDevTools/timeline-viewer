@@ -5,6 +5,7 @@ class GoogleDrive {
   constructor() {
     this.utils = new Utils();
   }
+
   uploadData(fileName = `Timeline-data-${Date.now()}`, data) {
     const contentType = 'application/octet-stream';
 
@@ -51,6 +52,7 @@ class GoogleDrive {
     });
     return new Promise(resolve => request.execute(resolve));
   }
+
   insertPermission(fileId, type = 'anyone', role = 'writer') {
     const url = new URL(`https://www.googleapis.com/drive/v2/files/${fileId}/permissions`);
     const body = {

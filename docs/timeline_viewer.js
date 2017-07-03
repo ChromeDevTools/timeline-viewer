@@ -31,6 +31,7 @@ class Viewer {
     this.utils = new Utils();
     this.devTools = new DevTools({viewerInstance: this});
     this.gdrive = new GoogleDrive({viewerInstance: this});
+    this.socialAnnotations = new SocialAnnotationsService();
 
     this.attachEventListeners();
 
@@ -56,6 +57,7 @@ class Viewer {
     this.devTools.init();
 
     if (!this.welcomeView) {
+      this.socialAnnotations.authRealtimeUtils();
       this.makeDevToolsVisible(true);
     }
   }

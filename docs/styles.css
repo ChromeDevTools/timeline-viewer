@@ -12,6 +12,7 @@ html{font-family:sans-serif;line-height:1.15;-ms-text-size-adjust:100%;-webkit-t
     box-sizing: border-box;
     display: none;
 }
+
 .hide-devtools .welcome {
   display: block;
 }
@@ -48,12 +49,17 @@ html{font-family:sans-serif;line-height:1.15;-ms-text-size-adjust:100%;-webkit-t
   content: '\26C5';
 }
 
-.upload-btn {
+.upload-btn,
+.toggle-annotations-btn {
   cursor: pointer;
 }
 
 .upload-btn:before {
   content: '\25b2';
+}
+
+.toggle-annotations-btn:before {
+  content: '\270d';
 }
 
 .info-message {
@@ -63,6 +69,19 @@ html{font-family:sans-serif;line-height:1.15;-ms-text-size-adjust:100%;-webkit-t
 
 .info-message:before {
  content: '\261D';
+}
+
+#social-annotations-container {
+  position: absolute;
+  top: 28px;
+  z-index: 999;
+  right: 0;
+  width: 310px;
+  border: 1px solid #ccc;
+  color: #5a5a5a;
+  background-color: #f3f3f3;
+  padding: 7px;
+  height: 700px;
 }
 
 .fullbleed, .fullbleed body {

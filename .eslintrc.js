@@ -20,6 +20,9 @@ module.exports = {
     UI: true,
     Utils: true,
     Viewer: true,
+    SocialAnnotationsService: true,
+    SocialAnnotationsModel: true,
+    SocialAnnotationsUI: true,
   },
   "rules": {
     // 2 == error, 1 == warning, 0 == off

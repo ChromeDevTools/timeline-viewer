@@ -11,7 +11,14 @@
       <div class="top-message online-status-message bg-green" id="online-status" hidden>Online</div>
       <div class="top-message offline-status-message bg-orange" id="offline-status" hidden>Offline</div>
       <div class="top-message upload-btn bg-green" id="upload-to-drive" hidden>Upload to drive</div>
-      <div class="top-message upload-btn bg-green" id="update-version" hidden>Update version</div>
+      <div class="top-message toggle-annotations-btn bg-green" id="toggle-annotations" hidden>Toggle annotations</div>
+      <div id="social-annotations-container" hidden>
+
+        <div id="add-annotation-container">
+          <button id="add-annotation">+</button>
+          <textarea id="annotation-text" rows="3" cols="40"></textarea>
+        </div>
+      </div>
     </div>
     <div class="welcome w-100 sans-serif bg-white" id="dropbox">
         <h1 class="f2 f-subheadline-ns mb0">
@@ -73,11 +80,16 @@
     <script src="service-worker.js"></script>
     <script src="https://chrome-devtools-frontend.appspot.com/serve_file/@311bc2315d4c10f58421416fc85404d9ef696d76/inspector.js" id="devtoolsscript"></script>
     <script src="https://apis.google.com/js/client.js" defer></script>
+    <script src="https://apis.google.com/js/api.js" defer></script>
+    <script src="https://gstatic.com/realtime/realtime-client-utils.js" defer></script>
     <script src="utils.js" defer></script>
     <script src="auth.js" defer></script>
     <script src="dev_tools.js" defer></script>
     <script src="sync_view.js" defer></script>
     <script src="storage.js" defer></script>
+    <script src="social_annotations/model.js" defer></script>
+    <script src="social_annotations/service.js" defer></script>
+    <script src="social_annotations/ui.js" defer></script>
     <script src="timeline_viewer.js" defer></script>
     <script>
       document.addEventListener('DOMContentLoaded', () => {
