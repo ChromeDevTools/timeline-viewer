@@ -37,6 +37,15 @@ class DevTools {
       return ret;
     };
 
+    // don't send application errors to console drawer
+    Common.Console.prototype.addMessage = function(text, level, show) {
+      level = level || Common.Console.MessageLevel.Info;
+      const message = new Common.Console.Message(text, level, Date.now(), show || false);
+      this._messages.push(message);
+      // this.dispatchEventToListeners(Common.Console.Events.MessageAdded, message);
+      window.console[level](text);
+    };
+
     // Common.settings is created in a window onload listener
     window.addEventListener('load', _ => {
       Common.settings.createSetting('timelineCaptureNetwork', true).set(true);
