@@ -37,31 +37,6 @@ class DevTools {
       return ret;
     };
 
-    // nerf some oddness
-    Bindings.DeferredTempFile = function() {
-      this._chunks = [];
-      this._file = null;
-    };
-    Bindings.DeferredTempFile.prototype = {
-      write: function(strings) {
-        this._chunks = this._chunks.concat(strings);
-      },
-      remove: function() {
-        this._file = null;
-        this._chunks = [];
-      },
-      finishWriting: function() {
-        this._file = new Blob(this._chunks.filter(Object), {type: 'text/plain'});
-      },
-      read: function(callback) {
-        if (this._file) {
-          const reader = new FileReader();
-          reader.addEventListener('loadend', callback);
-          reader.readAsText(this._file);
-        }
-      }
-
-    };
     // Common.settings is created in a window onload listener
     window.addEventListener('load', _ => {
       Common.settings.createSetting('timelineCaptureNetwork', true).set(true);
