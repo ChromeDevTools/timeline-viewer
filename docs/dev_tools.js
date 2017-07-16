@@ -37,31 +37,15 @@ class DevTools {
       return ret;
     };
 
-    // nerf some oddness
-    Bindings.DeferredTempFile = function() {
-      this._chunks = [];
-      this._file = null;
+    // don't send application errors to console drawer
+    Common.Console.prototype.addMessage = function(text, level, show) {
+      level = level || Common.Console.MessageLevel.Info;
+      const message = new Common.Console.Message(text, level, Date.now(), show || false);
+      this._messages.push(message);
+      // this.dispatchEventToListeners(Common.Console.Events.MessageAdded, message);
+      window.console[level](text);
     };
-    Bindings.DeferredTempFile.prototype = {
-      write: function(strings) {
-        this._chunks = this._chunks.concat(strings);
-      },
-      remove: function() {
-        this._file = null;
-        this._chunks = [];
-      },
-      finishWriting: function() {
-        this._file = new Blob(this._chunks.filter(Object), {type: 'text/plain'});
-      },
-      read: function(callback) {
-        if (this._file) {
-          const reader = new FileReader();
-          reader.addEventListener('loadend', callback);
-          reader.readAsText(this._file);
-        }
-      }
 
-    };
     // Common.settings is created in a window onload listener
     window.addEventListener('load', _ => {
       Common.settings.createSetting('timelineCaptureNetwork', true).set(true);
