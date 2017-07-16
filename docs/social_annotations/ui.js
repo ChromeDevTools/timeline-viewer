@@ -30,10 +30,9 @@ class SocialAnnotationsUI {
     return `
       <div class="annotation" id="annotation-%id%">
         <p class="text">%text%</p>
-        <span class="author">%author%</span>
-        <span class="date">%date%</span>
-      </div>
-`;
+        <span class="author">Author: %author%</span>
+        <span class="date">Added: %date%</span>
+      </div>`;
   }
 
   attachListeners() {
@@ -50,10 +49,8 @@ class SocialAnnotationsUI {
 
   renderAnnotations(annotations) {
     const nodes = document.createDocumentFragment();
-    const hr = document.createElement('hr');
     for (const annotation of annotations) {
       nodes.appendChild(this.getAnnotationNode(annotation));
-      nodes.appendChild(hr.cloneNode(true));
     }
     this.container.appendChild(nodes);
   }
@@ -67,5 +64,9 @@ class SocialAnnotationsUI {
       date: (new Date(annotation.date)).toUTCString(),
     });
     return parser.parseFromString(tpl, 'text/xml').firstChild;
+  }
+
+  clearAnnottionText() {
+    this.annotationField.value = '';
   }
 }

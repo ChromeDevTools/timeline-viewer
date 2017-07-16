@@ -10,6 +10,7 @@ class SocialAnnotationsService {
 
     this.socialAnnotationsUI.addAnnotationsBtn.addEventListener('click', _ => {
       this.socialAnnotations.addAnnotation(this.socialAnnotationsUI.annotationText);
+      this.socialAnnotationsUI.clearAnnottionText();
     });
   }
 

@@ -7,6 +7,7 @@ class SocialAnnotationsModel {
   }
 
   addAnnotation(text) {
+    if (!text.length) return;
     this.annotations.push({
       id: Utils.generateID(),
       author: 'Anonymous',
