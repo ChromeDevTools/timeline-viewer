@@ -393,8 +393,10 @@ class Viewer {
   }
 
   uploadTimelineData() {
-    Timeline.TimelinePanel.instance()._backingStorage._file.read(event => {
-      this.uploadData(event.target.result);
+    const panel = Timeline.TimelinePanel.instance();
+    const bs = panel._performanceModel._tracingModel.backingStorage();
+    return bs._file.read().then(str => {
+      this.uploadData(str);
     });
   }
 
