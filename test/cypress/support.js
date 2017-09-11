@@ -12,6 +12,6 @@
 // https://on.cypress.io/api/commands
 // ***********************************************
 //
-Cypress.addParentCommand('visitIndex', function() {
+Cypress.Commands.add('visitIndex', function() {
   cy.visit('index.html');
 });
