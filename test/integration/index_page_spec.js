@@ -9,8 +9,16 @@ describe('Timeline-Viewer index.html page', () => {
   });
 
   context('Authorize button', () => {
-    it('should be hidden before script checking auth', () => {
-      cy.get('#auth').should('not.be.visible');
+    it('should be visible', () => {
+      // wait for script checking auth
+      cy.wait(2000);
+      cy.get('#auth').should('be.visible');
+    });
+  });
+
+  context('Online status', () => {
+    it('should be shown', () => {
+      cy.get('#online-status').should('be.visible');
     });
   });
 });
