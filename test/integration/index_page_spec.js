@@ -11,7 +11,7 @@ describe('Timeline-Viewer index.html page', () => {
   context('Authorize button', () => {
     it('should be visible', () => {
       // wait for script checking auth
-      cy.wait(2000);
+      cy.wait(200);
       cy.get('#auth').should('be.visible');
     });
   });

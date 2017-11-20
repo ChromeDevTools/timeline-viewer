@@ -4,6 +4,7 @@
   "description": "Works with public github urls, github gists, and files on google drive (once authenticated).",
   "main": "src/index.js",
   "scripts": {
+    "build": "rollup --config",
     "test": "kill $(lsof -t -i:8000) & npm run server & cypress run --browser chrome",
     "dev": "npm run generate-sw-dev && opn http://localhost:8000/ && npm run server",
     "server": "http-server docs -a localhost -p 8000 -s",
@@ -24,9 +25,13 @@
     "http-server": "^0.9.0",
     "opn-cli": "^3.1.0",
     "pre-push": "^0.1.1",
+    "rollup": "^0.51.8",
+    "rollup-plugin-node-resolve": "^3.0.0",
     "sw-precache": "^5.0.0"
   },
-  "dependencies": {},
+  "dependencies": {
+    "dev-tools-element": "^0.2.0"
+  },
   "pre-push": [
     "generate-sw-prod"
   ],

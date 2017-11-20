@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>DevTools Timeline Viewer</title>
+    <link rel="stylesheet" href="../docs/styles.css">
+</head>
+<body>
+    <div class="top-message-container">
+      <div class="top-message info-message" id="info-message" hidden></div>
+      <div class="top-message online-status-message bg-green" id="online-status" hidden>Online</div>
+      <div class="top-message offline-status-message bg-orange" id="offline-status" hidden>Offline</div>
+      <div class="top-message upload-btn bg-green" id="upload-to-drive" hidden>Upload to drive</div>
+      <div class="top-message upload-btn bg-green" id="update-version" hidden>Update version</div>
+    </div>
+    <div class="dev-tools-container">
+    </div>
+    <div class="welcome w-100 sans-serif bg-white" id="dropbox">
+        <h1 class="f2 f-subheadline-ns mb0">
+            DevTools Timeline Viewer
+        </h1>
+        <h4 class="gray f6 mb4 ttu tracked">
+            Shareable URLs for your Chrome DevTools Timeline traces.
+        </h4>
+
+        <article class="center mw5 mw6-ns br3 ba b--black-10 mv4">
+            <h3 class="f4 bg-near-white br3 br--top black-60 mv0 pv2 ph3">Share public traces</h3>
+            <div class="pa3 bt b--black-10 f6 f5-ns lh-copy">
+                <form>
+                    <input type="text" name=url id="enterurl" placeholder="Enter public Dropbox URL or raw Gist URL" class="w-80">
+                    <input type="submit" class="btn btn--s btn--gray" value="OK">
+                    <small class="db black-50">
+                        Works with <em>Dropbox public URLs</em> (<a href="?loadTimelineFromURL=https://www.dropbox.com/s/s1n8m8n5oddgoxx/timeline-docs.json?dl=0" data-url="https://www.dropbox.com/s/s1n8m8n5oddgoxx/timeline-docs.json?dl=0">example</a>),
+                        <em>raw Gists</em>
+                        (<a href="?loadTimelineFromURL=https://gist.github.com/paulirish/f83d30384954937dc3a1fae970a4ae52/raw/b25b27741c652d3091a316dfd8b58bf72f14aa74/twitch.json"  data-url="https://gist.github.com/paulirish/f83d30384954937dc3a1fae970a4ae52/raw/b25b27741c652d3091a316dfd8b58bf72f14aa74/twitch.json">example</a>),
+                        <br> or any file available over CORS. Multiple URLS will generate a <a href="./?loadTimelineFromURL=https://www.dropbox.com/s/k84dlf4i1g55t7x/jooj123-before.json?dl=0,https://www.dropbox.com/s/5dzjiodggtouk32/jooj123-after.json?dl=0" data-url="https://www.dropbox.com/s/k84dlf4i1g55t7x/jooj123-before.json?dl=0,https://www.dropbox.com/s/5dzjiodggtouk32/jooj123-after.json?dl=0">split view</a>.
+                    </small>
+                    <span>Drag&Drop timeline data file</span>
+                </form>
+            </div>
+        </article>
+
+        <article class="center mw5 mw6-ns br3 ba b--black-10 mv4">
+            <h3 class="f4 bg-near-white br3 br--top black-60 mv0 pv2 ph3">View traces from Google Drive</h3>
+            <div class="pa3 bt b--black-10 f6 f5-ns lh-copy">
+                <p id="status">Checking for Drive API authorization...</p>
+                <div style="height: 45px">
+                    <button class="btn btn--s btn--green" id="auth" hidden>Authorize Drive API access</button>
+                    <button class="btn btn--s btn--yellow" id="revoke-access" hidden>Revoke API Access</button>
+                </div>
+            </div>
+        </article>
+        <article id="howto" class="mw7  tl" style="margin-top: 105px; margin: 0 auto;">
+            <h3 class="f4 br3 br--top black-60 pv2 mb0">Google Drive Integration</h3>
+            <p>Once authorized, you'll see Timeline Viewer as a registered Google Drive viewer when opening <code>.json</code> files.
+            Once you select the Timeline Viewer, it will open in a new tab and load the timeline asset from your Drive.
+            <img src="https://cloud.githubusercontent.com/assets/39191/18080010/67390d9a-6e48-11e6-98a3-9c8c81b1df67.png" style="width: 100%; margin: 20px 0;">
+
+            <p>You can share this URL with any users who ① have authorized Timeline Viewer to Drive with Google OAuth and ② have Edit permission to the Google Drive asset.
+
+            <img src="https://cloud.githubusercontent.com/assets/39191/18080845/fb39f056-6e4b-11e6-90df-6cda94bd2495.png" style="width: 100%; margin: 20px 0;">
+
+            <hr>
+            <h3 class="f4 br3 br--top black-60 pv2 mb0">Wanna compare traces?</h3>
+            <img src="https://cloud.githubusercontent.com/assets/6231516/26029813/34525ec6-3847-11e7-9663-a42b69fa5d8d.gif" style="width: 100%; margin: 20px 0;">
+
+            <p>No data is stored by this app; it's clientside only. Visit your <a href="https://security.google.com/settings/security/permissions?pli=1">Google security permissions</a> if you'd like to revoke authorization.
+            <hr>
+        </article>
+
+
+        <small class="f6 gray dib mr3 mr4-ns mv4">Contribute! <a class="link dim" href="https://github.com/ChromeDevTools/timeline-viewer">github.com/ChromeDevTools/timeline-viewer</a></small>
+
+    </div>
+    <script src="index.js" defer></script>
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-60854461-2', 'auto');
+      ga('send', 'pageview');
+  </script>
+</body>
+</html>
