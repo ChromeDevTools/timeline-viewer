@@ -58,9 +58,25 @@ class DevTools {
       Common.settings.createSetting('timelineCaptureFilmStrip', true).set(true);
 
       this.monkepatchSetWindowPosition();
+      this.monkeypatchTimelineOtherStyles();
     });
   }
 
+  // Instead of gray for unknown events, color them by event name.
+  monkeypatchTimelineOtherStyles() {
+    UI.inspectorView.showPanel('timeline').then(_ => {
+      // Hue: all but red, Saturation: 35-60%, Lightness: 60%, Alpha: opaque
+      const colorGenerator = new Common.Color.Generator({min: 45, max: 325}, {min: 35, max: 60, count: 6}, 60, 1);
+
+      const oldEventColor = Timeline.TimelineUIUtils.eventColor;
+      Timeline.TimelineUIUtils.eventColor = event => {
+        if (Timeline.TimelineUIUtils.eventStyle(event).category.name === 'other') {
+          return colorGenerator.colorForID(event.name);
+        }
+        return oldEventColor.call(Timeline.TimelineUIUtils, event);
+      };
+    });
+  }
   monkepatchSetWindowPosition() {
     const viewerInstance = this.viewerInstance;
     const plzRepeat = _ => setTimeout(_ => this.monkepatchSetWindowPosition(this.viewerInstance), 100);
