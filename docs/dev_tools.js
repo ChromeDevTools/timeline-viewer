@@ -19,7 +19,13 @@ class DevTools {
   init() {
     Runtime.experiments._supportEnabled = true;
     Runtime.experiments.isEnabled = name => {
-      return name == 'timelineV8RuntimeCallStats';
+      switch (name) {
+        case 'timelineV8RuntimeCallStats': return true;
+        case 'timelineShowAllEvents': return true;
+        case 'timelineShowAllProcesses': return true;
+        default:
+          return false;
+      }
     };
 
     Common.moduleSetting = function(module) {
