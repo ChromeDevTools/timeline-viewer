@@ -37,7 +37,7 @@
 /* eslint-disable indent, no-unused-vars, no-multiple-empty-lines, max-nested-callbacks, space-before-function-paren, quotes, comma-spacing */
 'use strict';
 
-var precacheConfig = [["Images/toolbarButtonGlyphs.png","d71330d9fb3d9263767c817a5b341fd3"],["auth.js","d0ed441e6b64a852212cf47854e6767d"],["dev_tools.js","e359cfa6423e37717079e43a29722d2d"],["google8b1867cdabba50ce.html","6f460bcd31c3a7f9d1c5cb2da7b6b3d1"],["index.html","59e8e5748b087e2d1023f25796cb5ae9"],["storage.js","6b0886705bddd680239cd78326fcceb0"],["styles.css","f267be94df6c3a39f5216486ed794174"],["sync_view.js","523d71b6a5d776cad1bb81b4d25f9814"],["timeline_viewer.js","b52bcb6d7b5494fee6f448761791f91e"],["utils.js","b7c8184f9d70ebddb2e6fddb371e5331"]];
+var precacheConfig = [["Images/toolbarButtonGlyphs.png","d71330d9fb3d9263767c817a5b341fd3"],["auth.js","d0ed441e6b64a852212cf47854e6767d"],["dev_tools.js","e359cfa6423e37717079e43a29722d2d"],["google8b1867cdabba50ce.html","6f460bcd31c3a7f9d1c5cb2da7b6b3d1"],["index.html","f0df6dd5017d78bf4c7d98205de0bbda"],["storage.js","6b0886705bddd680239cd78326fcceb0"],["styles.css","f267be94df6c3a39f5216486ed794174"],["sync_view.js","523d71b6a5d776cad1bb81b4d25f9814"],["timeline_viewer.js","b52bcb6d7b5494fee6f448761791f91e"],["utils.js","b7c8184f9d70ebddb2e6fddb371e5331"]];
 var cacheName = 'sw-precache-v3-sw-precache-' + (self.registration ? self.registration.scope : '');
 
 
@@ -284,6 +284,11 @@ self.addEventListener('fetch', function(event) {
 // Runtime cache configuration, using the sw-toolbox library.
 
 toolbox.router.get(/^((?!(googleapis|analytics|googleusercontent)).)*$/, toolbox.networkFirst, {});
+toolbox.router.get("/Images/(.*)", (req, vals, opts) => {
+        const appEnginePrefix = 'https://chrome-devtools-frontend.appspot.com/serve_file/@14fe0c24836876e87295c3bd65f8482cffd3de73/';
+        var newReq = new Request(`${appEnginePrefix}Images/${vals[0]}`);
+        return toolbox.cacheFirst(newReq, vals, opts);
+      }, {});
 
 
 
