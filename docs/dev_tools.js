@@ -58,16 +58,15 @@ class DevTools {
       Common.settings.createSetting('timelineCaptureFilmStrip', true).set(true);
 
       this.monkepatchSetWindowPosition();
-      this.monkeypatchTimelineOtherStyles();
+      this.monkeypatchTimelineFeatures();
     });
   }
 
-  // Instead of gray for unknown events, color them by event name.
-  monkeypatchTimelineOtherStyles() {
+  monkeypatchTimelineFeatures() {
+    // Instead of gray for unknown events, color them by event name.
     UI.inspectorView.showPanel('timeline').then(_ => {
       // Hue: all but red, Saturation: 35-60%, Lightness: 60%, Alpha: opaque
-      const colorGenerator = new Common.Color.Generator({min: 45, max: 325}, {min: 35, max: 60, count: 6}, 60, 1);
-
+      const colorGenerator = new Common.Color.Generator({min: 45, max: 325}, {min: 20, max: 45, count: 6}, 60, 1);
       const oldEventColor = Timeline.TimelineUIUtils.eventColor;
       Timeline.TimelineUIUtils.eventColor = event => {
         if (Timeline.TimelineUIUtils.eventStyle(event).category.name === 'other') {
@@ -75,6 +74,19 @@ class DevTools {
         }
         return oldEventColor.call(Timeline.TimelineUIUtils, event);
       };
+
+      // Don't force to milliseconds always. Time Dividers can be shown in seconds
+      const formatTime = value => Number.millisToString(value, true);
+      Timeline.TimelineFlameChartNetworkDataProvider.prototype.formatValue = formatTime;
+      Timeline.TimelineFlameChartDataProvider.prototype.formatValue = formatTime;
+      PerfUI.TimelineOverviewCalculator.prototype.formatValue = function(value) {
+        return formatTime(value - this.zeroTime());
+      };
+
+      // Open all threads by default.
+      const fn = Timeline.TimelineFlameChartDataProvider.prototype._appendThreadTimelineData;
+      const newfn = fn.toString().replace(',forceExpanded)', ',forceExpanded=true)');
+      eval(`Timeline.TimelineFlameChartDataProvider.prototype._appendThreadTimelineData = function ${newfn}`);
     });
   }
   monkepatchSetWindowPosition() {
