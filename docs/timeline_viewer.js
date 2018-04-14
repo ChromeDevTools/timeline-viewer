@@ -1,5 +1,7 @@
 'use strict';
 
+const wait = (ms = 100) => new Promise(resolve => setTimeout(resolve, ms));
+
 // eslint-disable-next-line no-unused-vars
 class Viewer {
 
@@ -84,13 +86,20 @@ class Viewer {
   }
 
   attachPrefillUrlListener() {
+    const input = document.querySelector('#enterurl');
+    const submit = document.querySelector('input[type=submit]');
+
     [...document.querySelectorAll('a[data-url]')].forEach(elem => {
-      elem.addEventListener('click', evt => {
+      elem.addEventListener('click', async evt => {
         evt.preventDefault();
         evt.cancelBubble = true;
         const url = evt.target.dataset.url;
-        const input = document.querySelector('#enterurl');
+        await wait(250);
         input.value = url;
+        await wait(600);
+        submit.focus();
+        await wait(600);
+        submit.click();
       });
     });
   }
