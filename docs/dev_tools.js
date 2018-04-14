@@ -45,7 +45,7 @@ class DevTools {
 
     // don't send application errors to console drawer
     Common.Console.prototype.addMessage = function(text, level, show) {
-      level = level || Common.Console.MessageLevel.Info;
+      level = (level && level.replace('warning', 'warn')) || Common.Console.MessageLevel.Info;
       const message = new Common.Console.Message(text, level, Date.now(), show || false);
       this._messages.push(message);
       // this.dispatchEventToListeners(Common.Console.Events.MessageAdded, message);
@@ -65,11 +65,13 @@ class DevTools {
   monkeypatchTimelineFeatures() {
     // Instead of gray for unknown events, color them by event name.
     UI.inspectorView.showPanel('timeline').then(_ => {
-      // Hue: all but red, Saturation: 35-60%, Lightness: 60%, Alpha: opaque
-      const colorGenerator = new Common.Color.Generator({min: 45, max: 325}, {min: 20, max: 45, count: 6}, 60, 1);
+      // Hue: all but red, Saturation: 15-35%, Lightness: 75%, Alpha: opaque
+      const colorGenerator = new Common.Color.Generator({min: 45, max: 325}, {min: 15, max: 35}, 75, 1);
       const oldEventColor = Timeline.TimelineUIUtils.eventColor;
+
       Timeline.TimelineUIUtils.eventColor = event => {
-        if (Timeline.TimelineUIUtils.eventStyle(event).category.name === 'other') {
+        const categoryName = Timeline.TimelineUIUtils.eventStyle(event).category.name;
+        if (categoryName === 'other' || categoryName === 'async') {
           return colorGenerator.colorForID(event.name);
         }
         return oldEventColor.call(Timeline.TimelineUIUtils, event);
@@ -82,11 +84,6 @@ class DevTools {
       PerfUI.TimelineOverviewCalculator.prototype.formatValue = function(value) {
         return formatTime(value - this.zeroTime());
       };
-
-      // Open all threads by default.
-      const fn = Timeline.TimelineFlameChartDataProvider.prototype._appendThreadTimelineData;
-      const newfn = fn.toString().replace(',forceExpanded)', ',forceExpanded=true)');
-      eval(`Timeline.TimelineFlameChartDataProvider.prototype._appendThreadTimelineData = function ${newfn}`);
     });
   }
   monkepatchSetWindowPosition() {
