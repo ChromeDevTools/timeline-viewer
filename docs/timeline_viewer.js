@@ -260,7 +260,7 @@ class Viewer {
 
   // monkeypatched method for devtools
   loadResourcePromise(requestedURL) {
-    const url = new URL(requestedURL);
+    const url = new URL(requestedURL, location.href);
     const URLofViewer = new URL(location.href);
 
     // hosted devtools gets confused
