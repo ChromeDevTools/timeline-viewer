@@ -1,8 +1,9 @@
 'use strict';
 
+const wait = (ms = 100) => new Promise(resolve => setTimeout(resolve, ms));
+
 // eslint-disable-next-line no-unused-vars
 class Viewer {
-
   constructor() {
     this.params = new URL(location.href).searchParams;
     this.syncView = new SyncView();
@@ -84,13 +85,20 @@ class Viewer {
   }
 
   attachPrefillUrlListener() {
+    const input = document.querySelector('#enterurl');
+    const submit = document.querySelector('input[type=submit]');
+
     [...document.querySelectorAll('a[data-url]')].forEach(elem => {
-      elem.addEventListener('click', evt => {
+      elem.addEventListener('click', async evt => {
         evt.preventDefault();
         evt.cancelBubble = true;
         const url = evt.target.dataset.url;
-        const input = document.querySelector('#enterurl');
+        await wait(250);
         input.value = url;
+        await wait(600);
+        submit.focus();
+        await wait(600);
+        submit.click();
       });
     });
   }
@@ -167,7 +175,7 @@ class Viewer {
         this.timelineId = parsedURL.pathname.match(/\b[0-9a-zA-Z]{5,40}\b/)[0];
       }
     } catch (e) {
-       // legacy URLs, without a drive:// prefix.
+      // legacy URLs, without a drive:// prefix.
       this.timelineId = url;
       this.timelineProvider = 'drive';
     }
@@ -251,7 +259,7 @@ class Viewer {
 
   // monkeypatched method for devtools
   loadResourcePromise(requestedURL) {
-    const url = new URL(requestedURL);
+    const url = new URL(requestedURL, location.href);
     const URLofViewer = new URL(location.href);
 
     // hosted devtools gets confused

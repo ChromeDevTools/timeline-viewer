@@ -65,7 +65,7 @@ module.exports = {
     "prefer-rest-params": 1,
   },
   "parserOptions": {
-    "ecmaVersion": 7,
+    "ecmaVersion": 2018,
     "ecmaFeatures": {
       "globalReturn": true,
       "jsx": false,

@@ -71,7 +71,9 @@
 
     </div>
     <script src="service-worker.js"></script>
-    <script src="https://chrome-devtools-frontend.appspot.com/serve_file/@14fe0c24836876e87295c3bd65f8482cffd3de73/inspector.js" id="devtoolsscript"></script>
+    <script src="https://chrome-devtools-frontend.appspot.com/serve_file/@4b34b70fd4dca9bb97f736cc833cc25c3de9dcf4/shell.js" id="devtoolsscript"></script>
+    <script src="https://chrome-devtools-frontend.appspot.com/serve_file/@4b34b70fd4dca9bb97f736cc833cc25c3de9dcf4/devtools_app.js"></script>
+
     <script src="https://apis.google.com/js/client.js" defer></script>
     <script src="utils.js" defer></script>
     <script src="auth.js" defer></script>
@@ -92,6 +94,7 @@
 
         // We are monkeypatching window.loadResourcePromise, which is from devtools' Runtime.js
         viewer.devTools.monkeypatchLoadResourcePromise();
+        Runtime.startApplication('timelineviewer_app');
 
         navigator.serviceWorker
           .register('service-worker.js')
@@ -110,6 +113,53 @@
           });
       });
     </script>
+
+
+    <script>
+    // allowlist what's loaded so we can avoid starting up a bunch of random tabs we don't need. faster load too.
+    applicationDescriptor.modules = [
+        { "name": "bindings", "type": "autostart" },
+        { "name": "common", "type": "autostart" },
+        { "name": "components", "type": "autostart"},
+        { "name": "console_counters", "type": "autostart" },
+        { "name": "dom_extension", "type": "autostart" },
+        { "name": "extensions", "type": "autostart" },
+        { "name": "host", "type": "autostart" },
+        { "name": "main", "type": "autostart" },
+        { "name": "persistence", "type": "autostart" },
+        { "name": "platform", "type": "autostart" },
+        { "name": "product_registry", "type": "autostart" },
+        { "name": "protocol", "type": "autostart" },
+        { "name": "sdk", "type": "autostart" },
+        { "name": "browser_sdk", "type": "autostart" },
+        { "name": "services", "type": "autostart" },
+        { "name": "text_utils", "type": "autostart" },
+        { "name": "ui", "type": "autostart" },
+        { "name": "workspace", "type": "autostart" },
+        { "name": "timeline" },
+        { "name": "timeline_model" },
+
+        {"name": "browser_components"},
+        {"name": "layer_viewer"},
+        {"name": "timeline_model"},
+        {"name": "perf_ui"},
+        {"name": "extensions"},
+        {"name": "data_grid"},
+        {"name": "product_registry"},
+        {"name": "profiler"},
+        {"name": "mobile_throttling"},
+
+        {"name": "source_frame"},
+        {"name": "text_editor"},
+        {"name": "cm"},
+        {"name": "formatter"},
+        {"name": "object_ui"},
+        {"name": "workspace_diff"},
+        {"name": "diff"},
+        {"name": "persistence"},
+        {"name": "heap_snapshot_model"},
+    ];
+  </script>
 
     <body class="undocked" id="-blink-dev-tools"></body>
 
