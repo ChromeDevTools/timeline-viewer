@@ -2,7 +2,6 @@
 
 // eslint-disable-next-line no-unused-vars
 class SyncView {
-
   splitViewTimelineLoaded() {
     return new Promise(resolve => {
       let isLoaded = false;
@@ -138,5 +137,4 @@ class SyncView {
   targetPanels() {
     return SyncView.panels().filter(panel => panel !== this.originalPanel());
   }
-
 }

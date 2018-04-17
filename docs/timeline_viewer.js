@@ -4,7 +4,6 @@ const wait = (ms = 100) => new Promise(resolve => setTimeout(resolve, ms));
 
 // eslint-disable-next-line no-unused-vars
 class Viewer {
-
   constructor() {
     this.params = new URL(location.href).searchParams;
     this.syncView = new SyncView();
@@ -176,7 +175,7 @@ class Viewer {
         this.timelineId = parsedURL.pathname.match(/\b[0-9a-zA-Z]{5,40}\b/)[0];
       }
     } catch (e) {
-       // legacy URLs, without a drive:// prefix.
+      // legacy URLs, without a drive:// prefix.
       this.timelineId = url;
       this.timelineProvider = 'drive';
     }
