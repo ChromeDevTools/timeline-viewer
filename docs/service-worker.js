@@ -37,7 +37,7 @@
 /* eslint-disable indent, no-unused-vars, no-multiple-empty-lines, max-nested-callbacks, space-before-function-paren, quotes, comma-spacing */
 'use strict';
 
-var precacheConfig = [["Images/toolbarButtonGlyphs.png","d71330d9fb3d9263767c817a5b341fd3"],["auth.js","d0ed441e6b64a852212cf47854e6767d"],["dev_tools.js","906bcbb52fe0d67a35f8c00c8ee0aa12"],["google8b1867cdabba50ce.html","6f460bcd31c3a7f9d1c5cb2da7b6b3d1"],["index.html","0bef062c54dacf26c05ebc18eea355d7"],["storage.js","6b0886705bddd680239cd78326fcceb0"],["styles.css","f267be94df6c3a39f5216486ed794174"],["sync_view.js","b54847b1b6ab059960d19c513c25c1f4"],["timeline_viewer.js","443556725a31a57ce605bfd227625e52"],["utils.js","b7c8184f9d70ebddb2e6fddb371e5331"]];
+var precacheConfig = [["Images/toolbarButtonGlyphs.png","d71330d9fb3d9263767c817a5b341fd3"],["auth.js","d0ed441e6b64a852212cf47854e6767d"],["dev_tools.js","906bcbb52fe0d67a35f8c00c8ee0aa12"],["google8b1867cdabba50ce.html","6f460bcd31c3a7f9d1c5cb2da7b6b3d1"],["index.html","0bef062c54dacf26c05ebc18eea355d7"],["storage.js","6b0886705bddd680239cd78326fcceb0"],["styles.css","f267be94df6c3a39f5216486ed794174"],["sync_view.js","b54847b1b6ab059960d19c513c25c1f4a"],["timeline_viewer.js","443556725a31a57ce605bfd227625e52"],["utils.js","b7c8184f9d70ebddb2e6fddb371e5331"]];
 var cacheName = 'sw-precache-v3-sw-precache-' + (self.registration ? self.registration.scope : '');
 
 
@@ -174,10 +174,10 @@ self.addEventListener('install', function(event) {
         );
       });
     }).then(function() {
-      
+
       // Force the SW to transition from installing -> active state
       return self.skipWaiting();
-      
+
     })
   );
 });
@@ -197,9 +197,9 @@ self.addEventListener('activate', function(event) {
         );
       });
     }).then(function() {
-      
+
       return self.clients.claim();
-      
+
     })
   );
 });
@@ -260,7 +260,7 @@ self.addEventListener('fetch', function(event) {
 
 
 // *** Start of auto-included sw-toolbox code. ***
-/* 
+/*
  Copyright 2016 Google Inc. All Rights Reserved.
 
  Licensed under the Apache License, Version 2.0 (the "License");
