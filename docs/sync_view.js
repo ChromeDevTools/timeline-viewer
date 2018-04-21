@@ -87,10 +87,11 @@ class SyncView {
     for (const targetPanel of targetPanels) {
       const absoluteMin = targetPanel._overviewPane._overviewCalculator.minimumBoundary();
       const targetTraceLengthMs = targetPanel._overviewPane._overviewCalculator.maximumBoundary() - absoluteMin;
+      const currentLeftOffsetPct = targetPanel._overviewPane._overviewGrid._window.windowLeft;
 
       const windowPercentages = {
-        left: selectionMs.start / targetTraceLengthMs,
-        right: (selectionMs.start + selectionMs.duration) / targetTraceLengthMs
+        left: currentLeftOffsetPct,
+        right: currentLeftOffsetPct + (selectionMs.duration / targetTraceLengthMs)
       };
       // call it on the frame's PerfUI.OverviewGrid.Window
       targetPanel._overviewPane._overviewGrid._window._setWindow(windowPercentages.left, windowPercentages.right);
