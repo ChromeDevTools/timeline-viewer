@@ -40,7 +40,6 @@ class SyncView {
       tracingModel._maximumRecordTime = Math.min(baseTime + referenceDuration, tracingModel._maximumRecordTime);
 
       performanceModel.setTracingModel(tracingModel);
-
       targetPanel._setModel(performanceModel);
     }
 
@@ -48,7 +47,8 @@ class SyncView {
       start: originalPanel._overviewPane._overviewGrid._window.windowLeft,
       end: originalPanel._overviewPane._overviewGrid._window.windowRight
     };
-    viewerInstance._setWindowPosition(selectionPcts);
+    const selectionMs = viewerInstance.syncView._getSelectionMs(selectionPcts)
+    viewerInstance._setWindowPosition(selectionMs);
   }
 
   /**
@@ -61,28 +61,26 @@ class SyncView {
     // proceed w/ original code for our origin frame
     const selectionPcts = SyncView.originalSetWindowPosition.call(this, start, end);
     this._originalPanel = Timeline.TimelinePanel.instance();
-    viewerInstance.syncView._setWindowPosition(selectionPcts);
+    const selectionMs = viewerInstance.syncView._getSelectionMs(selectionPcts)
+    viewerInstance.syncView._setWindowPosition(selectionMs);
   }
 
-  _setWindowPosition(selectionPcts) {
-    const getSelectionTimes = _ => {
-      const originalPanel = this.originalPanel();
-      const originTraceStart = originalPanel._overviewPane._overviewCalculator.minimumBoundary();
-      const originTraceLengthMs = originalPanel._overviewPane._overviewCalculator.maximumBoundary() - originTraceStart;
+  _getSelectionMs(selectionPcts) {
+    const originalPanel = this.originalPanel();
+    const originTraceStart = originalPanel._overviewPane._overviewCalculator.minimumBoundary();
+    const originTraceLengthMs = originalPanel._overviewPane._overviewCalculator.maximumBoundary() - originTraceStart;
 
-      // calculate the selectionStart offset of origin frame
-      const originSelectionStartMs = selectionPcts.start * originTraceLengthMs;
-      const originSelectionDurationMs = (selectionPcts.end - selectionPcts.start) * originTraceLengthMs;
-      return {
-        start: originSelectionStartMs,
-        duration: originSelectionDurationMs
-      };
+    // calculate the selectionStart offset of origin frame
+    const originSelectionStartMs = selectionPcts.start * originTraceLengthMs;
+    const originSelectionDurationMs = (selectionPcts.end - selectionPcts.start) * originTraceLengthMs;
+    return {
+      start: originSelectionStartMs,
+      duration: originSelectionDurationMs
     };
+  }
 
-    const selectionMs = getSelectionTimes();
-
+  _setWindowPosition(selectionMs) {
     // calculate what target frames should be:
-
     const targetPanels = this.targetPanels();
     for (const targetPanel of targetPanels) {
       const absoluteMin = targetPanel._overviewPane._overviewCalculator.minimumBoundary();

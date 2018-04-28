@@ -88,9 +88,10 @@ class DevTools {
       };
     });
   }
+
   monkepatchSetWindowPosition() {
     const viewerInstance = this.viewerInstance;
-    const plzRepeat = _ => setTimeout(_ => this.monkepatchSetWindowPosition(this.viewerInstance), 100);
+    const plzRepeat = _ => setTimeout(_ => this.monkepatchSetWindowPosition(), 100);
     if (typeof PerfUI === 'undefined' || typeof PerfUI.OverviewGrid === 'undefined' ) return plzRepeat();
 
     PerfUI.OverviewGrid.Window.prototype._setWindowPosition = function(start, end) {
