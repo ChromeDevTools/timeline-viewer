@@ -40,7 +40,6 @@ class SyncView {
       tracingModel._maximumRecordTime = Math.min(baseTime + referenceDuration, tracingModel._maximumRecordTime);
 
       performanceModel.setTracingModel(tracingModel);
-
       targetPanel._setModel(performanceModel);
     }
 
@@ -48,7 +47,8 @@ class SyncView {
       start: originalPanel._overviewPane._overviewGrid._window.windowLeft,
       end: originalPanel._overviewPane._overviewGrid._window.windowRight
     };
-    viewerInstance._setWindowPosition(selectionPcts);
+    const durationMs = viewerInstance.syncView._getSelectionDuration(selectionPcts);
+    viewerInstance._setTargetPanelsDuration(durationMs);
   }
 
   /**
@@ -61,28 +61,22 @@ class SyncView {
     // proceed w/ original code for our origin frame
     const selectionPcts = SyncView.originalSetWindowPosition.call(this, start, end);
     this._originalPanel = Timeline.TimelinePanel.instance();
-    viewerInstance.syncView._setWindowPosition(selectionPcts);
+    const durationMs = viewerInstance.syncView._getSelectionDuration(selectionPcts);
+    viewerInstance.syncView._setTargetPanelsDuration(durationMs);
   }
 
-  _setWindowPosition(selectionPcts) {
-    const getSelectionTimes = _ => {
-      const originalPanel = this.originalPanel();
-      const originTraceStart = originalPanel._overviewPane._overviewCalculator.minimumBoundary();
-      const originTraceLengthMs = originalPanel._overviewPane._overviewCalculator.maximumBoundary() - originTraceStart;
+  _getSelectionDuration(selectionPcts) {
+    const originalPanel = this.originalPanel();
+    const originTraceStart = originalPanel._overviewPane._overviewCalculator.minimumBoundary();
+    const originTraceLengthMs = originalPanel._overviewPane._overviewCalculator.maximumBoundary() - originTraceStart;
 
-      // calculate the selectionStart offset of origin frame
-      const originSelectionStartMs = selectionPcts.start * originTraceLengthMs;
-      const originSelectionDurationMs = (selectionPcts.end - selectionPcts.start) * originTraceLengthMs;
-      return {
-        start: originSelectionStartMs,
-        duration: originSelectionDurationMs
-      };
-    };
+    // calculate the selectionStart offset of origin frame
+    const originSelectionDurationMs = (selectionPcts.end - selectionPcts.start) * originTraceLengthMs;
+    return originSelectionDurationMs;
+  }
 
-    const selectionMs = getSelectionTimes();
-
+  _setTargetPanelsDuration(durationMs) {
     // calculate what target frames should be:
-
     const targetPanels = this.targetPanels();
     for (const targetPanel of targetPanels) {
       const absoluteMin = targetPanel._overviewPane._overviewCalculator.minimumBoundary();
@@ -91,7 +85,7 @@ class SyncView {
 
       const windowPercentages = {
         left: currentLeftOffsetPct,
-        right: currentLeftOffsetPct + (selectionMs.duration / targetTraceLengthMs)
+        right: currentLeftOffsetPct + (durationMs / targetTraceLengthMs)
       };
       // call it on the frame's PerfUI.OverviewGrid.Window
       targetPanel._overviewPane._overviewGrid._window._setWindow(windowPercentages.left, windowPercentages.right);
@@ -115,6 +109,14 @@ class SyncView {
       start: windowLeft,
       end: windowRight
     };
+  }
+
+  static requestWindowTimesPatch(startTime, endTime, animate, viewerInstance) {
+    const durationMs = endTime - startTime;
+    // sync our targetPanels
+    viewerInstance.syncView._setTargetPanelsDuration(durationMs);
+    // original requestWindowTimes behavior
+    this._flameChartDelegate.requestWindowTimes(startTime, endTime, animate);
   }
 
   static timelines() {
