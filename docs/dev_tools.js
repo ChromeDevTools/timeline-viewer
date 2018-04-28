@@ -40,6 +40,8 @@ class DevTools {
         ret.get = _ => Infinity;
       if (module === 'showNativeFunctionsInJSProfile')
         ret.get = _ => true;
+      if (module === 'flamechartMouseWheelAction')
+        ret.get = _ => 'zoom';
       return ret;
     };
 
