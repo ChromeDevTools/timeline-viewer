@@ -1,5 +1,5 @@
 {
-  "baseUrl": "http://localhost:8833/",
+  "baseUrl": "http://localhost:8000/",
   "fileServerFolder": "./",
   "fixturesFolder": "test/fixtures",
   "integrationFolder": "test/integration",

@@ -4,9 +4,9 @@
   "description": "Works with public github urls, github gists, and files on google drive (once authenticated).",
   "main": "src/index.js",
   "scripts": {
-    "test": "kill $(lsof -t -i:8833) & npm run server & cypress run --browser chrome",
-    "dev": "npm run generate-sw-dev && opn http://localhost:8833/ && npm run server",
-    "server": "http-server docs -a localhost -p 8833 -s",
+    "test": "kill $(lsof -t -i:8000) & npm run server & cypress run --browser chrome",
+    "dev": "npm run generate-sw-dev && opn http://localhost:8000/ && npm run server",
+    "server": "http-server docs -a localhost -p 8000 -s",
     "start": "npm run server",
     "lint": "[ \"$CI\" = true ] && eslint --quiet -f codeframe . || eslint .",
     "generate-sw": "sw-precache --config=./sw-precache-config.js --root=docs",
