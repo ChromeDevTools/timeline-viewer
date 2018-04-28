@@ -60,6 +60,7 @@ class DevTools {
       Common.settings.createSetting('timelineCaptureFilmStrip', true).set(true);
 
       this.monkepatchSetWindowPosition();
+      this.monkeyPatchRequestWindowTimes();
       this.monkeypatchTimelineFeatures();
     });
   }
@@ -97,6 +98,18 @@ class DevTools {
     PerfUI.OverviewGrid.Window.prototype._setWindowPosition = function(start, end) {
       const overviewGridWindow = this;
       SyncView.setWindowPositionPatch.call(overviewGridWindow, start, end, viewerInstance);
+    };
+  }
+
+
+  monkeyPatchRequestWindowTimes() {
+    const viewerInstance = this.viewerInstance;
+    const plzRepeat = _ => setTimeout(_ => this.monkeyPatchRequestWindowTimes(), 100);
+    if (typeof PerfUI === 'undefined' || typeof PerfUI.FlameChart === 'undefined' ) return plzRepeat();
+
+    // This is now called PerfUI.FlameChart.windowChanged, but otherwise the same
+    PerfUI.FlameChart.prototype.requestWindowTimes = function(startTime, endTime, animate) {
+      SyncView.requestWindowTimesPatch.call(this, startTime, endTime, animate, viewerInstance);
     };
   }
 

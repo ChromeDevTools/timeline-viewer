@@ -115,6 +115,16 @@ class SyncView {
     };
   }
 
+  static requestWindowTimesPatch(startTime, endTime, animate, viewerInstance) {
+    const selectionMs = {
+      duration: endTime - startTime,
+    };
+    // sync our targetPanels
+    viewerInstance.syncView._setWindowPosition(selectionMs);
+    // original requestWindowTimes behavior
+    this._flameChartDelegate.requestWindowTimes(startTime, endTime, animate);
+  }
+
   static timelines() {
     const frames = window.parent.document.getElementsByTagName('frame');
     return Array.from(frames)
