@@ -47,8 +47,8 @@ class SyncView {
       start: originalPanel._overviewPane._overviewGrid._window.windowLeft,
       end: originalPanel._overviewPane._overviewGrid._window.windowRight
     };
-    const selectionMs = viewerInstance.syncView._getSelectionMs(selectionPcts)
-    viewerInstance._setWindowPosition(selectionMs);
+    const durationMs = viewerInstance.syncView._getSelectionDuration(selectionPcts);
+    viewerInstance._setTargetPanelsDuration(durationMs);
   }
 
   /**
@@ -61,25 +61,21 @@ class SyncView {
     // proceed w/ original code for our origin frame
     const selectionPcts = SyncView.originalSetWindowPosition.call(this, start, end);
     this._originalPanel = Timeline.TimelinePanel.instance();
-    const selectionMs = viewerInstance.syncView._getSelectionMs(selectionPcts)
-    viewerInstance.syncView._setWindowPosition(selectionMs);
+    const durationMs = viewerInstance.syncView._getSelectionDuration(selectionPcts);
+    viewerInstance.syncView._setTargetPanelsDuration(durationMs);
   }
 
-  _getSelectionMs(selectionPcts) {
+  _getSelectionDuration(selectionPcts) {
     const originalPanel = this.originalPanel();
     const originTraceStart = originalPanel._overviewPane._overviewCalculator.minimumBoundary();
     const originTraceLengthMs = originalPanel._overviewPane._overviewCalculator.maximumBoundary() - originTraceStart;
 
     // calculate the selectionStart offset of origin frame
-    const originSelectionStartMs = selectionPcts.start * originTraceLengthMs;
     const originSelectionDurationMs = (selectionPcts.end - selectionPcts.start) * originTraceLengthMs;
-    return {
-      start: originSelectionStartMs,
-      duration: originSelectionDurationMs
-    };
+    return originSelectionDurationMs;
   }
 
-  _setWindowPosition(selectionMs) {
+  _setTargetPanelsDuration(durationMs) {
     // calculate what target frames should be:
     const targetPanels = this.targetPanels();
     for (const targetPanel of targetPanels) {
@@ -89,7 +85,7 @@ class SyncView {
 
       const windowPercentages = {
         left: currentLeftOffsetPct,
-        right: currentLeftOffsetPct + (selectionMs.duration / targetTraceLengthMs)
+        right: currentLeftOffsetPct + (durationMs / targetTraceLengthMs)
       };
       // call it on the frame's PerfUI.OverviewGrid.Window
       targetPanel._overviewPane._overviewGrid._window._setWindow(windowPercentages.left, windowPercentages.right);
@@ -116,11 +112,9 @@ class SyncView {
   }
 
   static requestWindowTimesPatch(startTime, endTime, animate, viewerInstance) {
-    const selectionMs = {
-      duration: endTime - startTime,
-    };
+    const durationMs = endTime - startTime;
     // sync our targetPanels
-    viewerInstance.syncView._setWindowPosition(selectionMs);
+    viewerInstance.syncView._setTargetPanelsDuration(durationMs);
     // original requestWindowTimes behavior
     this._flameChartDelegate.requestWindowTimes(startTime, endTime, animate);
   }
