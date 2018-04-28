@@ -28,11 +28,11 @@ Run:
 
 Master branch's `docs` folder is what's published to gh-pages, to simplify deployment.
 
-Auth keys have localhost:8000 whitelisted, so you can hack there.
+Auth keys have localhost:8833 whitelisted, so you can hack there.
 
-* Private file: http://localhost:8000/?loadTimelineFromURL=0BzvYe7bYFf--aVhZM1RNR2N3cGc
+* Private file: http://localhost:8833/?loadTimelineFromURL=0BzvYe7bYFf--aVhZM1RNR2N3cGc
 
-## Testing 
+## Testing
 
 [Cypress](https://cypress.io) is used for integration testing.
 To run test just invoke `yarn test`
