@@ -1,5 +1,10 @@
 'use strict';
 
+const STORAGE_TYPES = {
+  G_DRIVE: 'Google Drive',
+  FIREBASE: 'Firebase'
+};
+
 // eslint-disable-next-line no-unused-vars
 class GoogleDrive {
   constructor() {
@@ -68,6 +73,48 @@ class GoogleDrive {
       method: 'POST',
       headers: headers,
       body: JSON.stringify(body)
+    });
+  }
+}
+
+class FirebaseStorage {
+  constructor() {
+    var config = {
+      // add config
+    };
+    firebase.initializeApp(config);
+  }
+
+  uploadData(filename, data) {
+    const storageRef = firebase.storage().ref();
+    const traceRef = storageRef.child(`traces/${filename}`);
+    const uploadTask = traceRef.putString(data);
+
+    return new Promise((resolve, reject) => {
+      uploadTask.on('state_changed', function(snapshot){
+        // Observe state change events such as progress, pause, and resume
+        // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        console.log('Upload is ' + progress + '% done');
+        switch (snapshot.state) {
+          case firebase.storage.TaskState.PAUSED: // or 'paused'
+            console.log('Upload is paused');
+            break;
+          case firebase.storage.TaskState.RUNNING: // or 'running'
+            console.log('Upload is running');
+            break;
+        }
+      }, function(error) {
+        // Handle unsuccessful uploads
+        reject(error);
+      }, function() {
+        // Handle successful uploads on complete
+        // For instance, get the download URL: https://firebasestorage.googleapis.com/...
+        uploadTask.snapshot.ref.getDownloadURL()
+          .then(function(downloadURL) {
+            resolve(downloadURL);
+          });
+      });
     });
   }
 }

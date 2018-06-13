@@ -22,6 +22,7 @@ class Viewer {
     this.statusElem = document.getElementById('status');
     this.infoMessageElem = document.getElementById('info-message');
     this.uploadToDriveElem = document.getElementById('upload-to-drive');
+    this.uploadToFirebaseElem = document.getElementById('upload-to-firebase');
     this.networkOnlineStatusElem = document.getElementById('online-status');
     this.networkOfflineStatusElem = document.getElementById('offline-status');
     this.authBtn = document.getElementById('auth');
@@ -32,6 +33,7 @@ class Viewer {
     this.utils = new Utils();
     this.devTools = new DevTools({viewerInstance: this});
     this.gdrive = new GoogleDrive({viewerInstance: this});
+    this.firebaseStorage = new FirebaseStorage({viewerInstance: this});
 
     this.attachEventListeners();
 
@@ -64,7 +66,12 @@ class Viewer {
   attachEventListeners() {
     this.authBtn.addEventListener('click', this.checkAuth.bind(this));
     this.revokeAccessBtn.addEventListener('click', this.revokeAccess.bind(this));
-    this.uploadToDriveElem.addEventListener('click', this.uploadTimelineData.bind(this));
+    this.uploadToDriveElem.addEventListener('click', () => {
+      this.uploadTimelineData({storageType: STORAGE_TYPES.G_DRIVE});
+    });
+    this.uploadToFirebaseElem.addEventListener('click', () => {
+      this.uploadTimelineData({storageType: STORAGE_TYPES.FIREBASE});
+    });
     this.attachSubmitUrlListener();
     this.attachPrefillUrlListener();
   }
@@ -113,6 +120,10 @@ class Viewer {
     this.uploadToDriveElem.hidden = !display;
   }
 
+  toggleUploadToFirebaseElem(display) {
+    this.uploadToFirebaseElem.hidden = !display;
+  }
+
   showInfoMessage(text) {
     this.infoMessageElem.textContent = text;
     this.infoMessageElem.hidden = false;
@@ -134,6 +145,7 @@ class Viewer {
     // we fair that all timeline resources are uploaded
     UI.inspectorView.showPanel('timeline').then(_ => {
       this.toggleUploadToDriveElem(this.canUploadToDrive);
+      this.toggleUploadToFirebaseElem(true);
     });
   }
 
@@ -187,7 +199,7 @@ class Viewer {
     if (urls.length > 1) {
       const frameset = document.createElement('frameset');
       frameset.setAttribute('id', 'split-view-container');
-      frameset.setAttribute('rows', new Array(urls.length).fill(`${100/2}%`).join(','));
+      frameset.setAttribute('rows', new Array(urls.length).fill(`${100 / 2}%`).join(','));
 
       urls.forEach((url, index) => {
         const frame = document.createElement('frame');
@@ -397,21 +409,29 @@ class Viewer {
           this.devTools.monkepatchSetMarkers();
         }
       });
-    } catch (e) {}
+    } catch (e) {
+    }
   }
 
-  uploadTimelineData() {
+  uploadTimelineData(options = {}) {
     const panel = Timeline.TimelinePanel.instance();
     const bs = panel._performanceModel._tracingModel.backingStorage();
     return bs._file.read().then(str => {
-      this.uploadData(str);
+      if (options.storageType === STORAGE_TYPES.G_DRIVE) {
+        this.uploadDataToGDrive(str);
+      } else if (options.storageType === STORAGE_TYPES.FIREBASE) {
+        this.uploadDataToFirebase(str);
+      } else {
+        console.log(`Unknown storage type ${options.storageType}`);
+      }
     });
   }
 
-  uploadData(traceData) {
+  uploadDataToGDrive(traceData) {
     this.toggleUploadToDriveElem(false);
     this.showInfoMessage('Uploading trace on Google Drive ...');
-    this.gdrive.uploadData(`Timeline-data-${Date.now()}`, traceData)
+    // Create a root reference
+    this.gdrive.uploadData(this.generateFilename(), traceData)
       .then(data => {
         if (data.error) throw data.error;
         else return data;
@@ -420,7 +440,7 @@ class Viewer {
         return this.gdrive.insertPermission(data.id).then(_ => data);
       })
       .then(data => {
-        this.changeUrl(data.id);
+        this.changeUrl(`drive://${data.id}`);
         this.showInfoMessage('Trace successfully uploaded on Google Drive');
       })
       .catch(_ => {
@@ -429,12 +449,33 @@ class Viewer {
       });
   }
 
-  changeUrl(id) {
-    const url = `?loadTimelineFromURL=drive://${id}`;
+  uploadDataToFirebase(traceData) {
+    this.toggleUploadToFirebaseElem(false);
+    this.showInfoMessage('Uploading trace on Firebase ...');
+    // Create a root reference
+    this.firebaseStorage.uploadData(this.generateFilename(), traceData)
+      .then(fileUrl => {
+        this.changeUrl(encodeURIComponent(fileUrl));
+      })
+      .then(() => {
+        this.showInfoMessage('Trace successfully uploaded on Firebase');
+      })
+      .catch(_ => {
+        this.toggleUploadToFirebaseElem(true);
+        this.showInfoMessage('Trace was not uploaded on Google Drive :(');
+      });
+  }
+
+  generateFilename() {
+    return generateCombination(4, '');
+  }
+
+  changeUrl(fileLocation) {
+    const url = `?loadTimelineFromURL=${fileLocation}`;
     if (this.refreshPage) {
       window.location.href = `/${url}`;
     } else {
-      const state = {'file_id': id};
+      const state = {'file_id': fileLocation};
       const title = 'Timeline Viewer';
       history.replaceState(state, title, url);
     }
