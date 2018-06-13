@@ -10,7 +10,8 @@
       <div class="top-message info-message" id="info-message" hidden></div>
       <div class="top-message online-status-message bg-green" id="online-status" hidden>Online</div>
       <div class="top-message offline-status-message bg-orange" id="offline-status" hidden>Offline</div>
-      <div class="top-message upload-btn bg-green" id="upload-to-drive" hidden>Upload to drive</div>
+      <div class="top-message upload-btn bg-green" id="upload-to-drive" hidden>Upload to Google drive</div>
+      <div class="top-message upload-btn bg-green" id="upload-to-firebase" hidden>Upload to firebase</div>
       <div class="top-message upload-btn bg-green" id="update-version" hidden>Update version</div>
     </div>
     <div class="welcome w-100 sans-serif bg-white" id="dropbox">
@@ -75,11 +76,13 @@
     <script src="https://chrome-devtools-frontend.appspot.com/serve_file/@4b34b70fd4dca9bb97f736cc833cc25c3de9dcf4/devtools_app.js"></script>
 
     <script src="https://apis.google.com/js/client.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/5.0.4/firebase.js" defer></script>
     <script src="utils.js" defer></script>
     <script src="auth.js" defer></script>
     <script src="dev_tools.js" defer></script>
     <script src="sync_view.js" defer></script>
     <script src="storage.js" defer></script>
+    <script src="gfycat-style-urls.js" defer></script>
     <script src="timeline_viewer.js" defer></script>
     <script>
       document.addEventListener('DOMContentLoaded', () => {
