@@ -56,7 +56,6 @@ class DevTools {
 
     // Common.settings is created in a window onload listener
     window.addEventListener('load', _ => {
-      Common.settings.createSetting('timelineCaptureNetwork', true).set(true);
       Common.settings.createSetting('timelineCaptureFilmStrip', true).set(true);
 
       this.monkepatchSetWindowPosition();
