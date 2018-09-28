@@ -264,7 +264,7 @@ class Viewer {
 
     // hosted devtools gets confused
     // if DevTools is requesting a file thats on our origin, we'll redirect it to devtoolsBase
-    if (url && url.origin === URLofViewer.origin) {
+    if (url && url.origin === URLofViewer.origin && (requestedURL !== this.timelineURL)) {
       const relativeurl = url.pathname.replace(URLofViewer.pathname, '').replace(/^\//, '');
       const redirectedURL = new URL(relativeurl, this.devtoolsBase);
       return this._orig_loadResourcePromise(redirectedURL.toString());
