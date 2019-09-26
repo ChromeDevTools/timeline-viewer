@@ -366,7 +366,7 @@ class Viewer {
           return xhr.responseText;
         }
       })
-      .catch((error, xhr) => {
+      .catch(({error, xhr}) => {
         this.makeDevToolsVisible(false);
         this.updateStatus('Download of asset failed. ' + ((xhr.readyState == xhr.DONE) ? 'CORS headers likely not applied.' : ''));
       });

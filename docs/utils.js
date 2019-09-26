@@ -4,16 +4,21 @@
 class Utils {
   fetch(url, params, CORSFlag = false) {
     if (CORSFlag) {
-      return this.doCORSRequest(url, params.method, params.body, params.addRequestHeaders, params.onprogress);
+      // see #63
+      return this.doCORSRequest(url, params.method, params.body, params.addRequestHeaders, params.onprogress).catch(e => {
+        // Reattempting with credentials, in case of JWT folks, etc.
+        return this.doCORSRequest(url, params.method, params.body, params.addRequestHeaders, params.onprogress, true);
+      });
     } else {
       return fetch(url, params);
     }
   }
-  doCORSRequest(url, method='GET', body, addRequestHeaders, onprogress) {
+
+  doCORSRequest(url, method='GET', body, addRequestHeaders, onprogress, withCreds) {
     return new Promise((resolve, reject) => {
       // Use an XHR rather than fetch so we can have progress events
       const xhr = new XMLHttpRequest();
-      xhr.withCredentials = true;
+      xhr.withCredentials = !!withCreds;
       xhr.open(method, url);
       addRequestHeaders && addRequestHeaders(xhr);
       // show progress only while getting data
@@ -24,7 +29,7 @@ class Utils {
         resolve(xhr);
       };
       xhr.onerror = error => {
-        reject(error, xhr);
+        reject({error, xhr});
       };
       xhr.send(body);
     });
