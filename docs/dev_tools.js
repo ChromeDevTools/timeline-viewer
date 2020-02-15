@@ -116,7 +116,6 @@ class DevTools {
 
   tweakUI() {
     try {
-
       // hide panel tab strip
       document.querySelector('.root-view .tabbed-pane').shadowRoot.querySelector('.vbox > .tabbed-pane-header').style.display = 'none';
 
@@ -125,7 +124,6 @@ class DevTools {
         .shadowRoot.querySelector('.toolbar-shadow')
         .querySelectorAll('button,div').
         forEach(elem => elem.remove());
-
     } catch(e) {
       console.warn('failed to tweak UI', e);
     }
