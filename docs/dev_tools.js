@@ -61,6 +61,7 @@ class DevTools {
       this.monkepatchSetWindowPosition();
       this.monkeyPatchRequestWindowTimes();
       this.monkeypatchTimelineFeatures();
+      this.monkeyPatchWindowChanged();
     });
   }
 
@@ -112,6 +113,19 @@ class DevTools {
     PerfUI.FlameChart.prototype.requestWindowTimes = function(startTime, endTime, animate) {
       SyncView.requestWindowTimesPatch.call(this, startTime, endTime, animate, viewerInstance);
     };
+  }
+
+  // there's an infinite loop for some reason and this nips it in the bud
+  monkeyPatchWindowChanged() {
+    const plzRepeat = _ => setTimeout(_ => this.monkeyPatchWindowChanged(), 100);
+    if (typeof PerfUI === 'undefined' || typeof PerfUI.FlameChart === 'undefined' ) return plzRepeat();
+
+    const realWindowChanged = PerfUI.FlameChart.prototype.windowChanged;
+    PerfUI.FlameChart.prototype.windowChanged = function(startTime, endTime, animate) {
+      if (isNaN(startTime)) return;
+      const flameChart = this;
+      realWindowChanged.call(flameChart, startTime, endTime, animate);
+    }
   }
 
   tweakUI() {
