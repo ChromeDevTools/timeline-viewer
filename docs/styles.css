@@ -20,9 +20,9 @@ html{font-family:sans-serif;line-height:1.15;-ms-text-size-adjust:100%;-webkit-t
   position: absolute;
   top: 0;
   right: 0;
-  background-color: #f3f3f3;
-  width: 100%;
-  border-bottom: 1px solid #ccc;
+  /* Don't cover over the clickable toolbar checkboxes */
+  width: calc(100% - 200px);
+  z-index: 1;
 }
 
 .top-message {
@@ -155,29 +155,4 @@ html.hide-devtools {
 .about ul code { font-size: 80%; }
 
 
-/* edits on the devtools UI */
-.root-view { margin-top: 28px; }
-.root-view /deep/ .largeicon-node-search { display: none; }
-
-.timeline /deep/ .toolbar-has-glyph,
-.timeline /deep/ .toolbar-select-container,
-.timeline /deep/ .toolbar-divider {
-    display: none;
-}
-/* Capture -> View */
-.timeline /deep/ .toolbar-text.toolbar-item {
-    color: transparent;
-    font-size: 0;
-}
-.timeline /deep/ .toolbar-text.toolbar-item::before {
-    content: "View:";
-    font-size: 12px;
-    color: #5a5a5a;
-}
-
-/* hide js profile, memory, paint */
-.timeline /deep/ .toolbar-shadow > label:nth-of-type(2),
-.timeline /deep/ .toolbar-shadow > label:nth-of-type(4),
-.timeline /deep/ .toolbar-shadow > label:nth-of-type(5) {
-    display: none;
-}
+/* edits on the devtools UI happen in tweakUI() in dev_tools.js */
