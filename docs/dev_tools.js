@@ -98,6 +98,8 @@ class DevTools {
       const overviewGridWindow = this;
       SyncView.setWindowPositionPatch.call(overviewGridWindow, start, end, viewerInstance);
     };
+
+    setTimeout(_ => this.tweakUI(), 250);
   }
 
 
@@ -110,6 +112,23 @@ class DevTools {
     PerfUI.FlameChart.prototype.requestWindowTimes = function(startTime, endTime, animate) {
       SyncView.requestWindowTimesPatch.call(this, startTime, endTime, animate, viewerInstance);
     };
+  }
+
+  tweakUI() {
+    try {
+
+      // hide panel tab strip
+      document.querySelector('.root-view .tabbed-pane').shadowRoot.querySelector('.vbox > .tabbed-pane-header').style.display = 'none';
+
+      // remove buttons from perf panel toolbar
+      document.querySelector('.root-view .tabbed-pane > .view-container .timeline-main-toolbar')
+        .shadowRoot.querySelector('.toolbar-shadow')
+        .querySelectorAll('button,div').
+        forEach(elem => elem.remove());
+
+    } catch(e) {
+      console.warn('failed to tweak UI', e);
+    }
   }
 
   monkeypatchLoadResourcePromise() {
