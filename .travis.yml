@@ -6,6 +6,7 @@ cache:
   yarn: true
   directories:
     - node_modules
+    - /home/travis/.cache/Cypress
 before_install:
   - npm install -g yarn@latest
   - yarn --version
