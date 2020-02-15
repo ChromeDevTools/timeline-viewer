@@ -5,7 +5,7 @@ class Utils {
   fetch(url, params, CORSFlag = false) {
     if (CORSFlag) {
       // see #63
-      return this.doCORSRequest(url, params.method, params.body, params.addRequestHeaders, params.onprogress).catch(e => {
+      return this.doCORSRequest(url, params.method, params.body, params.addRequestHeaders, params.onprogress).catch(_ => {
         // Reattempting with credentials, in case of JWT folks, etc.
         return this.doCORSRequest(url, params.method, params.body, params.addRequestHeaders, params.onprogress, true);
       });
