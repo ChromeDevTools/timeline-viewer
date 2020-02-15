@@ -30,7 +30,7 @@ Master branch's `docs` folder is what's published to gh-pages, to simplify deplo
 
 Auth keys have localhost:8833 whitelisted, so you can hack there.
 
-* Private file: http://localhost:8833/?loadTimelineFromURL=0BzvYe7bYFf--aVhZM1RNR2N3cGc
+* Private file: http://localhost:8833/?loadTimelineFromURL=drive://0BzvYe7bYFf--aVhZM1RNR2N3cGc
 
 ## Updating DevTools Version
 
