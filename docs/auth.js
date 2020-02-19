@@ -31,8 +31,9 @@ class GoogleAuth {
       gapi.client.setApiKey(this.config.apiKey);
 
       // if we have no authinstance yet, initialize
-      if (!GoogleAuth.getAuthInstance())
+      if (!GoogleAuth.getAuthInstance()) {
         return gapi.auth2.init(oAuthOptions).then(callback);
+      }
 
       // handle the click
       this.signIn().then(callback);

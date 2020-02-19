@@ -36,12 +36,15 @@ class DevTools {
         set: _ => { },
         getAsArray: _ => []
       };
-      if (module === 'releaseNoteVersionSeen')
+      if (module === 'releaseNoteVersionSeen') {
         ret.get = _ => Infinity;
-      if (module === 'showNativeFunctionsInJSProfile')
+      }
+      if (module === 'showNativeFunctionsInJSProfile') {
         ret.get = _ => true;
-      if (module === 'flamechartMouseWheelAction')
+      }
+      if (module === 'flamechartMouseWheelAction') {
         ret.get = _ => 'zoom';
+      }
       return ret;
     };
 
@@ -138,7 +141,7 @@ class DevTools {
         .shadowRoot.querySelector('.toolbar-shadow')
         .querySelectorAll('button,div').
         forEach(elem => elem.remove());
-    } catch(e) {
+    } catch (e) {
       console.warn('failed to tweak UI', e);
     }
   }
@@ -156,9 +159,9 @@ class DevTools {
       const timelinePanel = Timeline.TimelinePanel.instance();
       const dropTarget = timelinePanel._dropTarget;
       const handleDrop = dropTarget._handleDrop;
-      dropTarget._handleDrop = function(_) {
+      dropTarget._handleDrop = function(...args) {
         viewerInstance.toggleUploadToDriveElem(viewerInstance.canUploadToDrive);
-        handleDrop.apply(dropTarget, arguments);
+        handleDrop.apply(dropTarget, ...args);
       };
     }
   }
@@ -167,10 +170,12 @@ class DevTools {
     const panel = Timeline.TimelinePanel.instance();
     const oldSetMarkers = panel._setMarkers;
     panel._setMarkers = function() {
-      if (this._performanceModel._timelineModel.networkRequests().length === 0)
+      if (this._performanceModel._timelineModel.networkRequests().length === 0) {
         Common.settings.createSetting('timelineCaptureNetwork', true).set(false);
-      if (this._performanceModel.filmStripModel()._frames.length === 0)
+      }
+      if (this._performanceModel.filmStripModel()._frames.length === 0) {
         Common.settings.createSetting('timelineCaptureFilmStrip', true).set(false);
+      }
       oldSetMarkers.call(this, this._performanceModel._timelineModel);
     };
   }
