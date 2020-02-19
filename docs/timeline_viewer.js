@@ -8,7 +8,7 @@ class Viewer {
     this.params = new URL(location.href).searchParams;
     this.syncView = new SyncView();
     this.timelineURL = this.params.get('loadTimelineFromURL');
-    this.timelineId;
+    this.timelineId = null;
     this.timelineProvider = 'url';
 
     this.totalSize = 50 * 1000 * 1000;
@@ -105,8 +105,9 @@ class Viewer {
 
   handleDragEvents() {
     const dropboxEl = document.getElementById('dropbox');
-    if (dropboxEl)
+    if (dropboxEl) {
       dropboxEl.addEventListener('dragover', this.dragover.bind(this), false);
+    }
   }
 
   toggleUploadToDriveElem(display) {
@@ -270,8 +271,9 @@ class Viewer {
       return this._orig_loadResourcePromise(redirectedURL.toString());
     }
 
-    if (this.timelineProvider === 'drive')
+    if (this.timelineProvider === 'drive') {
       return this.driveAssetLoaded.then(payload => payload);
+    }
 
     // pass through URLs that aren't our timelineURL param
     if (requestedURL !== this.timelineURL) {

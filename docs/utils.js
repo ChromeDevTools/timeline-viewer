@@ -29,7 +29,8 @@ class Utils {
         resolve(xhr);
       };
       xhr.onerror = error => {
-        reject({error, xhr});
+        console.error('XHR error', error);
+        reject(error);
       };
       xhr.send(body);
     });

@@ -5,7 +5,11 @@ module.exports = {
   "env": {
     "browser": true,
     "es6": true,
+    "cypress/globals": true,
   },
+  "plugins": [
+    "cypress"
+  ],
   "globals": {
     gapi: true,
     Bindings: true,
@@ -60,9 +64,8 @@ module.exports = {
     "comma-dangle": 0,
     "arrow-parens": 0,
     "no-undef": 1,
-    "no-console": 1,
+    "no-console": 0,
     "no-invalid-this": 1,
-    "prefer-rest-params": 1,
   },
   "parserOptions": {
     "ecmaVersion": 2018,
