@@ -27,7 +27,7 @@ Once authorized, you'll see Timeline Viewer as a registered Google Drive viewer 
 You can share this URL with any users who have both:
 
 1. authorized [Timeline Viewer](https://chromedevtools.github.io/timeline-viewer/) to Drive via the typical Google OAuth flow and..
-1. have `View` permission to the Google Drive file
+1. have `Edit` permission to the Google Drive file
 
 <center><img src="https://cloud.githubusercontent.com/assets/39191/18080845/fb39f056-6e4b-11e6-90df-6cda94bd2495.png" width=600></center>
 
