@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "test": "kill $(lsof -t -i:8838) & npm run server:test & cypress run --browser chrome",
-    "dev": "npm run generate-sw-dev && opn http://localhost:8833/ && npm run server",
+    "dev": "npm run generate-sw-dev && open-cli http://localhost:8833/ && npm run server",
     "server": "http-server docs -a localhost -p 8833 -s",
     "server:test": "http-server docs -a localhost -p 8838 -s",
     "start": "npm run server",
