@@ -125,7 +125,7 @@ class DevTools {
       if (isNaN(startTime)) return;
       const flameChart = this;
       realWindowChanged.call(flameChart, startTime, endTime, animate);
-    }
+    };
   }
 
   tweakUI() {
