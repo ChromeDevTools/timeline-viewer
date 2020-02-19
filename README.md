@@ -1,24 +1,39 @@
 # DevTools Timeline Viewer
-##### Shareable URLs for your Chrome DevTools Timeline traces.
 
-![drawing 1](https://user-images.githubusercontent.com/6231516/27319720-79933930-559b-11e7-8656-a1fa3c4a1697.png)
+<img src="https://user-images.githubusercontent.com/39191/74859446-e6c28c80-52fb-11ea-9ae5-9ed7e8bae4af.png" align=right width=250>
 
-Works with public github urls, github gists, and files on google drive (once authenticated).
+##### Shareable URLs for your Chrome DevTools performance traces.
 
----
+
+Works with GitHub gists, public GitHub URLs, some dropbox public URLs, public files on Google Drive, and (after authentication) private files on Google Drive.
+
+You can also drag and drop a `Profile-*.json` file onto the webapp.
+
+The app works offline as it has a service worker, as well. :)
+
+
+
+<hr clear=both>
+
+
+
+### Google Drive integration
 
 Once authorized, you'll see Timeline Viewer as a registered Google Drive viewer when opening .json files. Once you select the Timeline Viewer, it will open in a new tab and load the timeline asset from your Drive.
 
-![](https://cloud.githubusercontent.com/assets/39191/18080010/67390d9a-6e48-11e6-98a3-9c8c81b1df67.png)
+<center><img src="https://cloud.githubusercontent.com/assets/39191/18080010/67390d9a-6e48-11e6-98a3-9c8c81b1df67.png" width=600></center>
 
 
-You can share this URL with any users who ① have authorized [Timeline Viewer](https://chromedevtools.github.io/timeline-viewer/) to Drive with Google OAuth and ② have View permission to the Google Drive asset.
+You can share this URL with any users who have both:
 
-![image](https://cloud.githubusercontent.com/assets/39191/18080845/fb39f056-6e4b-11e6-90df-6cda94bd2495.png)
+1. authorized [Timeline Viewer](https://chromedevtools.github.io/timeline-viewer/) to Drive via the typical Google OAuth flow and..
+1. have `View` permission to the Google Drive file
 
+<center><img src="https://cloud.githubusercontent.com/assets/39191/18080845/fb39f056-6e4b-11e6-90df-6cda94bd2495.png" width=600></center>
 
-Visit your <a href="https://security.google.com/settings/security/permissions?pli=1">Google security permissions</a> if you'd like to revoke authorization.
+To revoke authorization, visit your <a href="https://security.google.com/settings/security/permissions?pli=1">Google security permissions</a>.
 
+---------------------
 
 ## Dev
 
@@ -54,3 +69,8 @@ I sometimes use the archive of https://chromereleases.googleblog.com/ to find a 
 [Cypress](https://cypress.io) is used for integration testing.
 To run test just invoke `yarn test`
 
+--------
+
+### Known alternatives
+
+- https://www.speedscope.app/ is quite good
