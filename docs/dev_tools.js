@@ -161,7 +161,7 @@ class DevTools {
       const handleDrop = dropTarget._handleDrop;
       dropTarget._handleDrop = function(...args) {
         viewerInstance.toggleUploadToDriveElem(viewerInstance.canUploadToDrive);
-        handleDrop.apply(dropTarget, ...args);
+        handleDrop.apply(dropTarget, args);
       };
     }
   }
