@@ -28,6 +28,10 @@ class DevTools {
       }
     };
 
+    // force light theme as default (as landing looks terrible in dark)
+    // user can override this in DT settings tho.
+    localStorage.setItem('uiTheme', JSON.stringify('default'))
+
     Common.moduleSetting = function(module) {
       const ret = {
         addChangeListener: _ => { },
