@@ -40,6 +40,9 @@ html{font-family:sans-serif;line-height:1.15;-ms-text-size-adjust:100%;-webkit-t
   padding-right: 5px;
 }
 
+.online-status-message {
+  display: none; /* mostly annoying */
+}
 .online-status-message:before {
   content: '\2600';
 }

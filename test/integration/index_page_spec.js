@@ -16,9 +16,9 @@ describe('Timeline-Viewer index.html page', () => {
     });
   });
 
-  context('Online status', () => {
-    it('should be shown', () => {
-      cy.get('#online-status').should('be.visible');
-    });
-  });
+  // context('Online status', () => {
+  //   it('should be shown', () => {
+  //     cy.get('#online-status').should('be.visible');
+  //   });
+  // });
 });
