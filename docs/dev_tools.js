@@ -7,18 +7,24 @@ class DevTools {
     this.attachMonkeyPatchListeners();
   }
 
+
+  eventHasCtrlOrMeta(event) {
+    return this.platform === 'mac' ? (event.metaKey && !event.ctrlKey) : (event.ctrlKey && !event.metaKey);
+  }
+
+
   attachMonkeyPatchListeners() {
     // don't let devtools trap ctrl-r
     document.addEventListener('keydown', event => {
-      if (self.UI && UI.KeyboardShortcut.eventHasCtrlOrMeta(event) && String.fromCharCode(event.which).toLowerCase() === 'r') {
+      if (self.UI && this.eventHasCtrlOrMeta(event) && String.fromCharCode(event.which).toLowerCase() === 'r') {
         event.handled = true;
       }
     });
   }
 
   init() {
-    Runtime.experiments._supportEnabled = true;
-    Runtime.experiments.isEnabled = name => {
+    Root.Runtime.experiments._supportEnabled = true;
+    Root.Runtime.experiments.isEnabled = name => {
       switch (name) {
         case 'timelineV8RuntimeCallStats': return true;
         case 'timelineShowAllEvents': return true;
@@ -52,29 +58,26 @@ class DevTools {
       return ret;
     };
 
-    // don't send application errors to console drawer
-    Common.Console.prototype.addMessage = function(text, level, show) {
-      level = (level && level.replace('warning', 'warn')) || Common.Console.MessageLevel.Info;
-      const message = new Common.Console.Message(text, level, Date.now(), show || false);
-      this._messages.push(message);
-      // this.dispatchEventToListeners(Common.Console.Events.MessageAdded, message);
-      window.console[level](text);
-    };
-
     // Common.settings is created in a window onload listener
-    window.addEventListener('load', _ => {
+
+    function monkeyPatch() {
+      if (!Common.settings) {
+        console.warn('not monkeypatching');
+        return;
+      }
       Common.settings.createSetting('timelineCaptureFilmStrip', true).set(true);
 
       this.monkepatchSetWindowPosition();
       this.monkeyPatchRequestWindowTimes();
       this.monkeypatchTimelineFeatures();
       this.monkeyPatchWindowChanged();
-    });
+    }
+    window.addEventListener('load', monkeyPatch.bind(this));
   }
 
   monkeypatchTimelineFeatures() {
     // Instead of gray for unknown events, color them by event name.
-    UI.inspectorView.showPanel('timeline').then(_ => {
+    UI.inspectorView.showPanel('timeline').then(() => {
       // Hue: all but red, Saturation: 15-35%, Lightness: 75%, Alpha: opaque
       const colorGenerator = new Common.Color.Generator({min: 45, max: 325}, {min: 15, max: 35}, 75, 1);
       const oldEventColor = Timeline.TimelineUIUtils.eventColor;
@@ -151,8 +154,8 @@ class DevTools {
   }
 
   monkeypatchLoadResourcePromise() {
-    this.viewerInstance._orig_loadResourcePromise = Runtime.loadResourcePromise;
-    Runtime.loadResourcePromise = this.viewerInstance.loadResource.bind(this.viewerInstance);
+    this.viewerInstance._orig_loadResourcePromise = Root.Runtime.loadResourcePromise;
+    Root.Runtime.loadResourcePromise = this.viewerInstance.loadResource.bind(this.viewerInstance);
   }
 
   monkeyPatchingHandleDrop() {

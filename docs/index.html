@@ -97,8 +97,8 @@
         <small class="f6 gray dib mr3 mr4-ns mv4">Contribute! <a class="link dim" href="https://github.com/ChromeDevTools/timeline-viewer">github.com/ChromeDevTools/timeline-viewer</a></small>
 
     </div>
-    <script src="https://chrome-devtools-frontend.appspot.com/serve_file/@675968a8c657a3bd9c1c2c20c5d2935577bbc5e6/shell.js" id="devtoolsscript"></script>
-    <script src="https://chrome-devtools-frontend.appspot.com/serve_file/@675968a8c657a3bd9c1c2c20c5d2935577bbc5e6/devtools_app.js"></script>
+    <script src="https://chrome-devtools-frontend.appspot.com/serve_rev/@8b31dc433fc88586317dbbbbd54c531c86558686/entrypoints/shell/shell.js" id="devtoolsscript" type='module'></script>
+    <script src="https://chrome-devtools-frontend.appspot.com/serve_rev/@8b31dc433fc88586317dbbbbd54c531c86558686/entrypoints/js_app/js_app.js" type='module'></script>
 
     <script src="https://apis.google.com/js/client.js" defer></script>
     <script src="utils.js" defer></script>
@@ -120,7 +120,10 @@
 
         // We are monkeypatching window.loadResourcePromise, which is from devtools' Runtime.js
         viewer.devTools.monkeypatchLoadResourcePromise();
-        Runtime.startApplication('timelineviewer_app');
+
+        // TODO dunno about this
+        // Runtime.startApplication('timelineviewer_app');
+        viewer.makeDevToolsVisible(true);
 
         // Remove any service workers.
         navigator.serviceWorker.getRegistrations().then(registrations => {
