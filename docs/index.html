@@ -32,24 +32,25 @@
             <h3 class="f4 bg-near-white br3 br--top black-60 mv0 pv2 ph3">View public traces</h3>
             <div class="pa3 bt b--black-10 f6 f5-ns lh-copy">
                 <form>
-                    <input type="text" name=url id="enterurl" placeholder="Enter public Dropbox URL or raw Gist URL" class="w-80">
+                    <input type="text" name=url id="enterurl" placeholder="Enter URL of raw Gist or CORS-enabled JSON" class="w-80">
                     <input type="submit" class="btn btn--s btn--gray" value="OK">
                     <small class="db black-50">
-                        Works with 
-                        <em>Dropbox public URLs</em> (<a href="?loadTimelineFromURL=https://www.dropbox.com/s/s1n8m8n5oddgoxx/timeline-docs.json?dl=0" data-url="https://www.dropbox.com/s/s1n8m8n5oddgoxx/timeline-docs.json?dl=0">example</a>),
-                        <em>GitHub raw gists</em> (<a href="?loadTimelineFromURL=https://gist.github.com/paulirish/f83d30384954937dc3a1fae970a4ae52/raw/b25b27741c652d3091a316dfd8b58bf72f14aa74/twitch.json"  data-url="https://gist.github.com/paulirish/f83d30384954937dc3a1fae970a4ae52/raw/b25b27741c652d3091a316dfd8b58bf72f14aa74/twitch.json">example</a>),
-                        <br> or any file available over CORS. 
-                        
-                        <br><br>Multiple URLS will generate a <a href="./?loadTimelineFromURL=https://www.dropbox.com/s/k84dlf4i1g55t7x/jooj123-before.json?dl=0,https://www.dropbox.com/s/5dzjiodggtouk32/jooj123-after.json?dl=0" data-url="https://www.dropbox.com/s/k84dlf4i1g55t7x/jooj123-before.json?dl=0,https://www.dropbox.com/s/5dzjiodggtouk32/jooj123-after.json?dl=0">split view</a> with a synchronized timescale.
+                        Works with
+                        <em>GitHub raw gists</em>
+                        (<a href="?loadTimelineFromURL=https://gist.githubusercontent.com/paulirish/5b5d6bdcfde557ff3eec4571dc6a0485/raw/07bc7905441e45e1e1dc751cf09c3d640ab46fc0/hello-opp.trace.json">example</a>)
+                        or any file available over CORS.
                     </small>
                     <br>
-                    <span>… or Drag & Drop json file here</span>
+                    <input type="text" name=url2 id="enterurl2" placeholder="Enter another (optionally) for comparison" class="w-80">
+                    <small class="db black-50">
+                        Multiple URLS will generate a <a href="./?loadTimelineFromURL=https://gist.github.com/paulirish/f5189879b4882a8de6638b1007fbd6c5/raw/0dfff42bdba4796459e030c518e43298598e2e5d/devtools-scrolling-datagrid-m89.json&loadTimelineFromURL=https://gist.githubusercontent.com/paulirish/f5189879b4882a8de6638b1007fbd6c5/raw/0dfff42bdba4796459e030c518e43298598e2e5d/devtools-scrolling-datagrid-m122.json">split view</a> with a synchronized timescale.
+                    </small>
                 </form>
             </div>
         </article>
 
         <article id="howto" class="mw7  tl" style="margin-top: 105px; margin: 0 auto;">
-         
+
             <h3 class="f4 br3 br--top black-60 pv2 mb0">Wanna compare traces?</h3>
             <p>Enter multiple URLs, seperated by commas. Once you select a timerange in one of the traces, the other viewers will automatically zoom to the same size timerange, for easy comparison.</p>
             <img src="https://cloud.githubusercontent.com/assets/6231516/26029813/34525ec6-3847-11e7-9663-a42b69fa5d8d.gif" style="width: 80%; margin: 20px auto; display: block;">
@@ -60,28 +61,33 @@
 
           <hr>
 
-            <h3 class="f4 br3 br--top black-60 pv2 mb0">Google Drive Integration (very optional)</h3>
-            <article class="center mw7-ns br3 ba b--black-10 mv4">
-            
-              <div class="pa3 bt b--black-10 f6 f5-ns lh-copy">
-                <div class=gdrive>
-                    <p id="status">Checking for Drive API authorization...</p>
-                    <button class="btn btn--s btn--green" id="auth" hidden>Authorize Drive API access</button>
-                    <button class="btn btn--s btn--yellow" id="revoke-access" hidden>Revoke API Access</button>
+          <details>
+            <summary>
+              <h4 class="f4 br3 br--top black-60 pv2 mb0" style="display: inline;">Google Drive Integration (very optional)</h4>
+            </summary>
+
+              <article class="center mw7-ns br3 ba b--black-10 mv4">
+
+                <div class="pa3 bt b--black-10 f6 f5-ns lh-copy">
+                  <div class=gdrive>
+                      <p id="status">Checking for Drive API authorization...</p>
+                      <button class="btn btn--s btn--green" id="auth" hidden>Authorize Drive API access</button>
+                      <button class="btn btn--s btn--yellow" id="revoke-access" hidden>Revoke API Access</button>
+                  </div>
                 </div>
-              </div>
-          </article>
+            </article>
 
-            <p>Once authorized, you'll see Timeline Viewer as a registered Google Drive viewer when opening <code>.json</code> files.
-            Once you select the Timeline Viewer, it will open in a new tab and load the timeline asset from your Drive.</p>
+              <p>Once authorized, you'll see Timeline Viewer as a registered Google Drive viewer when opening <code>.json</code> files.
+              Once you select the Timeline Viewer, it will open in a new tab and load the timeline asset from your Drive.</p>
 
-            <img src="https://cloud.githubusercontent.com/assets/39191/18080010/67390d9a-6e48-11e6-98a3-9c8c81b1df67.png" style="width: 80%; margin: 20px auto; display: block;">
+              <img src="https://cloud.githubusercontent.com/assets/39191/18080010/67390d9a-6e48-11e6-98a3-9c8c81b1df67.png" style="width: 80%; margin: 20px auto; display: block;">
 
-            <p>You can share this URL with any users who have both 1) authorized Timeline Viewer to Drive via the typical Google OAuth flow and 2) have <code>Edit</code> permission to the Google Drive file. 
+              <p>You can share this URL with any users who have both 1) authorized Timeline Viewer to Drive via the typical Google OAuth flow and 2) have <code>Edit</code> permission to the Google Drive file.
 
-            <img src="https://cloud.githubusercontent.com/assets/39191/18080845/fb39f056-6e4b-11e6-90df-6cda94bd2495.png" style="width: 80%; margin: 20px auto; display: block;">
+              <img src="https://cloud.githubusercontent.com/assets/39191/18080845/fb39f056-6e4b-11e6-90df-6cda94bd2495.png" style="width: 80%; margin: 20px auto; display: block;">
 
-            <p>Afterwards, you can <a href="https://security.google.com/settings/security/permissions?pli=1">revoke</a> authorization entirely.
+              <p>Afterwards, you can <a href="https://security.google.com/settings/security/permissions?pli=1">revoke</a> authorization entirely.
+            </details>
 
         </article>
 
@@ -89,9 +95,6 @@
         <small class="f6 gray dib mr3 mr4-ns mv4">Contribute! <a class="link dim" href="https://github.com/ChromeDevTools/timeline-viewer">github.com/ChromeDevTools/timeline-viewer</a></small>
 
     </div>
-    <script src="service-worker.js"></script>
-    <script src="https://chrome-devtools-frontend.appspot.com/serve_file/@675968a8c657a3bd9c1c2c20c5d2935577bbc5e6/shell.js" id="devtoolsscript"></script>
-    <script src="https://chrome-devtools-frontend.appspot.com/serve_file/@675968a8c657a3bd9c1c2c20c5d2935577bbc5e6/devtools_app.js"></script>
 
     <script src="https://apis.google.com/js/client.js" defer></script>
     <script src="utils.js" defer></script>
@@ -107,77 +110,21 @@
           document.getElementById('status').textContent = 'Sorry y\'all, Chrome required to view traces.';
           return;
         }
-        const viewer = new Viewer();
+        globalThis.viewerInstance = new Viewer();
 
-        viewer.checkAuth({immediate: true});
+        viewerInstance.checkAuth({immediate: true});
 
-        // We are monkeypatching window.loadResourcePromise, which is from devtools' Runtime.js
-        viewer.devTools.monkeypatchLoadResourcePromise();
-        Runtime.startApplication('timelineviewer_app');
+        // TODO dunno about this
+        // Runtime.startApplication('timelineviewer_app');
+        viewerInstance.makeDevToolsVisible(true);
 
-        navigator.serviceWorker
-          .register('service-worker.js')
-          .then(registration => {
-            registration.onupdatefound = () => {
-              const installingWorker = registration.installing;
-              installingWorker.onstatechange = () => {
-                if (installingWorker.state === 'activated') {
-                  viewer.showInfoMessage('Timeline Viewer is ready to be used offline');
-                }
-              };
-            };
-          })
-          .catch(error => {
-            console.error('Error during service worker registration:', error);
-          });
+        // Remove any service workers.
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+            for (const registration of registrations) registration.unregister();
+        });
       });
     </script>
 
-
-    <script>
-    // allowlist what's loaded so we can avoid starting up a bunch of random tabs we don't need. faster load too.
-    applicationDescriptor.modules = [
-        { "name": "bindings", "type": "autostart" },
-        { "name": "common", "type": "autostart" },
-        { "name": "components", "type": "autostart"},
-        { "name": "console_counters", "type": "autostart" },
-        { "name": "dom_extension", "type": "autostart" },
-        { "name": "extensions", "type": "autostart" },
-        { "name": "host", "type": "autostart" },
-        { "name": "main", "type": "autostart" },
-        { "name": "persistence", "type": "autostart" },
-        { "name": "platform", "type": "autostart" },
-        { "name": "product_registry", "type": "autostart" },
-        { "name": "protocol", "type": "autostart" },
-        { "name": "sdk", "type": "autostart" },
-        { "name": "browser_sdk", "type": "autostart" },
-        { "name": "services", "type": "autostart" },
-        { "name": "text_utils", "type": "autostart" },
-        { "name": "ui", "type": "autostart" },
-        { "name": "workspace", "type": "autostart" },
-        { "name": "timeline" },
-        { "name": "timeline_model" },
-
-        {"name": "layer_viewer"},
-        {"name": "timeline_model"},
-        {"name": "perf_ui"},
-        {"name": "extensions"},
-        {"name": "data_grid"},
-        {"name": "product_registry"},
-        {"name": "profiler"},
-        {"name": "mobile_throttling"},
-
-        {"name": "source_frame"},
-        {"name": "text_editor"},
-        {"name": "cm"},
-        {"name": "formatter"},
-        {"name": "object_ui"},
-        {"name": "workspace_diff"},
-        {"name": "diff"},
-        {"name": "persistence"},
-        {"name": "heap_snapshot_model"},
-    ];
-  </script>
 
     <body class="undocked" id="-blink-dev-tools"></body>
 
