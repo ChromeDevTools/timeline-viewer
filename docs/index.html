@@ -100,8 +100,6 @@
         <small class="f6 gray dib mr3 mr4-ns mv4">Contribute! <a class="link dim" href="https://github.com/ChromeDevTools/timeline-viewer">github.com/ChromeDevTools/timeline-viewer</a></small>
 
     </div>
-    <script src="https://chrome-devtools-frontend.appspot.com/serve_rev/@8b31dc433fc88586317dbbbbd54c531c86558686/entrypoints/shell/shell.js" id="devtoolsscript" type='module'></script>
-    <script src="https://chrome-devtools-frontend.appspot.com/serve_rev/@8b31dc433fc88586317dbbbbd54c531c86558686/entrypoints/js_app/js_app.js" type='module'></script>
 
     <script src="https://apis.google.com/js/client.js" defer></script>
     <script src="utils.js" defer></script>
@@ -120,9 +118,6 @@
         const viewer = new Viewer();
 
         viewer.checkAuth({immediate: true});
-
-        // We are monkeypatching window.loadResourcePromise, which is from devtools' Runtime.js
-        viewer.devTools.monkeypatchLoadResourcePromise();
 
         // TODO dunno about this
         // Runtime.startApplication('timelineviewer_app');

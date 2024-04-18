@@ -22,7 +22,15 @@ class DevTools {
     });
   }
 
-  init() {
+  async init() {
+    const shell = await import('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/entrypoints/shell/shell.js');
+    const workerApp = await import ('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/entrypoints/worker_app/worker_app.js');
+
+
+    const Main = await import('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/entrypoints/main/main.js');
+    globalThis.Root = await import('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/core/root/root.js');
+    globalThis.Common = await import('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/core/common/common.js');
+
     Root.Runtime.experiments._supportEnabled = true;
     Root.Runtime.experiments.isEnabled = name => {
       switch (name) {
@@ -34,29 +42,34 @@ class DevTools {
       }
     };
 
+    // We are monkeypatching window.loadResourcePromise, which is from devtools' Runtime.js
+    // TODO: doesnt exist anymore
+    //this.monkeypatchLoadResourcePromise();
+
+
     // force light theme as default (as landing looks terrible in dark)
     // user can override this in DT settings tho.
     localStorage.setItem('uiTheme', JSON.stringify('default'))
 
-    Common.moduleSetting = function(module) {
-      const ret = {
-        addChangeListener: _ => { },
-        removeChangeListener: _ => { },
-        get: _ => new Map(),
-        set: _ => { },
-        getAsArray: _ => []
-      };
-      if (module === 'releaseNoteVersionSeen') {
-        ret.get = _ => Infinity;
-      }
-      if (module === 'showNativeFunctionsInJSProfile') {
-        ret.get = _ => true;
-      }
-      if (module === 'flamechartMouseWheelAction') {
-        ret.get = _ => 'zoom';
-      }
-      return ret;
-    };
+    // Common.moduleSetting = function(module) {
+    //   const ret = {
+    //     addChangeListener: _ => { },
+    //     removeChangeListener: _ => { },
+    //     get: _ => new Map(),
+    //     set: _ => { },
+    //     getAsArray: _ => []
+    //   };
+    //   if (module === 'releaseNoteVersionSeen') {
+    //     ret.get = _ => Infinity;
+    //   }
+    //   if (module === 'showNativeFunctionsInJSProfile') {
+    //     ret.get = _ => true;
+    //   }
+    //   if (module === 'flamechartMouseWheelAction') {
+    //     ret.get = _ => 'zoom';
+    //   }
+    //   return ret;
+    // };
 
     // Common.settings is created in a window onload listener
 

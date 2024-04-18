@@ -17,7 +17,8 @@ class Viewer {
     this.canUploadToDrive = false;
     this.welcomeView = false;
     // remote location of devtools we're using
-    this.devtoolsBase = document.getElementById('devtoolsscript').src.replace(/inspector\.js.*/, '');
+    // TODO.........
+    this.devtoolsBase = ''; // document.getElementById('devtoolsscript').src.replace(/inspector\.js.*/, '');
 
     this.statusElem = document.getElementById('status');
     this.infoMessageElem = document.getElementById('info-message');
@@ -54,7 +55,7 @@ class Viewer {
     this.statusElem.hidden = false;
 
     this.handleNetworkStatus();
-    this.devTools.init();
+    void this.devTools.init();
 
     if (!this.welcomeView) {
       this.makeDevToolsVisible(true);
