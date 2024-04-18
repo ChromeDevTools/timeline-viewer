@@ -6,10 +6,9 @@ class SyncView {
     return new Promise(resolve => {
       let isLoaded = false;
       const checkLoading = setInterval(() => {
-        const timelines = SyncView.timelines();
-        for (const Timeline of timelines) {
-          const panel = Timeline.TimelinePanel.instance();
-          if (panel._state === Timeline.TimelinePanel.State.Idle) {
+        const panels = SyncView.panels();
+        for (const panel of panels) {
+          if (panel?.state === 'Idle' && panel.element.ownerDocument.defaultView.TraceBounds) {
             isLoaded = true;
           } else {
             isLoaded = false;
@@ -24,55 +23,92 @@ class SyncView {
     });
   }
 
+
   static synchronizeRange(originalPanel, viewerInstance) {
     viewerInstance._originalPanel = originalPanel;
-    const tracingModelMinimumRecordTime = originalPanel._performanceModel.tracingModel().minimumRecordTime();
-    const tracingModelMaximumRecordTime = originalPanel._performanceModel.tracingModel().maximumRecordTime();
+    originalPanel.performanceModel.timelineModelInternal.maximumRecordTimeInternal
+    const tracingModelMinimumRecordTime = originalPanel.performanceModel.timelineModelInternal.minimumRecordTimeInternal;
+    const tracingModelMaximumRecordTime = originalPanel.performanceModel.timelineModelInternal.maximumRecordTimeInternal;
     const referenceDuration = tracingModelMaximumRecordTime - tracingModelMinimumRecordTime;
 
     const targetPanels = viewerInstance.targetPanels();
     for (const targetPanel of targetPanels) {
-      const performanceModel = targetPanel._performanceModel;
-      const tracingModel = performanceModel.tracingModel();
+
+      const currentMin = targetPanel.performanceModel.timelineModelInternal.minimumRecordTimeInternal;
+      const currentMax = targetPanel.performanceModel.timelineModelInternal.maximumRecordTimeInternal;
 
       // trace times are trace-specific and not 0-based
-      const baseTime = tracingModel.minimumRecordTime();
-      tracingModel._maximumRecordTime = Math.min(baseTime + referenceDuration, tracingModel._maximumRecordTime);
+      const left = currentMin;
+      // Keep left edge the same and just change the right to match duration.
+      const right = Math.min(left + referenceDuration, currentMax);
 
-      performanceModel.setTracingModel(tracingModel);
-      targetPanel._setModel(performanceModel);
+      const targetTraceBounds = targetPanel.element.ownerDocument.defaultView.TraceBounds;
+      targetTraceBounds.TraceBounds.BoundsManager.instance().setTimelineVisibleWindow(left, right,
+          {
+            shouldAnimate: true,
+          },
+      );
+
+      // targetPanel.performanceModel.timelineModelInternal.maximumRecordTimeInternal =
+
+      // performanceModel.setTracingModel(tracingModel);
+      // targetPanel._setModel(performanceModel);
+
+      const state = targetTraceBounds.TraceBounds.BoundsManager.instance().state();
+      console.log({state});
     }
 
-    const selectionPcts = {
-      start: originalPanel._overviewPane._overviewGrid._window.windowLeft,
-      end: originalPanel._overviewPane._overviewGrid._window.windowRight
-    };
-    const durationMs = viewerInstance.syncView._getSelectionDuration(selectionPcts);
-    viewerInstance._setTargetPanelsDuration(durationMs);
+    // const selectionPcts = {
+    //   start: originalPanel._overviewPane._overviewGrid._window.windowLeft,
+    //   end: originalPanel._overviewPane._overviewGrid._window.windowRight
+    // };
+    // const durationMs = viewerInstance.syncView._getSelectionDuration(selectionPcts);
+    // viewerInstance._setTargetPanelsDuration(durationMs);
   }
+
 
   /**
-   * monkey patched for PerfUI.OverviewGrid.Window.prototype._setWindowPosition
-   * @param {?number} start
-   * @param {?number} end
-   * @param {?Viewer} viewerInstance
+   * @param {object} requestedWindow
+   * @param {object} opts
    */
-  static setWindowPositionPatch(start, end, viewerInstance) {
-    // proceed w/ original code for our origin frame
-    const selectionPcts = SyncView.originalSetWindowPosition.call(this, start, end);
-    this._originalPanel = Timeline.TimelinePanel.instance();
-    const durationMs = viewerInstance.syncView._getSelectionDuration(selectionPcts);
-    viewerInstance.syncView._setTargetPanelsDuration(durationMs);
-  }
+  updateOther(requestedWindow, opts) {
+    const subPanel = this.subPanel();
+    const requestedDuration = requestedWindow.range;
 
-  _getSelectionDuration(selectionPcts) {
-    const originalPanel = this.originalPanel();
-    const originTraceStart = originalPanel._overviewPane._overviewCalculator.minimumBoundary();
-    const originTraceLengthMs = originalPanel._overviewPane._overviewCalculator.maximumBoundary() - originTraceStart;
+    const otherPanels = globalThis.parent.viewerInstance.syncView.constructor.panels().filter(p => p !== subPanel);
+    for (const otherPanel of otherPanels) {
+      const otherTraceBounds = otherPanel.element.ownerDocument.defaultView.TraceBounds;
+      const otherBoundsMgr = otherTraceBounds.TraceBounds.BoundsManager.instance();
+      const existingWindow = otherBoundsMgr.state()?.micro?.timelineTraceWindow;
+      if (!existingWindow) {
+        console.warn('no state yet'); continue;
+      }
+      const newWindow = {min: existingWindow.min, max: existingWindow.min + requestedDuration, range: requestedDuration};
+
+      // Here to the end of loop -- Copied from TraceBounds.ts
+      if (newWindow.min === existingWindow.min && newWindow.max === existingWindow.max) {
+        // New bounds are identical to the old ones so no action required.
+        return;
+      }
+
+      // if (newWindow.range < 1_000) {
+      //   // Minimum timeline visible window range is 1 millisecond.
+      //   return;
+      // }
+
+      // Ensure that the setTimelineVisibleWindow can never go outside the bounds of the minimap bounds.
+      newWindow.min = Math.max(otherBoundsMgr.state().micro.minimapTraceBounds.min, newWindow.min);
+      newWindow.max = Math.min(otherBoundsMgr.state().micro.minimapTraceBounds.max, newWindow.max);
+
+      otherBoundsMgr.state().timelineTraceWindow = newWindow;
+      otherBoundsMgr.dispatchEvent(new Event('traceboundsstatechanged', {state: otherBoundsMgr.state(), updateType: 'VISIBLE_WINDOW', options: {shouldAnimate: opts?.shouldAnimate,  updatedByTV: true}}));
+    }
+
+    // TODO.. MAGIC SOMETHING
 
     // calculate the selectionStart offset of origin frame
-    const originSelectionDurationMs = (selectionPcts.end - selectionPcts.start) * originTraceLengthMs;
-    return originSelectionDurationMs;
+    // const originSelectionDurationMs = (selectionPcts.end - selectionPcts.start) * originTraceLengthMs;
+    // return [min, max, range];
   }
 
   _setTargetPanelsDuration(durationMs) {
@@ -121,24 +157,29 @@ class SyncView {
 
   static timelines() {
     const frames = window.parent.document.getElementsByTagName('frame');
+    throw new Error('sdfsdf');
     return Array.from(frames)
-      .map(frame => frame.contentWindow['Timeline']);
+      .map(frame => frame.contentWindow?.UI?.panels?.timeline);
   }
 
   static panels() {
-    const timelines = SyncView.timelines();
-    return timelines.map(Timeline => Timeline.TimelinePanel.instance());
+    const frames = window.parent.document.getElementsByTagName('frame');
+    return Array.from(frames)
+      .map(frame => frame.contentWindow?.UI?.panels?.timeline);
+    // const timelines = SyncView.timelines();
+    // return timelines.map(Timeline => Timeline.TimelinePanel.instance());
   }
 
-  originalPanel() {
-    if (!this._originalPanel) {
-      this._originalPanel = Timeline.TimelinePanel.instance();
+  subPanel() {
+    if (!this._subPanel) {
+      this._subPanel = globalThis.UI?.panels?.timeline;
     }
 
-    return this._originalPanel;
+    return this._subPanel;
   }
 
   targetPanels() {
-    return SyncView.panels().filter(panel => panel !== this.originalPanel());
+    return SyncView.panels().filter(panel => panel !== this.subPanel());
   }
 }
+

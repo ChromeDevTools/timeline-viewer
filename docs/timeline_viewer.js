@@ -42,20 +42,24 @@ class Viewer {
 
     this.parseURLforTimelineId(this.timelineURL);
 
-    if (!this.timelineURL || this.startSplitViewIfNeeded(this.timelineURL)) {
+
+    this.welcomeView = !this.timelineURL;
+    this.handleDragEvents();
+
+    this.displaySplitView = this.startSplitViewIfNeeded(this.timelineURL);
+    if (this.displaySplitView) {
       this.splitViewContainer = document.getElementById('split-view-container');
-      this.isSplitView = this.splitViewContainer ? true : false;
-      this.canUploadToDrive = true;
-      this.welcomeView = true;
-      this.handleDragEvents();
-      this.docsElem.hidden = false;
+      this.syncView.splitViewTimelineLoaded()
+        .then(_ => SyncView.synchronizeRange(SyncView.panels()[0], this.syncView));
     }
+
+    this.docsElem.hidden = !this.timelineURL;
 
     // Start loading DevTools. (checkAuth will be racing against it)
     this.statusElem.hidden = false;
 
     this.handleNetworkStatus();
-    if (!this.isSplitView) {
+    if (!this.displaySplitView) {
       void this.devTools.init();
     }
 
@@ -253,16 +257,10 @@ class Viewer {
     this.requestDriveFileMeta();
   }
 
-  loadResource(requestedURL) {
-    return this.loadResourcePromise(requestedURL)
-      .then(resp => {
-        this.devTools.monkeyPatchingHandleDrop();
-        return resp;
-      });
-  }
 
   // monkeypatched method for devtools
-  loadResourcePromise(requestedURL) {
+  async fetchPatched(...args) {
+    const requestedURL = args.at(0);
     const url = new URL(requestedURL, location.href);
     const URLofViewer = new URL(location.href);
 
@@ -271,7 +269,7 @@ class Viewer {
     if (url && url.origin === URLofViewer.origin && (requestedURL !== this.timelineURL)) {
       const relativeurl = url.pathname.replace(URLofViewer.pathname, '').replace(/^\//, '');
       const redirectedURL = new URL(relativeurl, this.devtoolsBase);
-      return this._orig_loadResourcePromise(redirectedURL.toString());
+      return this._orig_fetch(redirectedURL.toString());
     }
 
     if (this.timelineProvider === 'drive') {
@@ -280,14 +278,17 @@ class Viewer {
 
     // pass through URLs that aren't our timelineURL param
     if (requestedURL !== this.timelineURL) {
-      return this._orig_loadResourcePromise(url);
+      return this._orig_fetch.apply(window, args);
     }
 
     // adjustments for CORS
     url.hostname = url.hostname.replace('github.com', 'githubusercontent.com');
     url.hostname = url.hostname.replace('www.dropbox.com', 'dl.dropboxusercontent.com');
 
-    return this.fetchTimelineAsset(url.href).then(payload => payload);
+    return this.fetchTimelineAsset(url.href).then(payload => {
+      this.devTools.monkeyPatchingHandleDrop();
+      return payload;
+    });
   }
 
   requestDriveFileMeta() {
@@ -348,7 +349,8 @@ class Viewer {
     return this.fetchTimelineAsset(url, this.setAuthHeaders.bind(this));
   }
 
-  handleDriveAsset(payload) {
+  async handleDriveAsset(resp) {
+    const payload = await resp.text();
     const msg = `✅ Timeline downloaded from Drive. (${payload.length} bytes)`;
     this.updateStatus(msg);
     this.showInfoMessage(msg);
@@ -363,13 +365,7 @@ class Viewer {
       onprogress: this.updateProgress.bind(this),
     }, true)
       .then(xhr => {
-        if (this.isSplitView) {
-          return this.syncView.splitViewTimelineLoaded()
-            .then(_ => SyncView.synchronizeRange(SyncView.panels()[0], this.syncView))
-            .then(_ => xhr.responseText);
-        } else {
-          return xhr.responseText;
-        }
+        return new Response(xhr.responseText);
       })
       .catch(({error, xhr}) => {
         this.makeDevToolsVisible(false);

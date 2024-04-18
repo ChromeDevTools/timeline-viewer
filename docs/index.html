@@ -115,13 +115,13 @@
           document.getElementById('status').textContent = 'Sorry y\'all, Chrome required to view traces.';
           return;
         }
-        const viewer = new Viewer();
+        globalThis.viewerInstance = new Viewer();
 
-        viewer.checkAuth({immediate: true});
+        viewerInstance.checkAuth({immediate: true});
 
         // TODO dunno about this
         // Runtime.startApplication('timelineviewer_app');
-        viewer.makeDevToolsVisible(true);
+        viewerInstance.makeDevToolsVisible(true);
 
         // Remove any service workers.
         navigator.serviceWorker.getRegistrations().then(registrations => {

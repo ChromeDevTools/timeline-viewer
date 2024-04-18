@@ -23,13 +23,17 @@ class DevTools {
   }
 
   async init() {
+
+    this.monkeyPatchFetch();
+
+    // TODO: paralellize
     const shell = await import('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/entrypoints/shell/shell.js');
     const workerApp = await import ('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/entrypoints/worker_app/worker_app.js');
 
-
-    const Main = await import('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/entrypoints/main/main.js');
+    // These shoulda already been fetched i just need a module reference for them
     globalThis.Root = await import('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/core/root/root.js');
     globalThis.Common = await import('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/core/common/common.js');
+    globalThis.TraceBounds = await import('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/services/trace_bounds/trace_bounds.js');
 
     Root.Runtime.experiments._supportEnabled = true;
     Root.Runtime.experiments.isEnabled = name => {
@@ -41,10 +45,6 @@ class DevTools {
           return false;
       }
     };
-
-    // We are monkeypatching window.loadResourcePromise, which is from devtools' Runtime.js
-    // TODO: doesnt exist anymore
-    //this.monkeypatchLoadResourcePromise();
 
 
     // force light theme as default (as landing looks terrible in dark)
@@ -73,24 +73,23 @@ class DevTools {
 
     // Common.settings is created in a window onload listener
 
-    function monkeyPatch() {
-      if (!Common.settings) {
+    const monkeyPatch = () => {
+      if (!Common.Settings.Settings) {
         console.warn('not monkeypatching');
         return;
       }
-      Common.settings.createSetting('timelineCaptureFilmStrip', true).set(true);
 
       this.monkepatchSetWindowPosition();
       this.monkeyPatchRequestWindowTimes();
       this.monkeypatchTimelineFeatures();
       this.monkeyPatchWindowChanged();
-    }
-    window.addEventListener('load', monkeyPatch.bind(this));
+    };
+    monkeyPatch();
   }
 
   monkeypatchTimelineFeatures() {
     // Instead of gray for unknown events, color them by event name.
-    UI.inspectorView.showPanel('timeline').then(() => {
+    // UI.inspectorView.showPanel('timeline').then(() => {
       // // Hue: all but red, Saturation: 15-35%, Lightness: 75%, Alpha: opaque
       // const colorGenerator = new Common.Color.Generator({min: 45, max: 325}, {min: 15, max: 35}, 75, 1);
       // const oldEventColor = Timeline.TimelineUIUtils.eventColor;
@@ -110,17 +109,24 @@ class DevTools {
       // PerfUI.TimelineOverviewCalculator.prototype.formatValue = function(value) {
       //   return formatTime(value - this.zeroTime());
       // };
-    });
+    // });
   }
 
   monkepatchSetWindowPosition() {
     const viewerInstance = this.viewerInstance;
     const plzRepeat = _ => setTimeout(_ => this.monkepatchSetWindowPosition(), 100);
-    if (typeof PerfUI === 'undefined' || typeof PerfUI.OverviewGrid === 'undefined' ) return plzRepeat();
-
-    PerfUI.OverviewGrid.Window.prototype._setWindowPosition = function(start, end) {
-      const overviewGridWindow = this;
-      SyncView.setWindowPositionPatch.call(overviewGridWindow, start, end, viewerInstance);
+    if (!globalThis.TraceBounds?.TraceBounds?.BoundsManager)  {
+      return plzRepeat();
+    }
+    const boundsMgr = TraceBounds.TraceBounds.BoundsManager.instance();
+    const orig = boundsMgr.setTimelineVisibleWindow;
+    TraceBounds.TraceBounds.BoundsManager.instance().setTimelineVisibleWindow = (...args) => {
+      let [window, opts] = args;
+      // Don't recursively update eachother
+      if (!opts?.updatedByTV) {
+        this.viewerInstance.syncView.updateOther(window, opts);
+      }
+      return orig.apply(boundsMgr, args);
     };
 
     setTimeout(_ => this.tweakUI(), 250);
@@ -174,9 +180,10 @@ class DevTools {
     }
   }
 
-  monkeypatchLoadResourcePromise() {
-    this.viewerInstance._orig_loadResourcePromise = Root.Runtime.loadResourcePromise;
-    Root.Runtime.loadResourcePromise = this.viewerInstance.loadResource.bind(this.viewerInstance);
+  monkeyPatchFetch() {
+    this.viewerInstance._orig_fetch = window.fetch;
+    // DANGER DANGER
+    window.fetch = (...args) => this.viewerInstance.fetchPatched(...args);
   }
 
   monkeyPatchingHandleDrop() {
