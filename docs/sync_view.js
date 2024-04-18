@@ -2,28 +2,6 @@
 
 // eslint-disable-next-line no-unused-vars
 class SyncView {
-  splitViewTimelineLoaded() {
-    return new Promise(resolve => {
-      let isLoaded = false;
-      const checkLoading = setInterval(() => {
-        const panels = SyncView.panels();
-        for (const panel of panels) {
-          if (panel?.state === 'Idle' && panel.element.ownerDocument.defaultView.TraceBounds) {
-            isLoaded = true;
-          } else {
-            isLoaded = false;
-            return;
-          }
-        }
-        if (isLoaded) {
-          clearInterval(checkLoading);
-          resolve();
-        }
-      }, 500);
-    });
-  }
-
-
 
   /**
    * do the sync magic

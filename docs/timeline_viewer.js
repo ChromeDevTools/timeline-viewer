@@ -46,8 +46,6 @@ class Viewer {
     this.displaySplitView = this.startSplitViewIfNeeded(this.timelineParamValue);
     if (this.displaySplitView) {
       this.splitViewContainer = document.getElementById('split-view-container');
-      this.syncView.splitViewTimelineLoaded()
-        .then(_ => SyncView.synchronizeRange(SyncView.panels()[0], this.syncView));
     }
 
     this.parseURLforTimelineId(this.timelineURL);
