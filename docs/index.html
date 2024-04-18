@@ -35,11 +35,11 @@
                     <input type="text" name=url id="enterurl" placeholder="Enter public Dropbox URL or raw Gist URL" class="w-80">
                     <input type="submit" class="btn btn--s btn--gray" value="OK">
                     <small class="db black-50">
-                        Works with 
+                        Works with
                         <em>Dropbox public URLs</em> (<a href="?loadTimelineFromURL=https://www.dropbox.com/s/s1n8m8n5oddgoxx/timeline-docs.json?dl=0" data-url="https://www.dropbox.com/s/s1n8m8n5oddgoxx/timeline-docs.json?dl=0">example</a>),
                         <em>GitHub raw gists</em> (<a href="?loadTimelineFromURL=https://gist.github.com/paulirish/f83d30384954937dc3a1fae970a4ae52/raw/b25b27741c652d3091a316dfd8b58bf72f14aa74/twitch.json"  data-url="https://gist.github.com/paulirish/f83d30384954937dc3a1fae970a4ae52/raw/b25b27741c652d3091a316dfd8b58bf72f14aa74/twitch.json">example</a>),
-                        <br> or any file available over CORS. 
-                        
+                        <br> or any file available over CORS.
+
                         <br><br>Multiple URLS will generate a <a href="./?loadTimelineFromURL=https://www.dropbox.com/s/k84dlf4i1g55t7x/jooj123-before.json?dl=0,https://www.dropbox.com/s/5dzjiodggtouk32/jooj123-after.json?dl=0" data-url="https://www.dropbox.com/s/k84dlf4i1g55t7x/jooj123-before.json?dl=0,https://www.dropbox.com/s/5dzjiodggtouk32/jooj123-after.json?dl=0">split view</a> with a synchronized timescale.
                     </small>
                     <br>
@@ -49,7 +49,7 @@
         </article>
 
         <article id="howto" class="mw7  tl" style="margin-top: 105px; margin: 0 auto;">
-         
+
             <h3 class="f4 br3 br--top black-60 pv2 mb0">Wanna compare traces?</h3>
             <p>Enter multiple URLs, seperated by commas. Once you select a timerange in one of the traces, the other viewers will automatically zoom to the same size timerange, for easy comparison.</p>
             <img src="https://cloud.githubusercontent.com/assets/6231516/26029813/34525ec6-3847-11e7-9663-a42b69fa5d8d.gif" style="width: 80%; margin: 20px auto; display: block;">
@@ -62,7 +62,7 @@
 
             <h3 class="f4 br3 br--top black-60 pv2 mb0">Google Drive Integration (very optional)</h3>
             <article class="center mw7-ns br3 ba b--black-10 mv4">
-            
+
               <div class="pa3 bt b--black-10 f6 f5-ns lh-copy">
                 <div class=gdrive>
                     <p id="status">Checking for Drive API authorization...</p>
@@ -77,7 +77,7 @@
 
             <img src="https://cloud.githubusercontent.com/assets/39191/18080010/67390d9a-6e48-11e6-98a3-9c8c81b1df67.png" style="width: 80%; margin: 20px auto; display: block;">
 
-            <p>You can share this URL with any users who have both 1) authorized Timeline Viewer to Drive via the typical Google OAuth flow and 2) have <code>Edit</code> permission to the Google Drive file. 
+            <p>You can share this URL with any users who have both 1) authorized Timeline Viewer to Drive via the typical Google OAuth flow and 2) have <code>Edit</code> permission to the Google Drive file.
 
             <img src="https://cloud.githubusercontent.com/assets/39191/18080845/fb39f056-6e4b-11e6-90df-6cda94bd2495.png" style="width: 80%; margin: 20px auto; display: block;">
 
@@ -89,7 +89,6 @@
         <small class="f6 gray dib mr3 mr4-ns mv4">Contribute! <a class="link dim" href="https://github.com/ChromeDevTools/timeline-viewer">github.com/ChromeDevTools/timeline-viewer</a></small>
 
     </div>
-    <script src="service-worker.js"></script>
     <script src="https://chrome-devtools-frontend.appspot.com/serve_file/@675968a8c657a3bd9c1c2c20c5d2935577bbc5e6/shell.js" id="devtoolsscript"></script>
     <script src="https://chrome-devtools-frontend.appspot.com/serve_file/@675968a8c657a3bd9c1c2c20c5d2935577bbc5e6/devtools_app.js"></script>
 
@@ -115,21 +114,10 @@
         viewer.devTools.monkeypatchLoadResourcePromise();
         Runtime.startApplication('timelineviewer_app');
 
-        navigator.serviceWorker
-          .register('service-worker.js')
-          .then(registration => {
-            registration.onupdatefound = () => {
-              const installingWorker = registration.installing;
-              installingWorker.onstatechange = () => {
-                if (installingWorker.state === 'activated') {
-                  viewer.showInfoMessage('Timeline Viewer is ready to be used offline');
-                }
-              };
-            };
-          })
-          .catch(error => {
-            console.error('Error during service worker registration:', error);
-          });
+        // Remove any service workers.
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+            for (const registration of registrations) registration.unregister();
+        });
       });
     </script>
 

@@ -9,8 +9,6 @@ Works with GitHub gists, public GitHub URLs, some dropbox public URLs, public fi
 
 You can also drag and drop a `Profile-*.json` file onto the webapp.
 
-The app works offline as it has a service worker, as well. :)
-
 
 
 <hr clear=both>
