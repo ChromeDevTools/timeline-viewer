@@ -78,25 +78,25 @@ class DevTools {
   monkeypatchTimelineFeatures() {
     // Instead of gray for unknown events, color them by event name.
     UI.inspectorView.showPanel('timeline').then(() => {
-      // Hue: all but red, Saturation: 15-35%, Lightness: 75%, Alpha: opaque
-      const colorGenerator = new Common.Color.Generator({min: 45, max: 325}, {min: 15, max: 35}, 75, 1);
-      const oldEventColor = Timeline.TimelineUIUtils.eventColor;
+      // // Hue: all but red, Saturation: 15-35%, Lightness: 75%, Alpha: opaque
+      // const colorGenerator = new Common.Color.Generator({min: 45, max: 325}, {min: 15, max: 35}, 75, 1);
+      // const oldEventColor = Timeline.TimelineUIUtils.eventColor;
 
-      Timeline.TimelineUIUtils.eventColor = event => {
-        const categoryName = Timeline.TimelineUIUtils.eventStyle(event).category.name;
-        if (categoryName === 'other' || categoryName === 'async') {
-          return colorGenerator.colorForID(event.name);
-        }
-        return oldEventColor.call(Timeline.TimelineUIUtils, event);
-      };
+      // Timeline.TimelineUIUtils.eventColor = event => {
+      //   const categoryName = Timeline.TimelineUIUtils.eventStyle(event).category.name;
+      //   if (categoryName === 'other' || categoryName === 'async') {
+      //     return colorGenerator.colorForID(event.name);
+      //   }
+      //   return oldEventColor.call(Timeline.TimelineUIUtils, event);
+      // };
 
-      // Don't force to milliseconds always. Time Dividers can be shown in seconds
-      const formatTime = value => Number.millisToString(value, true);
-      Timeline.TimelineFlameChartNetworkDataProvider.prototype.formatValue = formatTime;
-      Timeline.TimelineFlameChartDataProvider.prototype.formatValue = formatTime;
-      PerfUI.TimelineOverviewCalculator.prototype.formatValue = function(value) {
-        return formatTime(value - this.zeroTime());
-      };
+      // // Don't force to milliseconds always. Time Dividers can be shown in seconds
+      // const formatTime = value => Number.millisToString(value, true);
+      // Timeline.TimelineFlameChartNetworkDataProvider.prototype.formatValue = formatTime;
+      // Timeline.TimelineFlameChartDataProvider.prototype.formatValue = formatTime;
+      // PerfUI.TimelineOverviewCalculator.prototype.formatValue = function(value) {
+      //   return formatTime(value - this.zeroTime());
+      // };
     });
   }
 

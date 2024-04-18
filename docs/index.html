@@ -36,14 +36,17 @@
                     <input type="submit" class="btn btn--s btn--gray" value="OK">
                     <small class="db black-50">
                         Works with
-                        <em>GitHub raw gists</em> (<a href="?loadTimelineFromURL=https://gist.github.com/paulirish/f83d30384954937dc3a1fae970a4ae52/raw/b25b27741c652d3091a316dfd8b58bf72f14aa74/twitch.json"  data-url="https://gist.github.com/paulirish/f83d30384954937dc3a1fae970a4ae52/raw/b25b27741c652d3091a316dfd8b58bf72f14aa74/twitch.json">example</a>)
-                        or any file available over CORS.
-
+                        <em>GitHub raw gists</em>
+                        (<a href="?loadTimelineFromURL=https://gist.githubusercontent.com/paulirish/5b5d6bdcfde557ff3eec4571dc6a0485/raw/07bc7905441e45e1e1dc751cf09c3d640ab46fc0/hello-opp.trace.json"  data-url="https://gist.githubusercontent.com/paulirish/5b5d6bdcfde557ff3eec4571dc6a0485/raw/07bc7905441e45e1e1dc751cf09c3d640ab46fc0/hello-opp.trace.json">example</a>)
+                        or any file available over CORS
+                        <!-- TODO.. url encoding thigns.
+                           (<a href="?loadTimelineFromURL=https%3A%2F%2Ffirebasestorage.googleapis.com%2Fv0%2Fb%2Ftum-permatraces2%2Fo%2Fpermatraces%252Fdemotrace.json%3Falt%3Dmedia%26token%3D7e6a767e-9c3c-4c41-a948-6ca8cbd2f945"  data-url="https%3A%2F%2Ffirebasestorage.googleapis.com%2Fv0%2Fb%2Ftum-permatraces2%2Fo%2Fpermatraces%252Fdemotrace.json%3Falt%3Dmedia%26token%3D7e6a767e-9c3c-4c41-a948-6ca8cbd2f945">example</a>) -->
+                        .
 
                         <!-- TODO, use some working URLs here.
                           <br><br>Multiple URLS will generate a <a href="./?loadTimelineFromURL=https%3A%2F%2Ffirebasestorage.googleapis.com%2Fv0%2Fb%2Ftum-permatraces2%2Fo%2Fpermatraces%252Fdemotrace.json%3Falt%3Dmedia%26token%3D7e6a767e-9c3c-4c41-a948-6ca8cbd2f945,https%3A%2F%2Ffirebasestorage.googleapis.com%2Fv0%2Fb%2Ftum-permatraces2%2Fo%2Fpermatraces%252F7qvReGZ6RU%3Falt%3Dmedia%26token%3D934388e9-421b-471b-8f26-eebbf97d75e0" data-url="https%3A%2F%2Ffirebasestorage.googleapis.com%2Fv0%2Fb%2Ftum-permatraces2%2Fo%2Fpermatraces%252Fdemotrace.json%3Falt%3Dmedia%26token%3D7e6a767e-9c3c-4c41-a948-6ca8cbd2f945,https%3A%2F%2Ffirebasestorage.googleapis.com%2Fv0%2Fb%2Ftum-permatraces2%2Fo%2Fpermatraces%252F7qvReGZ6RU%3Falt%3Dmedia%26token%3D934388e9-421b-471b-8f26-eebbf97d75e0">split view</a> with a synchronized timescale.
                         -->
-                          <br><br>Multiple URLS will generate a <a href="./?loadTimelineFromURL=https://www.dropbox.com/s/k84dlf4i1g55t7x/jooj123-before.json?dl=0,https://www.dropbox.com/s/5dzjiodggtouk32/jooj123-after.json?dl=0" data-url="https://www.dropbox.com/s/k84dlf4i1g55t7x/jooj123-before.json?dl=0,https://www.dropbox.com/s/5dzjiodggtouk32/jooj123-after.json?dl=0">split view</a> with a synchronized timescale.
+                          <br><br>Multiple URLS will generate a <a href="./?loadTimelineFromURL=https://gist.githubusercontent.com/paulirish/5b5d6bdcfde557ff3eec4571dc6a0485/raw/07bc7905441e45e1e1dc751cf09c3d640ab46fc0/hello-opp.trace.json,https://gist.githubusercontent.com/paulirish/5b5d6bdcfde557ff3eec4571dc6a0485/raw/07bc7905441e45e1e1dc751cf09c3d640ab46fc0/hello-opp.trace.json" data-url="https://gist.githubusercontent.com/paulirish/5b5d6bdcfde557ff3eec4571dc6a0485/raw/07bc7905441e45e1e1dc751cf09c3d640ab46fc0/hello-opp.trace.json,https://gist.githubusercontent.com/paulirish/5b5d6bdcfde557ff3eec4571dc6a0485/raw/07bc7905441e45e1e1dc751cf09c3d640ab46fc0/hello-opp.trace.json">split view</a> with a synchronized timescale.
                     </small>
                     <br>
                     <span>… or Drag & Drop json file here</span>
@@ -132,51 +135,6 @@
       });
     </script>
 
-
-    <script>
-    // allowlist what's loaded so we can avoid starting up a bunch of random tabs we don't need. faster load too.
-    applicationDescriptor.modules = [
-        { "name": "bindings", "type": "autostart" },
-        { "name": "common", "type": "autostart" },
-        { "name": "components", "type": "autostart"},
-        { "name": "console_counters", "type": "autostart" },
-        { "name": "dom_extension", "type": "autostart" },
-        { "name": "extensions", "type": "autostart" },
-        { "name": "host", "type": "autostart" },
-        { "name": "main", "type": "autostart" },
-        { "name": "persistence", "type": "autostart" },
-        { "name": "platform", "type": "autostart" },
-        { "name": "product_registry", "type": "autostart" },
-        { "name": "protocol", "type": "autostart" },
-        { "name": "sdk", "type": "autostart" },
-        { "name": "browser_sdk", "type": "autostart" },
-        { "name": "services", "type": "autostart" },
-        { "name": "text_utils", "type": "autostart" },
-        { "name": "ui", "type": "autostart" },
-        { "name": "workspace", "type": "autostart" },
-        { "name": "timeline" },
-        { "name": "timeline_model" },
-
-        {"name": "layer_viewer"},
-        {"name": "timeline_model"},
-        {"name": "perf_ui"},
-        {"name": "extensions"},
-        {"name": "data_grid"},
-        {"name": "product_registry"},
-        {"name": "profiler"},
-        {"name": "mobile_throttling"},
-
-        {"name": "source_frame"},
-        {"name": "text_editor"},
-        {"name": "cm"},
-        {"name": "formatter"},
-        {"name": "object_ui"},
-        {"name": "workspace_diff"},
-        {"name": "diff"},
-        {"name": "persistence"},
-        {"name": "heap_snapshot_model"},
-    ];
-  </script>
 
     <body class="undocked" id="-blink-dev-tools"></body>
 
