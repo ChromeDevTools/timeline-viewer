@@ -55,7 +55,9 @@ class Viewer {
     this.statusElem.hidden = false;
 
     this.handleNetworkStatus();
-    void this.devTools.init();
+    if (!this.isSplitView) {
+      void this.devTools.init();
+    }
 
     if (!this.welcomeView) {
       this.makeDevToolsVisible(true);
