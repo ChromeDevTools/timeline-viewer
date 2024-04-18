@@ -4,23 +4,9 @@
 class DevTools {
   constructor(options) {
     this.viewerInstance = options.viewerInstance;
-    this.attachMonkeyPatchListeners();
+
   }
 
-
-  eventHasCtrlOrMeta(event) {
-    return this.platform === 'mac' ? (event.metaKey && !event.ctrlKey) : (event.ctrlKey && !event.metaKey);
-  }
-
-
-  attachMonkeyPatchListeners() {
-    // don't let devtools trap ctrl-r
-    document.addEventListener('keydown', event => {
-      if (self.UI && this.eventHasCtrlOrMeta(event) && String.fromCharCode(event.which).toLowerCase() === 'r') {
-        event.handled = true;
-      }
-    });
-  }
 
   async init() {
 
@@ -55,27 +41,6 @@ class DevTools {
     localStorage.setItem('inspector.drawer-split-view-state', `{"horizontal":{"size":0,"showMode":"OnlyMain"}}`);
     sessionStorage.setItem('inspector.drawer-split-view-state', `{"horizontal":{"size":0,"showMode":"OnlyMain"}}`);
 
-    // Common.moduleSetting = function(module) {
-    //   const ret = {
-    //     addChangeListener: _ => { },
-    //     removeChangeListener: _ => { },
-    //     get: _ => new Map(),
-    //     set: _ => { },
-    //     getAsArray: _ => []
-    //   };
-    //   if (module === 'releaseNoteVersionSeen') {
-    //     ret.get = _ => Infinity;
-    //   }
-    //   if (module === 'showNativeFunctionsInJSProfile') {
-    //     ret.get = _ => true;
-    //   }
-    //   if (module === 'flamechartMouseWheelAction') {
-    //     ret.get = _ => 'zoom';
-    //   }
-    //   return ret;
-    // };
-
-    // Common.settings is created in a window onload listener
 
     const monkeyPatch = () => {
       if (!Common.Settings.Settings) {
@@ -83,14 +48,13 @@ class DevTools {
         return;
       }
 
-      this.monkepatchSetWindowPosition();
-      // this.monkeyPatchRequestWindowTimes();
+      this.monkepatchSetTimelineVisibleWindow();
       this.monkeypatchTimelineFeatures();
-      // this.monkeyPatchWindowChanged();
     };
     monkeyPatch();
   }
 
+  // todo maybe bring these back. they're kinda interesting.
   monkeypatchTimelineFeatures() {
     // Instead of gray for unknown events, color them by event name.
     // UI.inspectorView.showPanel('timeline').then(() => {
@@ -116,12 +80,12 @@ class DevTools {
     // });
   }
 
-  monkepatchSetWindowPosition() {
-    const viewerInstance = this.viewerInstance;
-    const plzRepeat = _ => setTimeout(_ => this.monkepatchSetWindowPosition(), 100);
+  monkepatchSetTimelineVisibleWindow() {
+    const plzRepeat = _ => setTimeout(_ => this.monkepatchSetTimelineVisibleWindow(), 100);
     if (!globalThis.TraceBounds?.TraceBounds?.BoundsManager)  {
       return plzRepeat();
     }
+
     const boundsMgr = TraceBounds.TraceBounds.BoundsManager.instance();
     const orig = boundsMgr.setTimelineVisibleWindow;
     TraceBounds.TraceBounds.BoundsManager.instance().setTimelineVisibleWindow = (...args) => {
@@ -140,19 +104,6 @@ class DevTools {
     setTimeout(_ => this.tweakUI(), 250);
   }
 
-
-  // // there's an infinite loop for some reason and this nips it in the bud
-  // monkeyPatchWindowChanged() {
-  //   const plzRepeat = _ => setTimeout(_ => this.monkeyPatchWindowChanged(), 100);
-  //   if (typeof PerfUI === 'undefined' || typeof PerfUI.FlameChart === 'undefined' ) return plzRepeat();
-
-  //   const realWindowChanged = PerfUI.FlameChart.prototype.windowChanged;
-  //   PerfUI.FlameChart.prototype.windowChanged = function(startTime, endTime, animate) {
-  //     if (isNaN(startTime)) return;
-  //     const flameChart = this;
-  //     realWindowChanged.call(flameChart, startTime, endTime, animate);
-  //   };
-  // }
 
   tweakUI() {
     try {
@@ -180,30 +131,5 @@ class DevTools {
     window.fetch = (...args) => this.viewerInstance.fetchPatched(...args);
   }
 
-  monkeyPatchingHandleDrop() {
-    // todo add detection for correct panel in split view
-    // todo sync traces after dropping file
-    if (window.Timeline && window.Timeline.TimelinePanel) {
-      const timelinePanel = Timeline.TimelinePanel.instance();
-      const dropTarget = timelinePanel._dropTarget;
-      const handleDrop = dropTarget._handleDrop;
-      dropTarget._handleDrop = function(...args) {
-        handleDrop.apply(dropTarget, args);
-      };
-    }
-  }
 
-  monkepatchSetMarkers() {
-    const panel = Timeline.TimelinePanel.instance();
-    const oldSetMarkers = panel._setMarkers;
-    panel._setMarkers = function() {
-      if (this._performanceModel._timelineModel.networkRequests().length === 0) {
-        Common.settings.createSetting('timelineCaptureNetwork', true).set(false);
-      }
-      if (this._performanceModel.filmStripModel()._frames.length === 0) {
-        Common.settings.createSetting('timelineCaptureFilmStrip', true).set(false);
-      }
-      oldSetMarkers.call(this, this._performanceModel._timelineModel);
-    };
-  }
 }

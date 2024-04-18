@@ -62,7 +62,8 @@ class Viewer {
     this.statusElem.hidden = false;
 
     this.handleNetworkStatus();
-    if (!this.displaySplitView) {
+    // only start up devtools if we have a param
+    if (!this.displaySplitView && this.timelineURL) {
       void this.devTools.init();
     }
 
@@ -270,10 +271,7 @@ class Viewer {
     url.hostname = url.hostname.replace('github.com', 'githubusercontent.com');
     url.hostname = url.hostname.replace('www.dropbox.com', 'dl.dropboxusercontent.com');
 
-    return this.fetchTimelineAsset(url.href).then(payload => {
-      this.devTools.monkeyPatchingHandleDrop();
-      return payload;
-    });
+    return this.fetchTimelineAsset(url.href);
   }
 
   requestDriveFileMeta() {
