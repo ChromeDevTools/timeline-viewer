@@ -37,19 +37,14 @@
                     <small class="db black-50">
                         Works with
                         <em>GitHub raw gists</em>
-                        (<a href="?loadTimelineFromURL=https://gist.githubusercontent.com/paulirish/5b5d6bdcfde557ff3eec4571dc6a0485/raw/07bc7905441e45e1e1dc751cf09c3d640ab46fc0/hello-opp.trace.json"  data-url="https://gist.githubusercontent.com/paulirish/5b5d6bdcfde557ff3eec4571dc6a0485/raw/07bc7905441e45e1e1dc751cf09c3d640ab46fc0/hello-opp.trace.json">example</a>)
-                        or any file available over CORS
-                        <!-- TODO.. url encoding thigns.
-                           (<a href="?loadTimelineFromURL=https%3A%2F%2Ffirebasestorage.googleapis.com%2Fv0%2Fb%2Ftum-permatraces2%2Fo%2Fpermatraces%252Fdemotrace.json%3Falt%3Dmedia%26token%3D7e6a767e-9c3c-4c41-a948-6ca8cbd2f945"  data-url="https%3A%2F%2Ffirebasestorage.googleapis.com%2Fv0%2Fb%2Ftum-permatraces2%2Fo%2Fpermatraces%252Fdemotrace.json%3Falt%3Dmedia%26token%3D7e6a767e-9c3c-4c41-a948-6ca8cbd2f945">example</a>) -->
-                        .
-
-                        <!-- TODO, use some working URLs here.
-                          <br><br>Multiple URLS will generate a <a href="./?loadTimelineFromURL=https%3A%2F%2Ffirebasestorage.googleapis.com%2Fv0%2Fb%2Ftum-permatraces2%2Fo%2Fpermatraces%252Fdemotrace.json%3Falt%3Dmedia%26token%3D7e6a767e-9c3c-4c41-a948-6ca8cbd2f945,https%3A%2F%2Ffirebasestorage.googleapis.com%2Fv0%2Fb%2Ftum-permatraces2%2Fo%2Fpermatraces%252F7qvReGZ6RU%3Falt%3Dmedia%26token%3D934388e9-421b-471b-8f26-eebbf97d75e0" data-url="https%3A%2F%2Ffirebasestorage.googleapis.com%2Fv0%2Fb%2Ftum-permatraces2%2Fo%2Fpermatraces%252Fdemotrace.json%3Falt%3Dmedia%26token%3D7e6a767e-9c3c-4c41-a948-6ca8cbd2f945,https%3A%2F%2Ffirebasestorage.googleapis.com%2Fv0%2Fb%2Ftum-permatraces2%2Fo%2Fpermatraces%252F7qvReGZ6RU%3Falt%3Dmedia%26token%3D934388e9-421b-471b-8f26-eebbf97d75e0">split view</a> with a synchronized timescale.
-                        -->
-                          <br><br>Multiple URLS will generate a <a href="./?loadTimelineFromURL=https://gist.githubusercontent.com/paulirish/5b5d6bdcfde557ff3eec4571dc6a0485/raw/07bc7905441e45e1e1dc751cf09c3d640ab46fc0/hello-opp.trace.json,https://gist.githubusercontent.com/paulirish/5b5d6bdcfde557ff3eec4571dc6a0485/raw/07bc7905441e45e1e1dc751cf09c3d640ab46fc0/hello-opp.trace.json" data-url="https://gist.githubusercontent.com/paulirish/5b5d6bdcfde557ff3eec4571dc6a0485/raw/07bc7905441e45e1e1dc751cf09c3d640ab46fc0/hello-opp.trace.json,https://gist.githubusercontent.com/paulirish/5b5d6bdcfde557ff3eec4571dc6a0485/raw/07bc7905441e45e1e1dc751cf09c3d640ab46fc0/hello-opp.trace.json">split view</a> with a synchronized timescale.
+                        (<a href="?loadTimelineFromURL=https://gist.githubusercontent.com/paulirish/5b5d6bdcfde557ff3eec4571dc6a0485/raw/07bc7905441e45e1e1dc751cf09c3d640ab46fc0/hello-opp.trace.json">example</a>)
+                        or any file available over CORS.
                     </small>
                     <br>
-                    <span>… or Drag & Drop json file here</span>
+                    <input type="text" name=url2 id="enterurl2" placeholder="Enter another (optionally) for comparison" class="w-80">
+                    <small class="db black-50">
+                        Multiple URLS will generate a <a href="./?loadTimelineFromURL=https://gist.github.com/paulirish/f5189879b4882a8de6638b1007fbd6c5/raw/0dfff42bdba4796459e030c518e43298598e2e5d/devtools-scrolling-datagrid-m89.json&loadTimelineFromURL=https://gist.githubusercontent.com/paulirish/f5189879b4882a8de6638b1007fbd6c5/raw/0dfff42bdba4796459e030c518e43298598e2e5d/devtools-scrolling-datagrid-m122.json">split view</a> with a synchronized timescale.
+                    </small>
                 </form>
             </div>
         </article>

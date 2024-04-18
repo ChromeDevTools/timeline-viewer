@@ -7,7 +7,9 @@ class Viewer {
   constructor() {
     this.params = new URL(location.href).searchParams;
     this.syncView = new SyncView();
-    this.timelineURL = this.params.get('loadTimelineFromURL');
+    this.timelineParamValue = this.params.getAll('loadTimelineFromURL');
+    this.timelineURL = this.timelineParamValue.at(0);
+
     this.timelineId = null;
     this.timelineProvider = 'url';
 
@@ -40,18 +42,19 @@ class Viewer {
       this.driveAssetLoadedResolver = resolve;
     });
 
-    this.parseURLforTimelineId(this.timelineURL);
 
-
-    this.welcomeView = !this.timelineURL;
-    this.handleDragEvents();
-
-    this.displaySplitView = this.startSplitViewIfNeeded(this.timelineURL);
+    this.displaySplitView = this.startSplitViewIfNeeded(this.timelineParamValue);
     if (this.displaySplitView) {
       this.splitViewContainer = document.getElementById('split-view-container');
       this.syncView.splitViewTimelineLoaded()
         .then(_ => SyncView.synchronizeRange(SyncView.panels()[0], this.syncView));
     }
+
+    this.parseURLforTimelineId(this.timelineURL);
+
+
+    this.welcomeView = !this.timelineURL;
+    this.handleDragEvents();
 
     this.docsElem.hidden = !this.timelineURL;
 
@@ -73,7 +76,6 @@ class Viewer {
     this.revokeAccessBtn.addEventListener('click', this.revokeAccess.bind(this));
     this.uploadToDriveElem.addEventListener('click', this.uploadTimelineData.bind(this));
     this.attachSubmitUrlListener();
-    this.attachPrefillUrlListener();
   }
 
   attachSubmitUrlListener() {
@@ -86,29 +88,14 @@ class Viewer {
       const parsedURL = new URL(location.href);
       parsedURL.searchParams.delete('loadTimelineFromURL');
       // this is weird because we don't want url encoding of the URL
-      parsedURL.searchParams.append('loadTimelineFromURL', 'REPLACEME');
-      location.href = parsedURL.toString().replace('REPLACEME', url);
+      parsedURL.searchParams.append('loadTimelineFromURL', formdata.get('url'));
+      if (formdata.get('url2')) {
+        parsedURL.searchParams.append('loadTimelineFromURL', formdata.get('url2'));
+      }
+      location.href = parsedURL;
     });
   }
 
-  attachPrefillUrlListener() {
-    const input = document.querySelector('#enterurl');
-    const submit = document.querySelector('input[type=submit]');
-
-    [...document.querySelectorAll('a[data-url]')].forEach(elem => {
-      elem.addEventListener('click', async evt => {
-        evt.preventDefault();
-        evt.cancelBubble = true;
-        const url = evt.target.dataset.url;
-        await wait(250);
-        input.value = url;
-        await wait(600);
-        submit.focus();
-        await wait(600);
-        submit.click();
-      });
-    });
-  }
 
   handleDragEvents() {
     const dropboxEl = document.getElementById('dropbox');
@@ -184,14 +171,12 @@ class Viewer {
       }
     } catch (e) {
       // legacy URLs, without a drive:// prefix.
-      this.timelineId = url;
+      this.timelineId = decodeURIComponent(url);
       this.timelineProvider = 'drive';
     }
   }
 
   startSplitViewIfNeeded(urls) {
-    urls = urls.split(',');
-
     if (urls.length > 1) {
       const frameset = document.createElement('frameset');
       frameset.setAttribute('id', 'split-view-container');
@@ -200,7 +185,7 @@ class Viewer {
       urls.forEach((url, index) => {
         const frame = document.createElement('frame');
         frame.setAttribute('id', `split-view-${index}`);
-        frame.setAttribute('src', `./?loadTimelineFromURL=${url.trim()}`);
+        frame.setAttribute('src', `./?loadTimelineFromURL=${encodeURIComponent(url.trim())}`);
         frameset.appendChild(frame);
       });
       document.body.appendChild(frameset);

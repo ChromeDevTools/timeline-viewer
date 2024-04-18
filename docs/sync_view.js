@@ -84,7 +84,7 @@ class SyncView {
     } else {
       this.existingTimer = setTimeout(() => {
         this.existingTimer = clearTimeout(this.existingTimer);
-      }, 500);
+      }, 100);
     }
 
     const otherPanels = globalThis.parent.viewerInstance.syncView.constructor.panels().filter(p => p !== subPanel);
@@ -117,40 +117,10 @@ class SyncView {
       newWindow.min = Math.max(otherBoundsMgr.state().micro.minimapTraceBounds.min, newWindow.min);
       newWindow.max = Math.min(otherBoundsMgr.state().micro.minimapTraceBounds.max, newWindow.max);
 
-
-      const entireTraceBounds = otherBoundsMgr.state()?.micro.entireTraceBounds;
-      const minimapTraceBounds = otherBoundsMgr.state()?.micro.minimapTraceBounds;
-      const timelineTraceWindow = newWindow;
-
-      const magicValueBoundsObject = new Proxy({}, {
-          get(target, prop) {
-              if (prop === 'entireTraceBounds') {
-                return entireTraceBounds;
-              } else if (prop === 'min') {
-                debugger;
-              } else if (prop === 'minimapTraceBounds') {
-                return minimapTraceBounds;
-              } else if (prop === 'timelineTraceWindow') {
-                return timelineTraceWindow;
-              } else {
-                  return target[prop]; // Handle other properties
-              }
-          }
-      });
-
-      otherBoundsMgr.resetWithNewBounds(magicValueBoundsObject);
-
-      // otherBoundsMgr.state().timelineTraceWindow = newWindow;
-
-
-      // otherBoundsMgr.dispatchEvent(new StateChangedEvent(otherBoundsMgr.state(), 'VISIBLE_WINDOW',  {shouldAnimate: opts?.shouldAnimate,  updatedByTV: true}));
+      opts = opts || {};
+      opts.updatedByTV = true;
+      otherBoundsMgr.setTimelineVisibleWindow(newWindow, opts)
     }
-
-    // TODO.. MAGIC SOMETHING
-
-    // calculate the selectionStart offset of origin frame
-    // const originSelectionDurationMs = (selectionPcts.end - selectionPcts.start) * originTraceLengthMs;
-    // return [min, max, range];
   }
 
   _setTargetPanelsDuration(durationMs) {

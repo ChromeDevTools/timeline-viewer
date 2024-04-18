@@ -51,6 +51,10 @@ class DevTools {
     // user can override this in DT settings tho.
     localStorage.setItem('uiTheme', JSON.stringify('default'))
 
+    // Don't show console drawer
+    localStorage.setItem('inspector.drawer-split-view-state', `{"horizontal":{"size":0,"showMode":"OnlyMain"}}`);
+    sessionStorage.setItem('inspector.drawer-split-view-state', `{"horizontal":{"size":0,"showMode":"OnlyMain"}}`);
+
     // Common.moduleSetting = function(module) {
     //   const ret = {
     //     addChangeListener: _ => { },
@@ -124,6 +128,7 @@ class DevTools {
       let [requestedWindow, opts] = args;
       // Don't recursively update eachother
       if (!opts?.updatedByTV) {
+        orig.apply(boundsMgr, args);
         this.viewerInstance.syncView.updateOther(requestedWindow, opts);
       }
       // Dont get into an infinite loop
@@ -157,10 +162,7 @@ class DevTools {
           .shadowRoot
           .querySelector('.vbox > .tabbed-pane-header');
       tabbedPaneHeaderEl.style.setProperty('--toolbar-bg-color', 'var(--md-sys-color-surface-container-highest)');
-      tabbedPaneHeaderEl.style.alignItems = 'center';
-      tabbedPaneHeaderEl.style.justifyContent = 'center';
-      tabbedPaneHeaderEl.style.fontSize = '120%';
-      tabbedPaneHeaderEl.innerHTML = '<span>DevTools Performance Timeline</span>';
+      tabbedPaneHeaderEl.innerHTML = '';
 
       // remove buttons from perf panel toolbar
       document.querySelector('.root-view .tabbed-pane > .view-container .timeline-main-toolbar')
