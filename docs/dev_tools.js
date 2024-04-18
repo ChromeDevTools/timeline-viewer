@@ -140,8 +140,16 @@ class DevTools {
 
   tweakUI() {
     try {
-      // hide panel tab strip
-      document.querySelector('.root-view .tabbed-pane').shadowRoot.querySelector('.vbox > .tabbed-pane-header').style.display = 'none';
+      // remove panel tabs
+      const tabbedPaneHeaderEl = document
+          .querySelector('.root-view .tabbed-pane')
+          .shadowRoot
+          .querySelector('.vbox > .tabbed-pane-header');
+      tabbedPaneHeaderEl.style.setProperty('--toolbar-bg-color', 'var(--md-sys-color-surface-container-highest)');
+      tabbedPaneHeaderEl.style.alignItems = 'center';
+      tabbedPaneHeaderEl.style.justifyContent = 'center';
+      tabbedPaneHeaderEl.style.fontSize = '120%';
+      tabbedPaneHeaderEl.innerHTML = '<span>DevTools Performance Timeline</span>';
 
       // remove buttons from perf panel toolbar
       document.querySelector('.root-view .tabbed-pane > .view-container .timeline-main-toolbar')
@@ -162,12 +170,10 @@ class DevTools {
     // todo add detection for correct panel in split view
     // todo sync traces after dropping file
     if (window.Timeline && window.Timeline.TimelinePanel) {
-      const viewerInstance = this.viewerInstance;
       const timelinePanel = Timeline.TimelinePanel.instance();
       const dropTarget = timelinePanel._dropTarget;
       const handleDrop = dropTarget._handleDrop;
       dropTarget._handleDrop = function(...args) {
-        viewerInstance.toggleUploadToDriveElem(viewerInstance.canUploadToDrive);
         handleDrop.apply(dropTarget, args);
       };
     }
