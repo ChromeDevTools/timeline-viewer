@@ -80,9 +80,9 @@ class DevTools {
       }
 
       this.monkepatchSetWindowPosition();
-      this.monkeyPatchRequestWindowTimes();
+      // this.monkeyPatchRequestWindowTimes();
       this.monkeypatchTimelineFeatures();
-      this.monkeyPatchWindowChanged();
+      // this.monkeyPatchWindowChanged();
     };
     monkeyPatch();
   }
@@ -121,41 +121,33 @@ class DevTools {
     const boundsMgr = TraceBounds.TraceBounds.BoundsManager.instance();
     const orig = boundsMgr.setTimelineVisibleWindow;
     TraceBounds.TraceBounds.BoundsManager.instance().setTimelineVisibleWindow = (...args) => {
-      let [window, opts] = args;
+      let [requestedWindow, opts] = args;
       // Don't recursively update eachother
       if (!opts?.updatedByTV) {
-        this.viewerInstance.syncView.updateOther(window, opts);
+        this.viewerInstance.syncView.updateOther(requestedWindow, opts);
       }
-      return orig.apply(boundsMgr, args);
+      // Dont get into an infinite loop
+      if (!this.viewerInstance.syncView.existingTimer) {
+        return orig.apply(boundsMgr, args);
+      }
     };
 
     setTimeout(_ => this.tweakUI(), 250);
   }
 
 
-  monkeyPatchRequestWindowTimes() {
-    const viewerInstance = this.viewerInstance;
-    const plzRepeat = _ => setTimeout(_ => this.monkeyPatchRequestWindowTimes(), 100);
-    if (typeof PerfUI === 'undefined' || typeof PerfUI.FlameChart === 'undefined' ) return plzRepeat();
+  // // there's an infinite loop for some reason and this nips it in the bud
+  // monkeyPatchWindowChanged() {
+  //   const plzRepeat = _ => setTimeout(_ => this.monkeyPatchWindowChanged(), 100);
+  //   if (typeof PerfUI === 'undefined' || typeof PerfUI.FlameChart === 'undefined' ) return plzRepeat();
 
-    // This is now called PerfUI.FlameChart.windowChanged, but otherwise the same
-    PerfUI.FlameChart.prototype.requestWindowTimes = function(startTime, endTime, animate) {
-      SyncView.requestWindowTimesPatch.call(this, startTime, endTime, animate, viewerInstance);
-    };
-  }
-
-  // there's an infinite loop for some reason and this nips it in the bud
-  monkeyPatchWindowChanged() {
-    const plzRepeat = _ => setTimeout(_ => this.monkeyPatchWindowChanged(), 100);
-    if (typeof PerfUI === 'undefined' || typeof PerfUI.FlameChart === 'undefined' ) return plzRepeat();
-
-    const realWindowChanged = PerfUI.FlameChart.prototype.windowChanged;
-    PerfUI.FlameChart.prototype.windowChanged = function(startTime, endTime, animate) {
-      if (isNaN(startTime)) return;
-      const flameChart = this;
-      realWindowChanged.call(flameChart, startTime, endTime, animate);
-    };
-  }
+  //   const realWindowChanged = PerfUI.FlameChart.prototype.windowChanged;
+  //   PerfUI.FlameChart.prototype.windowChanged = function(startTime, endTime, animate) {
+  //     if (isNaN(startTime)) return;
+  //     const flameChart = this;
+  //     realWindowChanged.call(flameChart, startTime, endTime, animate);
+  //   };
+  // }
 
   tweakUI() {
     try {

@@ -25,6 +25,8 @@ class SyncView {
 
 
   static synchronizeRange(originalPanel, viewerInstance) {
+    // tODO, sync it up at the start.
+    return;
     viewerInstance._originalPanel = originalPanel;
     originalPanel.performanceModel.timelineModelInternal.maximumRecordTimeInternal
     const tracingModelMinimumRecordTime = originalPanel.performanceModel.timelineModelInternal.minimumRecordTimeInternal;
@@ -67,6 +69,7 @@ class SyncView {
   }
 
 
+
   /**
    * @param {object} requestedWindow
    * @param {object} opts
@@ -74,6 +77,15 @@ class SyncView {
   updateOther(requestedWindow, opts) {
     const subPanel = this.subPanel();
     const requestedDuration = requestedWindow.range;
+
+    // Throttle this to 500ms
+    if (this.existingTimer) {
+      return
+    } else {
+      this.existingTimer = setTimeout(() => {
+        this.existingTimer = clearTimeout(this.existingTimer);
+      }, 500);
+    }
 
     const otherPanels = globalThis.parent.viewerInstance.syncView.constructor.panels().filter(p => p !== subPanel);
     for (const otherPanel of otherPanels) {
@@ -83,7 +95,12 @@ class SyncView {
       if (!existingWindow) {
         console.warn('no state yet'); continue;
       }
-      const newWindow = {min: existingWindow.min, max: existingWindow.min + requestedDuration, range: requestedDuration};
+
+      const newWindow = {
+        min: existingWindow.min,
+        max: existingWindow.min + requestedDuration,
+        range: requestedDuration
+      };
 
       // Here to the end of loop -- Copied from TraceBounds.ts
       if (newWindow.min === existingWindow.min && newWindow.max === existingWindow.max) {
@@ -100,8 +117,33 @@ class SyncView {
       newWindow.min = Math.max(otherBoundsMgr.state().micro.minimapTraceBounds.min, newWindow.min);
       newWindow.max = Math.min(otherBoundsMgr.state().micro.minimapTraceBounds.max, newWindow.max);
 
-      otherBoundsMgr.state().timelineTraceWindow = newWindow;
-      otherBoundsMgr.dispatchEvent(new Event('traceboundsstatechanged', {state: otherBoundsMgr.state(), updateType: 'VISIBLE_WINDOW', options: {shouldAnimate: opts?.shouldAnimate,  updatedByTV: true}}));
+
+      const entireTraceBounds = otherBoundsMgr.state()?.micro.entireTraceBounds;
+      const minimapTraceBounds = otherBoundsMgr.state()?.micro.minimapTraceBounds;
+      const timelineTraceWindow = newWindow;
+
+      const magicValueBoundsObject = new Proxy({}, {
+          get(target, prop) {
+              if (prop === 'entireTraceBounds') {
+                return entireTraceBounds;
+              } else if (prop === 'min') {
+                debugger;
+              } else if (prop === 'minimapTraceBounds') {
+                return minimapTraceBounds;
+              } else if (prop === 'timelineTraceWindow') {
+                return timelineTraceWindow;
+              } else {
+                  return target[prop]; // Handle other properties
+              }
+          }
+      });
+
+      otherBoundsMgr.resetWithNewBounds(magicValueBoundsObject);
+
+      // otherBoundsMgr.state().timelineTraceWindow = newWindow;
+
+
+      // otherBoundsMgr.dispatchEvent(new StateChangedEvent(otherBoundsMgr.state(), 'VISIBLE_WINDOW',  {shouldAnimate: opts?.shouldAnimate,  updatedByTV: true}));
     }
 
     // TODO.. MAGIC SOMETHING
@@ -183,3 +225,11 @@ class SyncView {
   }
 }
 
+class StateChangedEvent extends Event {
+  constructor(state, updateType, options = {shouldAnimate: false}) {
+    super('traceboundsstatechanged', {composed: true, bubbles: true});
+    this.state = state;
+    this.updateType = updateType;
+    this.options = options;
+  }
+}
