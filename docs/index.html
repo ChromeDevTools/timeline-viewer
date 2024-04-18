@@ -32,15 +32,18 @@
             <h3 class="f4 bg-near-white br3 br--top black-60 mv0 pv2 ph3">View public traces</h3>
             <div class="pa3 bt b--black-10 f6 f5-ns lh-copy">
                 <form>
-                    <input type="text" name=url id="enterurl" placeholder="Enter public Dropbox URL or raw Gist URL" class="w-80">
+                    <input type="text" name=url id="enterurl" placeholder="Enter URL of raw Gist or CORS-enabled JSON" class="w-80">
                     <input type="submit" class="btn btn--s btn--gray" value="OK">
                     <small class="db black-50">
                         Works with
-                        <em>Dropbox public URLs</em> (<a href="?loadTimelineFromURL=https://www.dropbox.com/s/s1n8m8n5oddgoxx/timeline-docs.json?dl=0" data-url="https://www.dropbox.com/s/s1n8m8n5oddgoxx/timeline-docs.json?dl=0">example</a>),
-                        <em>GitHub raw gists</em> (<a href="?loadTimelineFromURL=https://gist.github.com/paulirish/f83d30384954937dc3a1fae970a4ae52/raw/b25b27741c652d3091a316dfd8b58bf72f14aa74/twitch.json"  data-url="https://gist.github.com/paulirish/f83d30384954937dc3a1fae970a4ae52/raw/b25b27741c652d3091a316dfd8b58bf72f14aa74/twitch.json">example</a>),
-                        <br> or any file available over CORS.
+                        <em>GitHub raw gists</em> (<a href="?loadTimelineFromURL=https://gist.github.com/paulirish/f83d30384954937dc3a1fae970a4ae52/raw/b25b27741c652d3091a316dfd8b58bf72f14aa74/twitch.json"  data-url="https://gist.github.com/paulirish/f83d30384954937dc3a1fae970a4ae52/raw/b25b27741c652d3091a316dfd8b58bf72f14aa74/twitch.json">example</a>)
+                        or any file available over CORS.
 
-                        <br><br>Multiple URLS will generate a <a href="./?loadTimelineFromURL=https://www.dropbox.com/s/k84dlf4i1g55t7x/jooj123-before.json?dl=0,https://www.dropbox.com/s/5dzjiodggtouk32/jooj123-after.json?dl=0" data-url="https://www.dropbox.com/s/k84dlf4i1g55t7x/jooj123-before.json?dl=0,https://www.dropbox.com/s/5dzjiodggtouk32/jooj123-after.json?dl=0">split view</a> with a synchronized timescale.
+
+                        <!-- TODO, use some working URLs here.
+                          <br><br>Multiple URLS will generate a <a href="./?loadTimelineFromURL=https%3A%2F%2Ffirebasestorage.googleapis.com%2Fv0%2Fb%2Ftum-permatraces2%2Fo%2Fpermatraces%252Fdemotrace.json%3Falt%3Dmedia%26token%3D7e6a767e-9c3c-4c41-a948-6ca8cbd2f945,https%3A%2F%2Ffirebasestorage.googleapis.com%2Fv0%2Fb%2Ftum-permatraces2%2Fo%2Fpermatraces%252F7qvReGZ6RU%3Falt%3Dmedia%26token%3D934388e9-421b-471b-8f26-eebbf97d75e0" data-url="https%3A%2F%2Ffirebasestorage.googleapis.com%2Fv0%2Fb%2Ftum-permatraces2%2Fo%2Fpermatraces%252Fdemotrace.json%3Falt%3Dmedia%26token%3D7e6a767e-9c3c-4c41-a948-6ca8cbd2f945,https%3A%2F%2Ffirebasestorage.googleapis.com%2Fv0%2Fb%2Ftum-permatraces2%2Fo%2Fpermatraces%252F7qvReGZ6RU%3Falt%3Dmedia%26token%3D934388e9-421b-471b-8f26-eebbf97d75e0">split view</a> with a synchronized timescale.
+                        -->
+                          <br><br>Multiple URLS will generate a <a href="./?loadTimelineFromURL=https://www.dropbox.com/s/k84dlf4i1g55t7x/jooj123-before.json?dl=0,https://www.dropbox.com/s/5dzjiodggtouk32/jooj123-after.json?dl=0" data-url="https://www.dropbox.com/s/k84dlf4i1g55t7x/jooj123-before.json?dl=0,https://www.dropbox.com/s/5dzjiodggtouk32/jooj123-after.json?dl=0">split view</a> with a synchronized timescale.
                     </small>
                     <br>
                     <span>… or Drag & Drop json file here</span>
@@ -60,28 +63,33 @@
 
           <hr>
 
-            <h3 class="f4 br3 br--top black-60 pv2 mb0">Google Drive Integration (very optional)</h3>
-            <article class="center mw7-ns br3 ba b--black-10 mv4">
+          <details>
+            <summary>
+              <h4 class="f4 br3 br--top black-60 pv2 mb0" style="display: inline;">Google Drive Integration (very optional)</h4>
+            </summary>
 
-              <div class="pa3 bt b--black-10 f6 f5-ns lh-copy">
-                <div class=gdrive>
-                    <p id="status">Checking for Drive API authorization...</p>
-                    <button class="btn btn--s btn--green" id="auth" hidden>Authorize Drive API access</button>
-                    <button class="btn btn--s btn--yellow" id="revoke-access" hidden>Revoke API Access</button>
+              <article class="center mw7-ns br3 ba b--black-10 mv4">
+
+                <div class="pa3 bt b--black-10 f6 f5-ns lh-copy">
+                  <div class=gdrive>
+                      <p id="status">Checking for Drive API authorization...</p>
+                      <button class="btn btn--s btn--green" id="auth" hidden>Authorize Drive API access</button>
+                      <button class="btn btn--s btn--yellow" id="revoke-access" hidden>Revoke API Access</button>
+                  </div>
                 </div>
-              </div>
-          </article>
+            </article>
 
-            <p>Once authorized, you'll see Timeline Viewer as a registered Google Drive viewer when opening <code>.json</code> files.
-            Once you select the Timeline Viewer, it will open in a new tab and load the timeline asset from your Drive.</p>
+              <p>Once authorized, you'll see Timeline Viewer as a registered Google Drive viewer when opening <code>.json</code> files.
+              Once you select the Timeline Viewer, it will open in a new tab and load the timeline asset from your Drive.</p>
 
-            <img src="https://cloud.githubusercontent.com/assets/39191/18080010/67390d9a-6e48-11e6-98a3-9c8c81b1df67.png" style="width: 80%; margin: 20px auto; display: block;">
+              <img src="https://cloud.githubusercontent.com/assets/39191/18080010/67390d9a-6e48-11e6-98a3-9c8c81b1df67.png" style="width: 80%; margin: 20px auto; display: block;">
 
-            <p>You can share this URL with any users who have both 1) authorized Timeline Viewer to Drive via the typical Google OAuth flow and 2) have <code>Edit</code> permission to the Google Drive file.
+              <p>You can share this URL with any users who have both 1) authorized Timeline Viewer to Drive via the typical Google OAuth flow and 2) have <code>Edit</code> permission to the Google Drive file.
 
-            <img src="https://cloud.githubusercontent.com/assets/39191/18080845/fb39f056-6e4b-11e6-90df-6cda94bd2495.png" style="width: 80%; margin: 20px auto; display: block;">
+              <img src="https://cloud.githubusercontent.com/assets/39191/18080845/fb39f056-6e4b-11e6-90df-6cda94bd2495.png" style="width: 80%; margin: 20px auto; display: block;">
 
-            <p>Afterwards, you can <a href="https://security.google.com/settings/security/permissions?pli=1">revoke</a> authorization entirely.
+              <p>Afterwards, you can <a href="https://security.google.com/settings/security/permissions?pli=1">revoke</a> authorization entirely.
+            </details>
 
         </article>
 
