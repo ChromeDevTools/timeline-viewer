@@ -16,15 +16,17 @@ class DevTools {
       import('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/entrypoints/shell/shell.js'),
       import ('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/entrypoints/worker_app/worker_app.js'),
     ]);
-    const [Root, Common, TraceBounds] = await Promise.all([
+    const [Root, Common, TraceBounds, legacy] = await Promise.all([
     // These shoulda already been fetched i just need a module reference for them
       import('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/core/root/root.js'),
       import('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/core/common/common.js'),
       import('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/services/trace_bounds/trace_bounds.js'),
+      import('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/ui/legacy/legacy.js'),
     ]);
     globalThis.Root = Root;
     globalThis.Common = Common;
     globalThis.TraceBounds = TraceBounds;
+    globalThis.legacy = legacy;
 
     Root.Runtime.experiments._supportEnabled = true;
     Root.Runtime.experiments.isEnabled = name => {
@@ -42,7 +44,7 @@ class DevTools {
     // user can override this in DT settings tho.
     localStorage.setItem('uiTheme', JSON.stringify('default'))
 
-    // Don't show console drawer
+    // Don't show console drawer. This doesn't work but. the `drawerSplitWidget.hideSidebar` later does.
     localStorage.setItem('inspector.drawer-split-view-state', `{"horizontal":{"size":0,"showMode":"OnlyMain"}}`);
     sessionStorage.setItem('inspector.drawer-split-view-state', `{"horizontal":{"size":0,"showMode":"OnlyMain"}}`);
 
@@ -112,7 +114,7 @@ class DevTools {
 
   tweakUI() {
     const tabbedPaneHeaderEl = document
-        .querySelector('.root-view .tabbed-pane')
+        .querySelector('.root-view .main-tabbed-pane')
         ?.shadowRoot
         ?.querySelector('.vbox > .tabbed-pane-header');
 
@@ -140,6 +142,9 @@ class DevTools {
   `;
       // remove buttons from perf panel toolbar
       perfPanelToolbarEl.querySelectorAll('button,div').forEach(elem => elem.remove());
+
+      // hide console drawer
+      legacy.InspectorView.InspectorView.instance().drawerSplitWidget.hideSidebar()
     } catch (e) {
       console.warn('failed to tweak UI', e);
     }
