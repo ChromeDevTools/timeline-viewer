@@ -118,7 +118,7 @@
         // Runtime.startApplication('timelineviewer_app');
         viewerInstance.makeDevToolsVisible(true);
 
-        // Remove any service workers.
+        // Remove any service workers. part 2
         navigator.serviceWorker.getRegistrations().then(registrations => {
             for (const registration of registrations) registration.unregister();
         });
