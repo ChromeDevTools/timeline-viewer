@@ -25,7 +25,7 @@
 <div style="
   background: hsl(54deg 100% 88%);
   padding: 0.5rem 0;
-">Check out <a href="https://trace.cafe">trace.cafe</a>, a 2023-take on this utility.</div>
+">Check out <a href="https://trace.cafe">trace.cafe</a>, a modern take on this utility.</div>
 
 
         <article class="center mw5 mw6-ns br3 ba b--black-10 mv4">
@@ -118,7 +118,7 @@
         // Runtime.startApplication('timelineviewer_app');
         viewerInstance.makeDevToolsVisible(true);
 
-        // Remove any service workers.
+        // Remove any service workers. part 2
         navigator.serviceWorker.getRegistrations().then(registrations => {
             for (const registration of registrations) registration.unregister();
         });

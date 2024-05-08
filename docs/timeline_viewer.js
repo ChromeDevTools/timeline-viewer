@@ -18,9 +18,6 @@ class Viewer {
     this.refreshPage = false;
     this.canUploadToDrive = false;
     this.welcomeView = false;
-    // remote location of devtools we're using
-    // TODO.........
-    this.devtoolsBase = ''; // document.getElementById('devtoolsscript').src.replace(/inspector\.js.*/, '');
 
     this.statusElem = document.getElementById('status');
     this.infoMessageElem = document.getElementById('info-message');
@@ -246,15 +243,6 @@ class Viewer {
   async fetchPatched(...args) {
     const requestedURL = args.at(0);
     const url = new URL(requestedURL, location.href);
-    const URLofViewer = new URL(location.href);
-
-    // hosted devtools gets confused
-    // if DevTools is requesting a file thats on our origin, we'll redirect it to devtoolsBase
-    if (url && url.origin === URLofViewer.origin && (requestedURL !== this.timelineURL)) {
-      const relativeurl = url.pathname.replace(URLofViewer.pathname, '').replace(/^\//, '');
-      const redirectedURL = new URL(relativeurl, this.devtoolsBase);
-      return this._orig_fetch(redirectedURL.toString());
-    }
 
     if (this.timelineProvider === 'drive') {
       return this.driveAssetLoaded.then(payload => payload);
