@@ -12,14 +12,19 @@ class DevTools {
 
     this.monkeyPatchFetch();
 
-    // TODO: paralellize
-    const shell = await import('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/entrypoints/shell/shell.js');
-    const workerApp = await import ('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/entrypoints/worker_app/worker_app.js');
-
+    const [shell, workerApp] = await Promise.all([
+      import('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/entrypoints/shell/shell.js'),
+      import ('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/entrypoints/worker_app/worker_app.js'),
+    ]);
+    const [Root, Common, TraceBounds] = await Promise.all([
     // These shoulda already been fetched i just need a module reference for them
-    globalThis.Root = await import('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/core/root/root.js');
-    globalThis.Common = await import('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/core/common/common.js');
-    globalThis.TraceBounds = await import('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/services/trace_bounds/trace_bounds.js');
+      import('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/core/root/root.js'),
+      import('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/core/common/common.js'),
+      import('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/services/trace_bounds/trace_bounds.js'),
+    ]);
+    globalThis.Root = Root;
+    globalThis.Common = Common;
+    globalThis.TraceBounds = TraceBounds;
 
     Root.Runtime.experiments._supportEnabled = true;
     Root.Runtime.experiments.isEnabled = name => {
@@ -101,25 +106,40 @@ class DevTools {
       }
     };
 
-    setTimeout(_ => this.tweakUI(), 250);
+    this.tweakUI();
   }
 
 
   tweakUI() {
+    const tabbedPaneHeaderEl = document
+        .querySelector('.root-view .tabbed-pane')
+        ?.shadowRoot
+        ?.querySelector('.vbox > .tabbed-pane-header');
+
+    const perfPanelToolbarEl = document.querySelector('.root-view .tabbed-pane > .view-container .timeline-main-toolbar')
+        ?.shadowRoot?.querySelector('.toolbar-shadow');
+    const plzRepeat = _ => setTimeout(_ => this.tweakUI(), 100);
+    if (!tabbedPaneHeaderEl || !perfPanelToolbarEl)  {
+      return plzRepeat();
+    }
+
     try {
       // remove panel tabs
-      const tabbedPaneHeaderEl = document
-          .querySelector('.root-view .tabbed-pane')
-          .shadowRoot
-          .querySelector('.vbox > .tabbed-pane-header');
       tabbedPaneHeaderEl.style.setProperty('--toolbar-bg-color', 'var(--md-sys-color-surface-container-highest)');
       tabbedPaneHeaderEl.innerHTML = '';
 
+      // show lil id of the trace being shown.
+      const viewer = this.viewerInstance;
+      tabbedPaneHeaderEl.textContent = viewer.timelineId
+        ? `${viewer.timelineProvider}: ${viewer.timelineId}`
+        : `${viewer.timelineURL.slice(viewer.timelineURL.lastIndexOf('/') + 1)}`;
+
+      tabbedPaneHeaderEl.style.cssText += `
+  justify-content: center;
+  align-items: center;
+  `;
       // remove buttons from perf panel toolbar
-      document.querySelector('.root-view .tabbed-pane > .view-container .timeline-main-toolbar')
-        .shadowRoot.querySelector('.toolbar-shadow')
-        .querySelectorAll('button,div').
-        forEach(elem => elem.remove());
+      perfPanelToolbarEl.querySelectorAll('button,div').forEach(elem => elem.remove());
     } catch (e) {
       console.warn('failed to tweak UI', e);
     }
