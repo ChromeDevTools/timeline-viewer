@@ -96,7 +96,7 @@
 
     </div>
 
-    <script src="https://apis.google.com/js/client.js" defer></script>
+
     <script src="utils.js" defer></script>
     <script src="auth.js" defer></script>
     <script src="dev_tools.js" defer></script>
@@ -113,10 +113,6 @@
         globalThis.viewerInstance = new Viewer();
 
         viewerInstance.checkAuth({immediate: true});
-
-        // TODO dunno about this
-        // Runtime.startApplication('timelineviewer_app');
-        viewerInstance.makeDevToolsVisible(true);
 
         // Remove any service workers. part 2
         navigator.serviceWorker.getRegistrations().then(registrations => {

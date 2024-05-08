@@ -26,7 +26,6 @@ class Viewer {
     this.networkOfflineStatusElem = document.getElementById('offline-status');
     this.authBtn = document.getElementById('auth');
     this.revokeAccessBtn = document.getElementById('revoke-access');
-    this.docsElem = document.getElementById('howto');
 
     this.auth = new GoogleAuth();
     this.utils = new Utils();
@@ -51,7 +50,6 @@ class Viewer {
     this.welcomeView = !this.timelineURL;
     this.handleDragEvents();
 
-    this.docsElem.hidden = !this.timelineURL;
 
     // Start loading DevTools. (checkAuth will be racing against it)
     this.statusElem.hidden = false;
@@ -155,6 +153,10 @@ class Viewer {
   }
 
   parseURLforTimelineId(url) {
+    if (!url) {
+      this.makeDevToolsVisible(false);
+      return;
+    }
     try {
       const parsedURL = new URL(url);
       if (parsedURL.protocol === 'drive:') {
@@ -167,8 +169,7 @@ class Viewer {
       }
     } catch (e) {
       // legacy URLs, without a drive:// prefix.
-      this.timelineId = decodeURIComponent(url);
-      this.timelineProvider = 'drive';
+      console.warn(e);
     }
   }
 
@@ -195,7 +196,7 @@ class Viewer {
 
   makeDevToolsVisible(bool) {
     this.welcomeView = !bool;
-    document.documentElement.classList[bool ? 'remove' : 'add']('hide-devtools');
+    document.documentElement.classList.toggle('hide-devtools', this.welcomeView);
   }
 
   updateStatus(str) {
@@ -204,9 +205,13 @@ class Viewer {
 
   checkAuth() {
     const handleAuth = this.handleAuthResult.bind(this);
-    this.auth.checkAuth(handleAuth);
-
-    return false;
+    // Defer a tad so devtools load can reliably start first
+    const script = document.createElement('script');
+    script.src = 'https://apis.google.com/js/client.js';
+    script.onload = _ => {
+      this.auth.checkAuth(handleAuth);
+    };
+    document.body.append(script);
   }
 
   revokeAccess() {
@@ -224,7 +229,7 @@ class Viewer {
       this.updateStatus('Drive API status: not signed in');
 
       this.authBtn.hidden = false;
-      this.docsElem.hidden = false;
+
       this.canUploadToDrive = false;
       this.makeDevToolsVisible(false);
       return new Error('Google auth error');
@@ -244,13 +249,14 @@ class Viewer {
     const requestedURL = args.at(0);
     const url = new URL(requestedURL, location.href);
 
-    if (this.timelineProvider === 'drive') {
-      return this.driveAssetLoaded.then(payload => payload);
-    }
-
     // pass through URLs that aren't our timelineURL param
     if (requestedURL !== this.timelineURL) {
       return this._orig_fetch.apply(window, args);
+    }
+
+    // This is comign from devtools starting its own fetch but we're gonna do an alleyoop through existing metadatastuff.
+    if (this.timelineProvider === 'drive') {
+      return this.driveAssetLoaded.then(payload => new Response(payload));
     }
 
     // adjustments for CORS
