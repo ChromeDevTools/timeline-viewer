@@ -372,22 +372,20 @@ class Viewer {
         this.netReqMuted = true;
         this.devTools.monkepatchSetMarkers();
       }
-
     } catch (e) {}
   }
 
   async uploadTimelineData() {
     const panel = await legacy.InspectorView.InspectorView.instance().panel('timeline');
-    const events = panel.getTraceEngineRawTraceEventsForLayoutTests();
-    // TODO: use proper saveToFile flow with better json formatting and a LEGIT METADATA OBJECT
-    const str = JSON.stringify(events);
-    this.uploadData(str);
+    // TODO: use proper saveToFile flow with better json formatting and its final tweaks to metadata.
+    this.uploadData(this.devTools.payload);
   }
 
   uploadData(traceData) {
     this.toggleUploadToDriveElem(false);
+    const str = JSON.stringify(traceData);
     this.showInfoMessage('Uploading trace on Google Drive ...');
-    this.gdrive.uploadData(`Timeline-data-${Date.now()}`, traceData)
+    this.gdrive.uploadData(`Timeline-data-${traceData.metadata?.startTime ?? Date.now()}.json`, str)
       .then(data => {
         if (data.error) throw data.error;
         else return data;

@@ -40,15 +40,21 @@ class DevTools {
     const oldTimeEnd = Main.Main.instanceForTest.constructor.timeEnd;
     const {promise, resolve} = Promise.withResolvers();
     Main.Main.instanceForTest.constructor.timeEnd = label => {
-      if (label === 'Main._showAppUI') {
-        // extra delay because... i dont know.
-        // setTimeout(resolve, 50);
-        resolve();
-      }
+      if (label === 'Main._showAppUI') resolve();
       oldTimeEnd(label);
     };
     await promise;
 
+    // Hijack to get access to the trace events.
+    const panel = await legacy.InspectorView.InspectorView.instance().panel('timeline');
+    const oldLoadingComplete = panel.loadingComplete;
+    panel.loadingComplete = ((collectedEvents, tracingModel, filter, isCpuProfile, metadata) => {
+      this.payload = {
+        metadata,
+        traceEvents: collectedEvents,
+      };
+      oldLoadingComplete.apply(panel, [collectedEvents, tracingModel, filter, isCpuProfile, metadata]);
+    });
 
     // thx test_setup.ts
     // const storage = new Common.Settings.SettingsStorage({}, Common.Settings.NOOP_STORAGE, 'test');

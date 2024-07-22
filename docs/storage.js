@@ -5,7 +5,7 @@ class GoogleDrive {
   constructor() {
     this.utils = new Utils();
   }
-  uploadData(fileName = `Timeline-data-${Date.now()}`, data) {
+  uploadData(fileName = `Timeline-data-${Date.now()}.json`, data) {
     const contentType = 'application/octet-stream';
 
     const fileMetadata = {
