@@ -19,8 +19,7 @@
     "eslint-config-google": "^0.14.0",
     "eslint-plugin-cypress": "^2.10.3",
     "http-server": "^0.12.1",
-    "opn-cli": "^5.0.0",
-    "pre-push": "^0.1.1"
+    "opn-cli": "^5.0.0"
   },
   "dependencies": {},
   "directories": {
