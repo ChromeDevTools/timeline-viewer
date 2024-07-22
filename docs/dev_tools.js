@@ -10,23 +10,51 @@ class DevTools {
 
   async init() {
 
+    if (globalThis.legacy && globalThis.TraceBounds) {
+      console.warn('do not init devtools again');
+      return;
+    }
+
     this.monkeyPatchFetch();
 
     const [shell, workerApp] = await Promise.all([
       import('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/entrypoints/shell/shell.js'),
       import ('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/entrypoints/worker_app/worker_app.js'),
     ]);
-    const [Root, Common, TraceBounds, legacy] = await Promise.all([
+    const [Root, Common, TraceBounds, legacy, ThemeSupport] = await Promise.all([
     // These shoulda already been fetched i just need a module reference for them
       import('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/core/root/root.js'),
       import('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/core/common/common.js'),
       import('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/services/trace_bounds/trace_bounds.js'),
       import('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/ui/legacy/legacy.js'),
+      import('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/ui/legacy/theme_support/theme_support.js'),
+      // import('https://chrome-devtools-frontend.appspot.com/serve_rev/@70f00f477937b61ba1876a1fdbf9f2e914f24fe3/panels/UI/UI.js'),
     ]);
     globalThis.Root = Root;
     globalThis.Common = Common;
     globalThis.TraceBounds = TraceBounds;
     globalThis.legacy = legacy;
+    // globalThis.UI = UI;
+
+    // Await showAppUI so we know localefetching etc is done before we start...
+    const oldTimeEnd = Main.Main.instanceForTest.constructor.timeEnd;
+    const {promise, resolve} = Promise.withResolvers();
+    Main.Main.instanceForTest.constructor.timeEnd = label => {
+      if (label === 'Main._showAppUI') {
+        // extra delay because... i dont know.
+        // setTimeout(resolve, 50);
+        resolve();
+      }
+      oldTimeEnd(label);
+    };
+    await promise;
+
+
+    // thx test_setup.ts
+    // const storage = new Common.Settings.SettingsStorage({}, Common.Settings.NOOP_STORAGE, 'test');
+    // const fakeSetting =  new Common.Settings.Setting('theme', 'default', new Common.ObjectWrapper.ObjectWrapper(), storage);
+    // ThemeSupport.ThemeSupport.instance({forceNew: true, setting: fakeSetting});
+
 
     Root.Runtime.experiments._supportEnabled = true;
     Root.Runtime.experiments.isEnabled = name => {
@@ -134,7 +162,7 @@ class DevTools {
       const viewer = this.viewerInstance;
       tabbedPaneHeaderEl.textContent = viewer.timelineId
         ? `${viewer.timelineProvider}: ${viewer.timelineId}`
-        : `${viewer.timelineURL.slice(viewer.timelineURL.lastIndexOf('/') + 1)}`;
+        : `${viewer.timelineURL?.slice(viewer.timelineURL.lastIndexOf('/') + 1)}`;
 
       tabbedPaneHeaderEl.style.cssText += `
   justify-content: center;

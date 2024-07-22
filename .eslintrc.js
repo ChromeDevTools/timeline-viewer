@@ -14,6 +14,7 @@ module.exports = {
     gapi: true,
     Bindings: true,
     Common: true,
+    legacy: true,
     DevTools: true,
     GoogleAuth: true,
     GoogleDrive: true,

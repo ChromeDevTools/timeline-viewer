@@ -116,12 +116,13 @@ class Viewer {
     this.infoMessageElem.hidden = true;
   }
 
-  dragover(e) {
+  async dragover(e) {
     e.stopPropagation();
     e.preventDefault();
     this.makeDevToolsVisible(true);
-    // we fair that all timeline resources are uploaded
-    UI.inspectorView.showPanel('timeline').then(_ => {
+
+    await this.devTools.init();
+    legacy.InspectorView.InspectorView.instance().showPanel('timeline').then(_ => {
       this.toggleUploadToDriveElem(this.canUploadToDrive);
     });
   }
@@ -351,36 +352,36 @@ class Viewer {
     xhr.setRequestHeader('Authorization', `Bearer ${GoogleAuth.getUserAccessToken()}`);
   }
 
-  updateProgress(evt) {
+  async updateProgress(evt) {
     try {
       this.updateStatus(`Download progress: ${((evt.loaded / this.totalSize) * 100).toFixed(2)}%`);
 
-      UI.inspectorView.showPanel('timeline').then(_ => {
-        const panel = Timeline.TimelinePanel.instance();
-        // start progress
-        if (!this.loadingStarted) {
-          this.loadingStarted = true;
-          panel && panel.loadingStarted();
-        }
+      await legacy.InspectorView.InspectorView.instance().showPanel('timeline');
+      const panel = await legacy.InspectorView.InspectorView.instance().panel('timeline');
+      // start progress
+      if (!this.loadingStarted) {
+        this.loadingStarted = true;
+        panel && panel.loadingStarted();
+      }
 
-        // update progress
-        panel && panel.loadingProgress(evt.loaded / (evt.total || this.totalSize));
+      // update progress
+      panel && panel.loadingProgress(evt.loaded / (evt.total || this.totalSize));
 
-        // flip off filmstrip or network if theres no data in the trace
-        if (!this.netReqMuted) {
-          this.netReqMuted = true;
-          this.devTools.monkepatchSetMarkers();
-        }
-      });
+      // flip off filmstrip or network if theres no data in the trace
+      if (!this.netReqMuted) {
+        this.netReqMuted = true;
+        this.devTools.monkepatchSetMarkers();
+      }
+
     } catch (e) {}
   }
 
-  uploadTimelineData() {
-    const panel = Timeline.TimelinePanel.instance();
-    const bs = panel._performanceModel._tracingModel.backingStorage();
-    return bs._file.read().then(str => {
-      this.uploadData(str);
-    });
+  async uploadTimelineData() {
+    const panel = await legacy.InspectorView.InspectorView.instance().panel('timeline');
+    const events = panel.getTraceEngineRawTraceEventsForLayoutTests();
+    // TODO: use proper saveToFile flow with better json formatting and a LEGIT METADATA OBJECT
+    const str = JSON.stringify(events);
+    this.uploadData(str);
   }
 
   uploadData(traceData) {
