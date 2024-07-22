@@ -223,8 +223,6 @@ class Viewer {
   }
 
   handleAuthResult() {
-    if (this.timelineProvider !== 'drive') return;
-
     if (this.auth.isSignedIn() === false) {
       this.updateStatus('Drive API status: not signed in');
 
