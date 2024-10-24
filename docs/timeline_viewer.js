@@ -333,7 +333,7 @@ class Viewer {
 
   fetchTimelineAsset(url, addRequestHeaders = Function.prototype, method = 'GET', body) {
     this.loadingStarted = false;
-    return this.utils.fetch(url, {
+    return this.utils.fetch(url.replace('/o/traces/', '/o/traces%2F'), {
       url, addRequestHeaders: addRequestHeaders.bind(this), method, body,
       onprogress: this.updateProgress.bind(this),
     }, true)
