@@ -332,13 +332,13 @@ class Viewer {
   }
 
   fetchTimelineAsset(url, addRequestHeaders = Function.prototype, method = 'GET', body) {
-    this.netReqMuted = false;
     this.loadingStarted = false;
     return this.utils.fetch(url, {
       url, addRequestHeaders: addRequestHeaders.bind(this), method, body,
       onprogress: this.updateProgress.bind(this),
     }, true)
       .then(xhr => {
+        this.makeDevToolsVisible(true);
         return new Response(xhr.responseText);
       })
       .catch(({error, xhr}) => {
@@ -367,12 +367,9 @@ class Viewer {
       // update progress
       panel && panel.loadingProgress(evt.loaded / (evt.total || this.totalSize));
 
-      // flip off filmstrip or network if theres no data in the trace
-      if (!this.netReqMuted) {
-        this.netReqMuted = true;
-        this.devTools.monkepatchSetMarkers();
-      }
-    } catch (e) {}
+    } catch (e) {
+      console.warn(e);
+    }
   }
 
   async uploadTimelineData() {
@@ -400,6 +397,7 @@ class Viewer {
       .catch(_ => {
         this.toggleUploadToDriveElem(this.canUploadToDrive);
         this.showInfoMessage('Trace was not uploaded on Google Drive :(');
+        console.warn(_);
       });
   }
 
