@@ -245,8 +245,9 @@ class Viewer {
 
   // monkeypatched method for devtools
   async fetchPatched(...args) {
-    const requestedURL = args.at(0);
-    const url = new URL(requestedURL, location.href).replace('/o/traces/', '/o/traces%2F');
+    const requestedURL = args.at(0).replace('/o/traces/', '/o/traces%2F');
+    args[0] = requestedURL;
+    const url = new URL(requestedURL, location.href);
 
     // pass through URLs that aren't our timelineURL param
     if (requestedURL !== this.timelineURL) {
