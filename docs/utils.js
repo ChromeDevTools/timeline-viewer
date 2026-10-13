@@ -4,11 +4,9 @@
 class Utils {
   fetch(url, params, CORSFlag = false) {
     if (CORSFlag) {
-      // see #63
-      return this.doCORSRequest(url, params.method, params.body, params.addRequestHeaders, params.onprogress).catch(_ => {
-        // Reattempting with credentials, in case of JWT folks, etc.
-        return this.doCORSRequest(url, params.method, params.body, params.addRequestHeaders, params.onprogress, true);
-      });
+      // see #63. Do NOT retry with credentials: the URL is attacker-controlled
+      // (?loadTimelineFromURL=), so a credentialed retry leaks ambient cookies.
+      return this.doCORSRequest(url, params.method, params.body, params.addRequestHeaders, params.onprogress);
     } else {
       return fetch(url, params);
     }
