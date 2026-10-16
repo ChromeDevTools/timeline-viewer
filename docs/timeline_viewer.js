@@ -168,6 +168,13 @@ class Viewer {
         this.timelineProvider = 'drive';
         this.timelineId = parsedURL.pathname.match(/\b[0-9a-zA-Z]{5,40}\b/)[0];
       }
+      // Drive file IDs are strictly [A-Za-z0-9_-]. Reject anything else so the
+      // id cannot steer the googleapis.com request path in requestDriveFileMeta().
+      if (this.timelineProvider === 'drive' && !/^[\w-]{10,100}$/.test(this.timelineId || '')) {
+        console.warn('Rejecting invalid Drive file id', this.timelineId);
+        this.timelineId = null;
+        this.makeDevToolsVisible(false);
+      }
     } catch (e) {
       // legacy URLs, without a drive:// prefix.
       console.warn(e);
@@ -270,7 +277,7 @@ class Viewer {
     // if there's no this.timelineId then let's skip all this drive API stuff.
     if (!this.timelineId) return;
 
-    const url = new URL(`https://www.googleapis.com/drive/v2/files/${this.timelineId}`);
+    const url = new URL(`https://www.googleapis.com/drive/v2/files/${encodeURIComponent(this.timelineId)}`);
     url.searchParams.append('fields', 'version, downloadUrl, copyable, title, originalFilename, fileSize');
     url.searchParams.append('key', GoogleAuth.apiKey);
 
