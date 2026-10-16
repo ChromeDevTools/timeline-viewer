@@ -1,137 +1,169 @@
 <!DOCTYPE html>
-<html class="hide-devtools">
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <title>DevTools Timeline Viewer</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>DevTools Timeline Viewer &rarr; trace.cafe</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: light-dark(#fafbfc, #0d1117);
+      --surface: light-dark(#ffffff, #161b22);
+      --border: light-dark(#e1e4e8, #30363d);
+      --text: light-dark(#1f2328, #e6edf3);
+      --muted: light-dark(#59636e, #8b949e);
+      --link: light-dark(#0969da, #58a6ff);
+      --btn-bg: light-dark(#1f2328, #f0f6fc);
+      --btn-text: light-dark(#ffffff, #0d1117);
+      --btn-hover: light-dark(#32383f, #d0d7de);
+      --code-bg: light-dark(#eff1f3, #21262d);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-block-size: 100vb;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      text-wrap: pretty;
+    }
+
+    main {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      max-inline-size: 620px;
+      inline-size: 100%;
+      padding: 36px 40px 32px;
+      box-shadow: 0 2px 10px light-dark(rgba(0, 0, 0, 0.04), rgba(0, 0, 0, 0.25));
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 650;
+      letter-spacing: -0.015em;
+      margin: 0 0 12px;
+      text-wrap: balance;
+    }
+
+    p {
+      margin: 0 0 16px;
+      font-size: 15px;
+      color: var(--muted);
+    }
+
+    p a {
+      color: var(--link);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    p a:hover {
+      text-decoration: underline;
+    }
+
+    ul {
+      margin: 0 0 28px;
+      padding-inline-start: 20px;
+      font-size: 14.5px;
+      color: var(--text);
+    }
+
+    li {
+      margin-block-end: 8px;
+      padding-inline-start: 4px;
+    }
+
+    li::marker {
+      color: var(--muted);
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.9em;
+      background-color: var(--code-bg);
+      padding: 2px 5px;
+      border-radius: 4px;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-block-start: 20px;
+      border-block-start: 1px solid var(--border);
+    }
+
+    .cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 18px;
+      font-size: 14.5px;
+      font-weight: 550;
+      color: var(--btn-text);
+      background-color: var(--btn-bg);
+      border-radius: 6px;
+      text-decoration: none;
+      transition: background-color 120ms ease;
+    }
+
+    .cta:hover {
+      background-color: var(--btn-hover);
+    }
+
+    .gh-link {
+      color: var(--muted);
+      opacity: 0.55;
+      display: inline-flex;
+      padding: 6px;
+      border-radius: 6px;
+      transition: opacity 120ms ease, color 120ms ease;
+    }
+
+    .gh-link:hover {
+      opacity: 1;
+      color: var(--text);
+    }
+
+    .gh-link svg {
+      inline-size: 20px;
+      block-size: 20px;
+      fill: currentColor;
+    }
+  </style>
 </head>
 <body>
-    <div class="top-message-container">
-      <div class="top-message info-message" id="info-message" hidden></div>
-      <div class="top-message online-status-message bg-green" id="online-status" hidden>Online</div>
-      <div class="top-message offline-status-message bg-orange" id="offline-status" hidden>Offline</div>
-      <div class="top-message upload-btn bg-green" id="upload-to-drive" hidden>Upload to drive</div>
-      <div class="top-message upload-btn bg-green" id="update-version" hidden>Update version</div>
+  <main>
+    <h1>DevTools Timeline Viewer is sunset</h1>
+    <p>
+      This project is retired. For viewing and sharing performance profiles, we recommend <a href="https://trace.cafe/">☕ trace.cafe</a>:
+    </p>
+    <ul>
+      <li>Drag-and-drop any trace (<code>.json</code> or <code>.gz</code>) for an instant shareable link.  Links good for a year.</li>
+      <li>Runs an up-to-date DevTools front-end</li>
+      <li>One-click toggle to inspect the same trace in Perfetto UI</li>
+    </ul>
+    <div class="actions">
+      <a class="cta" href="https://trace.cafe/">Go to trace.cafe &rarr;</a>
+      <a class="gh-link" href="https://github.com/ChromeDevTools/timeline-viewer" title="GitHub repository" aria-label="GitHub repository">
+        <svg viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+        </svg>
+      </a>
     </div>
-    <div class="welcome w-100 sans-serif bg-white" id="dropbox">
-        <h1 class="f2 f-subheadline-ns mb0">
-            DevTools Timeline Viewer
-        </h1>
-        <h4 class="gray f6 mb4 ttu tracked">
-            Shareable URLs for your Chrome DevTools Performance traces.
-        </h4>
-
-
-<div style="
-  background: hsl(54deg 100% 88%);
-  padding: 0.5rem 0;
-">Check out <a href="https://trace.cafe">trace.cafe</a>, a modern take on this utility.</div>
-
-
-        <article class="center mw5 mw6-ns br3 ba b--black-10 mv4">
-            <h3 class="f4 bg-near-white br3 br--top black-60 mv0 pv2 ph3">View public traces</h3>
-            <div class="pa3 bt b--black-10 f6 f5-ns lh-copy">
-                <form>
-                    <input type="text" name=url id="enterurl" placeholder="Enter URL of raw Gist or CORS-enabled JSON" class="w-80">
-                    <input type="submit" class="btn btn--s btn--gray" value="OK">
-                    <small class="db black-50">
-                        Works with
-                        <em>GitHub raw gists</em>
-                        (<a href="?loadTimelineFromURL=https://gist.githubusercontent.com/paulirish/5b5d6bdcfde557ff3eec4571dc6a0485/raw/07bc7905441e45e1e1dc751cf09c3d640ab46fc0/hello-opp.trace.json">example</a>)
-                        or any file available over CORS.
-                    </small>
-                    <br>
-                    <input type="text" name=url2 id="enterurl2" placeholder="Enter another (optionally) for comparison" class="w-80">
-                    <small class="db black-50">
-                        Multiple URLS will generate a <a href="./?loadTimelineFromURL=https://gist.github.com/paulirish/f5189879b4882a8de6638b1007fbd6c5/raw/0dfff42bdba4796459e030c518e43298598e2e5d/devtools-scrolling-datagrid-m89.json&loadTimelineFromURL=https://gist.githubusercontent.com/paulirish/f5189879b4882a8de6638b1007fbd6c5/raw/0dfff42bdba4796459e030c518e43298598e2e5d/devtools-scrolling-datagrid-m122.json">split view</a> with a synchronized timescale.
-                    </small>
-                </form>
-            </div>
-        </article>
-
-        <article id="howto" class="mw7  tl" style="margin-top: 105px; margin: 0 auto;">
-
-            <h3 class="f4 br3 br--top black-60 pv2 mb0">Wanna compare traces?</h3>
-            <p>Enter multiple URLs, seperated by commas. Once you select a timerange in one of the traces, the other viewers will automatically zoom to the same size timerange, for easy comparison.</p>
-            <img src="https://cloud.githubusercontent.com/assets/6231516/26029813/34525ec6-3847-11e7-9663-a42b69fa5d8d.gif" style="width: 80%; margin: 20px auto; display: block;">
-
-            <hr>
-            <h3 class="f4 br3 br--top black-60 pv2 mb0">Privacy</h3>
-            <p>No data is stored by this app; it's clientside only. Visit your <a href="https://security.google.com/settings/security/permissions?pli=1">Google security permissions</a> if you'd like to revoke authorization.
-
-          <hr>
-
-          <details>
-            <summary>
-              <h4 class="f4 br3 br--top black-60 pv2 mb0" style="display: inline;">Google Drive Integration (very optional)</h4>
-            </summary>
-
-              <article class="center mw7-ns br3 ba b--black-10 mv4">
-
-                <div class="pa3 bt b--black-10 f6 f5-ns lh-copy">
-                  <div class=gdrive>
-                      <p id="status">Checking for Drive API authorization...</p>
-                      <button class="btn btn--s btn--green" id="auth" hidden>Authorize Drive API access</button>
-                      <button class="btn btn--s btn--yellow" id="revoke-access" hidden>Revoke API Access</button>
-                  </div>
-                </div>
-            </article>
-
-              <p>Once authorized, you'll see Timeline Viewer as a registered Google Drive viewer when opening <code>.json</code> files.
-              Once you select the Timeline Viewer, it will open in a new tab and load the timeline asset from your Drive.</p>
-
-              <img src="https://cloud.githubusercontent.com/assets/39191/18080010/67390d9a-6e48-11e6-98a3-9c8c81b1df67.png" style="width: 80%; margin: 20px auto; display: block;">
-
-              <p>You can share this URL with any users who have both 1) authorized Timeline Viewer to Drive via the typical Google OAuth flow and 2) have <code>View</code> permission to the Google Drive file.
-
-              <img src="https://cloud.githubusercontent.com/assets/39191/18080845/fb39f056-6e4b-11e6-90df-6cda94bd2495.png" style="width: 80%; margin: 20px auto; display: block;">
-
-              <p>Afterwards, you can <a href="https://security.google.com/settings/security/permissions?pli=1">revoke</a> authorization entirely.
-            </details>
-
-        </article>
-
-
-        <small class="f6 gray dib mr3 mr4-ns mv4">Contribute! <a class="link dim" href="https://github.com/ChromeDevTools/timeline-viewer">github.com/ChromeDevTools/timeline-viewer</a></small>
-
-    </div>
-
-
-    <script src="utils.js" defer></script>
-    <script src="auth.js" defer></script>
-    <script src="dev_tools.js" defer></script>
-    <script src="sync_view.js" defer></script>
-    <script src="storage.js" defer></script>
-    <script src="timeline_viewer.js" defer></script>
-    <script>
-      document.addEventListener('DOMContentLoaded', () => {
-        // only works in Chrome because browser devtools
-        if (!window.chrome) {
-          document.getElementById('status').textContent = 'Sorry y\'all, Chrome required to view traces.';
-          return;
-        }
-        globalThis.viewerInstance = new Viewer();
-
-        viewerInstance.checkAuth({immediate: true});
-
-        // Remove any service workers. part 2
-        navigator.serviceWorker.getRegistrations().then(registrations => {
-            for (const registration of registrations) registration.unregister();
-        });
-      });
-    </script>
-
-
-    <body class="undocked" id="-blink-dev-tools"></body>
-
-    <script>
-      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-
-      ga('create', 'UA-60854461-2', 'auto');
-      ga('send', 'pageview');
-  </script>
+  </main>
 </body>
 </html>

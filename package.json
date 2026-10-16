@@ -1,40 +1,12 @@
 {
   "name": "timeline-viewer",
   "version": "1.0.0",
-  "description": "Works with public github urls, github gists, and files on google drive (once authenticated).",
-  "main": "src/index.js",
-  "scripts": {
-    "test": "kill $(lsof -t -i:8838) & npm run server:test & cypress run --browser chrome",
-    "dev": "open-cli http://localhost:8833/ && npm run server",
-    "server": "http-server docs -a localhost -p 8833 -s",
-    "server:test": "http-server docs -a localhost -p 8838 -s",
-    "start": "npm run server",
-    "lint": "[ \"$CI\" = true ] && eslint --quiet -f codeframe . || eslint ."
-  },
-  "author": "Paul Irish",
-  "license": "Apache-2.0",
-  "devDependencies": {
-    "cypress": "^4.0.2",
-    "eslint": "^6.8.0",
-    "eslint-config-google": "^0.14.0",
-    "eslint-plugin-cypress": "^2.10.3",
-    "http-server": "^0.12.1",
-    "opn-cli": "^5.0.0"
-  },
-  "dependencies": {},
-  "directories": {
-    "doc": "docs"
-  },
+  "private": true,
+  "description": "DevTools Timeline Viewer (sunset - superseded by trace.cafe)",
+  "homepage": "https://trace.cafe/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ChromeDevTools/timeline-viewer.git"
   },
-  "keywords": [
-    "devtools",
-    "chrome"
-  ],
-  "bugs": {
-    "url": "https://github.com/ChromeDevTools/timeline-viewer/issues"
-  },
-  "homepage": "https://github.com/ChromeDevTools/timeline-viewer#readme"
+  "license": "Apache-2.0"
 }
