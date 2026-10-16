@@ -291,7 +291,7 @@ class Viewer {
       this.makeDevToolsVisible(false);
       const reasons = error.errors.map(e => e.reason);
       let fileUnavailableStr = '';
-      fileUnavailableStr += reasons.includes('notFound') ? 'Confirm you have Edit permissions to the file. ' : '';
+      fileUnavailableStr += reasons.includes('notFound') ? 'Confirm you have View permissions to the file. ' : '';
       if (reasons.includes('authError')) {
         fileUnavailableStr += 'Please sign in. ';
         this.authBtn.hidden = false;
@@ -302,7 +302,7 @@ class Viewer {
 
     if (!response.downloadUrl) {
       this.makeDevToolsVisible(false);
-      this.updateStatus('Downloading not available. Confirm you have Edit permissions to the file.');
+      this.updateStatus('Downloading not available. Confirm you have View permissions to the file.');
       throw new Error(response.message, response.error);
     }
 
@@ -374,6 +374,9 @@ class Viewer {
   }
 
   async uploadTimelineData() {
+    if (!window.confirm('Upload this trace to Google Drive? Anyone with the link will be able to view it.')) {
+      return;
+    }
     const panel = await legacy.InspectorView.InspectorView.instance().panel('timeline');
     // TODO: use proper saveToFile flow with better json formatting and its final tweaks to metadata.
     this.uploadData(this.devTools.payload);

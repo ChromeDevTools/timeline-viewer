@@ -51,7 +51,7 @@ class GoogleDrive {
     });
     return new Promise(resolve => request.execute(resolve));
   }
-  insertPermission(fileId, type = 'anyone', role = 'writer') {
+  insertPermission(fileId, type = 'anyone', role = 'reader') {
     const url = new URL(`https://www.googleapis.com/drive/v2/files/${fileId}/permissions`);
     const body = {
       role: role,
